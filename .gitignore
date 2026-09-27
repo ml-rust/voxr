@@ -1,0 +1,14 @@
+# Rust build artifacts
+/target/
+
+# Local cargo overrides
+.cargo/*
+!.cargo/config.toml.example
+
+# spaCy tagger weights read at run time by voxr's EnglishTagger::from_dir
+# (assets/spacy_en/convert_tagger.py); a stray pack into assets must not commit.
+crates/voxr/assets/spacy_en/tagger.safetensors
+crates/voxr/assets/spacy_en/tagger.json
+
+# Reference materials, not committed.
+research/
