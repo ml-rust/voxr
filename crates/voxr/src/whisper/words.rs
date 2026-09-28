@@ -12,12 +12,12 @@
 
 use splintr::AnyTokenizer;
 
-/// One word's text and time span, seconds.
+/// One word's text and time span, seconds rounded to hundredths.
 #[derive(Debug, Clone, PartialEq)]
 pub struct WordTiming {
     pub text: String,
-    pub start: f32,
-    pub end: f32,
+    pub start: f64,
+    pub end: f64,
 }
 
 /// Languages HF treats as not using spaces to separate words: it splits these
@@ -259,11 +259,18 @@ pub fn collate_word_timestamps(
             let end = full_token_timestamps.get(prefix_len + last).copied()?;
             Some(WordTiming {
                 text: word.clone(),
-                start,
-                end,
+                start: hundredths(start),
+                end: hundredths(end),
             })
         })
         .collect()
+}
+
+/// A token timestamp in seconds, rounded to hundredths as f64: HF's
+/// pipeline `round(t, 2)`. A step time is `index * 0.02` in f32, so the
+/// widened f32 alone puts 10.72 - 10.64 just under 0.08.
+fn hundredths(t: f32) -> f64 {
+    (f64::from(t) * 100.0).round() / 100.0
 }
 
 #[cfg(test)]
@@ -329,6 +336,16 @@ mod tests {
         assert_eq!(timings.len(), 1);
         assert_eq!(timings[0].start, 0.0); // full_ts[4 - 1 + 0] = full_ts[3]
         assert_eq!(timings[0].end, 1.2); // full_ts[4 + 2] = full_ts[6]
+    }
+
+    #[test]
+    fn collated_times_are_exact_hundredths() {
+        let full_ts = [0.0f32, 532.0 * 0.02, 536.0 * 0.02, 536.0 * 0.02];
+        let words = vec!["the".to_string()];
+        let timings = collate_word_timestamps(&words, &[vec![0usize]], &full_ts, 2);
+        assert_eq!(timings[0].start, 10.64);
+        assert_eq!(timings[0].end, 10.72);
+        assert!(timings[0].end - timings[0].start >= 0.08);
     }
 
     #[test]

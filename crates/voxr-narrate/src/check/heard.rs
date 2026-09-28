@@ -19,8 +19,8 @@ impl From<&voxr::WordTiming> for HeardWord {
     fn from(w: &voxr::WordTiming) -> Self {
         Self {
             text: w.text.clone(),
-            start: f64::from(w.start),
-            end: f64::from(w.end),
+            start: w.start,
+            end: w.end,
         }
     }
 }

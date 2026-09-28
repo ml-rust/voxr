@@ -133,8 +133,8 @@ struct Oracle {
 #[derive(Debug, Clone, Deserialize, PartialEq)]
 struct WordFixture {
     text: String,
-    start: f32,
-    end: f32,
+    start: f64,
+    end: f64,
 }
 
 /// `layer{L}_head{H}` -> `(L, H)`.
@@ -541,11 +541,11 @@ fn run_case(model: &str, clip: &str) {
             &full_token_timestamps,
             prefix_len,
         );
-        let got_words: Vec<(String, f32, f32)> = word_timings
+        let got_words: Vec<(String, f64, f64)> = word_timings
             .into_iter()
             .map(|w| (w.text, w.start, w.end))
             .collect();
-        let want_words: Vec<(String, f32, f32)> = oracle
+        let want_words: Vec<(String, f64, f64)> = oracle
             .words_from_generate
             .iter()
             .map(|w| (w.text.clone(), w.start, w.end))

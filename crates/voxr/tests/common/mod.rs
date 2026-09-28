@@ -253,9 +253,9 @@ pub fn check_close_f32(
 /// helper carries no dependency on any particular word-timing type.
 pub fn check_word_timings(
     label: &str,
-    got: &[(String, f32, f32)],
-    want: &[(String, f32, f32)],
-    time_tol: f32,
+    got: &[(String, f64, f64)],
+    want: &[(String, f64, f64)],
+    time_tol: f64,
     failures: &mut Vec<String>,
 ) {
     if got.len() != want.len() {
