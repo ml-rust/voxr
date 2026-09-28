@@ -4,6 +4,7 @@
 pub mod chunk;
 pub mod numbers;
 pub mod phrase;
+pub mod review;
 pub mod script;
 pub mod tags;
 pub mod written;
@@ -11,6 +12,7 @@ pub mod written;
 pub use chunk::{Chunk, ChunkOptions, chunks};
 pub use numbers::{is_number_word, numbers_in, spoken_numbers, written_numbers};
 pub use phrase::{PAUSES, Pauses, Phrase, PhraseKind, phrases};
+pub use review::{ReviewNote, ReviewOptions, review};
 pub use script::{
     Cue, ScriptSource, TimedCue, parse_subtitles, parse_timed_script, read_script, script_source,
 };

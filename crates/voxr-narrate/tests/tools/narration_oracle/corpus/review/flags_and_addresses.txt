@@ -1,0 +1,4 @@
+Run --out build.tar.gz now.
+Email me at user.name@example.com or visit https://example.com/docs for v2 details.
+Follow @openai for updates, or read the README.md file.
+Version 3 shipped on schedule with no surprises here.

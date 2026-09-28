@@ -8,13 +8,15 @@
 //! a description or prepared from a user's recording, and kept in the cache.
 //! Also the kept takes shaped and joined into the voiceover, with each
 //! phrase's span and each part's check, heat and marks. Also the take
-//! cache on disk, and a whole VoxCPM2 run from script to voiceover.
+//! cache on disk, and a whole VoxCPM2 run from script to voiceover. Also
+//! which engine, model, voice and speed a run resolves to speak with.
 
 pub mod anchor;
 pub mod anchor_files;
 mod anchor_step;
 pub mod cache;
 pub mod engine;
+pub mod engine_choice;
 pub mod files;
 pub mod hear;
 pub mod join;
@@ -25,6 +27,7 @@ pub mod pace;
 pub mod pick;
 pub mod seed;
 pub mod speak;
+pub mod speak_resolve;
 pub mod speak_setup;
 pub mod speak_step;
 pub mod split;
@@ -47,6 +50,7 @@ pub use engine::{
     CloneReference, Graded, SpeakRequest, SpeechEngine, Take, TakeJudge, TakeSpec, TakeStore,
     VoiceSource,
 };
+pub use engine_choice::{DEFAULT_VOICE, DefaultEngineOpts, Engine, KOKORO_MODEL, default_engine};
 pub use files::{
     DEFAULT_SEED, PhrasesFile, ReadTakes, ResolvedSeed, TakesFile, chosen_takes, output_text_file,
     phrases_file, read_takes_file, resolve_seed, script_text_file, takes_file, voice_output_file,
@@ -63,6 +67,7 @@ pub use pace::{
 pub use pick::{ATTEMPTS, PickSetup, RETRY_STEP, TakeLoop};
 pub use seed::text_seed;
 pub use speak::{WHOLE_MAX, speak_voxcpm};
+pub use speak_resolve::{EngineChoice, SpeakOpts, SpeakResolution, TtsConfig, resolve_speak};
 pub use speak_setup::{VoiceReference, VoxcpmRun, VoxcpmSetup};
 pub use speak_step::SpeakStep;
 pub use split::{BestTakes, SPLIT_ROUNDS, break_up};

@@ -41,6 +41,12 @@ pub(crate) fn utf16_len(s: &str) -> usize {
     s.encode_utf16().count()
 }
 
+/// A language tag beginning `en`, case-insensitive over ASCII (`/^en/i`):
+/// the prefix English speech and narration checks read by.
+pub(crate) fn starts_with_en(s: &str) -> bool {
+    s.get(..2).is_some_and(|p| p.eq_ignore_ascii_case("en"))
+}
+
 /// `word` matched case-insensitively over ASCII letters only, as JavaScript's
 /// `/i` does for these words.
 pub(crate) fn ci(word: &str) -> String {
@@ -237,6 +243,29 @@ pub(crate) struct Patterns {
     pub(crate) word_char: Regex,
     /// `[,.;:!?…—–-]["'”’)\]]*$`: a word ending in a break.
     pub(crate) break_end: Regex,
+    /// `TRANSITIONS`: an opening word a speaker pauses after.
+    pub(crate) transitions: Regex,
+    /// `JOINS`: a joining word a speaker breathes before.
+    pub(crate) joins: Regex,
+    /// A token that is a flag, file name or address (`--out`, `a.b_c`,
+    /// `https:`, `.txt`).
+    pub(crate) flag_or_address: Regex,
+    /// `\p{L}`: any letter, anywhere in the text.
+    pub(crate) letter: Regex,
+    /// `\A[0-9][0-9.,]*\z`: a token that is only digits, dots and commas.
+    pub(crate) plain_digits: Regex,
+    /// `[^.!?…]+[.!?…]*`: one sentence of a review line, over its whole
+    /// text (`find_iter`, not `split`).
+    pub(crate) review_sentence: Regex,
+    /// `\?["'”’)]*\z`: a sentence ending in a question mark.
+    pub(crate) question_end: Regex,
+    /// `[,;:—–…]`: a breath mark, anywhere in the text.
+    pub(crate) soft_break: Regex,
+    /// `[.!?…:;,"'”’)\]]\z`: a sentence ending in punctuation the voice
+    /// reads as a stop.
+    pub(crate) end_punct: Regex,
+    /// `\A[ab][fm]_[a-z]+\z`: a Kokoro voice name.
+    pub(crate) kokoro_voice: Regex,
 }
 
 static PATTERNS: OnceLock<std::result::Result<Patterns, String>> = OnceLock::new();
@@ -348,6 +377,61 @@ impl Patterns {
             )?,
             word_char: compile("word_char", r"[\p{L}\p{N}%]")?,
             break_end: compile("break_end", r#"[,.;:!?…—–\-]["'”’)\]]*\z"#)?,
+            transitions: compile(
+                "transitions",
+                &format!(
+                    r"\A(?:{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{})\z",
+                    ci("then"),
+                    ci("now"),
+                    ci("first"),
+                    ci("next"),
+                    ci("so"),
+                    ci("here"),
+                    ci("finally"),
+                    ci("also"),
+                    ci("still"),
+                    ci("today"),
+                    ci("instead"),
+                    ci("meanwhile"),
+                    ci("later"),
+                    ci("afterwards"),
+                    ci("otherwise"),
+                    ci("however"),
+                    ci("yes"),
+                    ci("okay"),
+                    ci("well"),
+                ),
+            )?,
+            joins: compile(
+                "joins",
+                &format!(
+                    r"\A(?:{}|{}|{}|{}|{}|{}|{}|{}|{})\z",
+                    ci("and"),
+                    ci("but"),
+                    ci("so"),
+                    ci("then"),
+                    ci("because"),
+                    ci("while"),
+                    ci("which"),
+                    ci("until"),
+                    ci("or"),
+                ),
+            )?,
+            flag_or_address: compile(
+                "flag_or_address",
+                &format!(
+                    r"\A-{{1,2}}[0-9A-Za-z_]|[0-9A-Za-z_][./_@\\][0-9A-Za-z_]|\A{}{}?:|\.[0-9A-Za-z_]{{2,4}}\z",
+                    ci("http"),
+                    ci("s"),
+                ),
+            )?,
+            letter: compile("letter", r"\p{L}")?,
+            plain_digits: compile("plain_digits", r"\A[0-9][0-9.,]*\z")?,
+            review_sentence: compile("review_sentence", r"[^.!?…]+[.!?…]*")?,
+            question_end: compile("question_end", r#"\?["'”’)]*\z"#)?,
+            soft_break: compile("soft_break", "[,;:—–…]")?,
+            end_punct: compile("end_punct", r#"[.!?…:;,"'”’)\]]\z"#)?,
+            kokoro_voice: compile("kokoro_voice", r"\A[ab][fm]_[a-z]+\z")?,
         })
     }
 }

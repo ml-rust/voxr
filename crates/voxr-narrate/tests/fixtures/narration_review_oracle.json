@@ -1,0 +1,1756 @@
+{
+ "cases": [
+  {
+   "file": "scripts/bare.txt",
+   "options": {},
+   "output": [
+    {
+     "line": 1,
+     "text": "and no stop",
+     "note": "no end punctuation: the voice runs into the next line"
+    }
+   ]
+  },
+  {
+   "file": "scripts/bare.txt",
+   "options": {
+    "notes": true
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "and no stop",
+     "note": "no end punctuation: the voice runs into the next line"
+    }
+   ]
+  },
+  {
+   "file": "scripts/bare.txt",
+   "options": {
+    "language": "ms"
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "and no stop",
+     "note": "no end punctuation: the voice runs into the next line"
+    }
+   ]
+  },
+  {
+   "file": "scripts/bare.txt",
+   "options": {
+    "language": "ms",
+    "notes": true
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "and no stop",
+     "note": "no end punctuation: the voice runs into the next line"
+    }
+   ]
+  },
+  {
+   "file": "scripts/bare.txt",
+   "options": {
+    "language": "en-US"
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "and no stop",
+     "note": "no end punctuation: the voice runs into the next line"
+    }
+   ]
+  },
+  {
+   "file": "scripts/bare.txt",
+   "options": {
+    "language": "fr"
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "and no stop",
+     "note": "no end punctuation: the voice runs into the next line"
+    }
+   ]
+  },
+  {
+   "file": "scripts/blank.txt",
+   "options": {},
+   "output": []
+  },
+  {
+   "file": "scripts/blank.txt",
+   "options": {
+    "notes": true
+   },
+   "output": []
+  },
+  {
+   "file": "scripts/blank.txt",
+   "options": {
+    "language": "ms"
+   },
+   "output": []
+  },
+  {
+   "file": "scripts/blank.txt",
+   "options": {
+    "language": "ms",
+    "notes": true
+   },
+   "output": []
+  },
+  {
+   "file": "scripts/blank.txt",
+   "options": {
+    "language": "en-US"
+   },
+   "output": []
+  },
+  {
+   "file": "scripts/blank.txt",
+   "options": {
+    "language": "fr"
+   },
+   "output": []
+  },
+  {
+   "file": "scripts/cjk.txt",
+   "options": {},
+   "output": [
+    {
+     "line": 1,
+     "text": "你好。今天天气很好！我们去公园吗？",
+     "note": "no end punctuation: the voice runs into the next line"
+    },
+    {
+     "line": 2,
+     "text": "他说：「走吧。」然后离开了。『真的吗？』",
+     "note": "no end punctuation: the voice runs into the next line"
+    },
+    {
+     "line": 3,
+     "text": "And English. 最后一句",
+     "note": "no end punctuation: the voice runs into the next line"
+    }
+   ]
+  },
+  {
+   "file": "scripts/cjk.txt",
+   "options": {
+    "notes": true
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "你好。今天天气很好！我们去公园吗？",
+     "note": "no end punctuation: the voice runs into the next line"
+    },
+    {
+     "line": 2,
+     "text": "他说：「走吧。」然后离开了。『真的吗？』",
+     "note": "no end punctuation: the voice runs into the next line"
+    },
+    {
+     "line": 3,
+     "text": "And English. 最后一句",
+     "note": "no end punctuation: the voice runs into the next line"
+    }
+   ]
+  },
+  {
+   "file": "scripts/cjk.txt",
+   "options": {
+    "language": "ms"
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "你好。今天天气很好！我们去公园吗？",
+     "note": "no end punctuation: the voice runs into the next line"
+    },
+    {
+     "line": 2,
+     "text": "他说：「走吧。」然后离开了。『真的吗？』",
+     "note": "no end punctuation: the voice runs into the next line"
+    },
+    {
+     "line": 3,
+     "text": "And English. 最后一句",
+     "note": "no end punctuation: the voice runs into the next line"
+    }
+   ]
+  },
+  {
+   "file": "scripts/cjk.txt",
+   "options": {
+    "language": "ms",
+    "notes": true
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "你好。今天天气很好！我们去公园吗？",
+     "note": "no end punctuation: the voice runs into the next line"
+    },
+    {
+     "line": 2,
+     "text": "他说：「走吧。」然后离开了。『真的吗？』",
+     "note": "no end punctuation: the voice runs into the next line"
+    },
+    {
+     "line": 3,
+     "text": "And English. 最后一句",
+     "note": "no end punctuation: the voice runs into the next line"
+    }
+   ]
+  },
+  {
+   "file": "scripts/cjk.txt",
+   "options": {
+    "language": "en-US"
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "你好。今天天气很好！我们去公园吗？",
+     "note": "no end punctuation: the voice runs into the next line"
+    },
+    {
+     "line": 2,
+     "text": "他说：「走吧。」然后离开了。『真的吗？』",
+     "note": "no end punctuation: the voice runs into the next line"
+    },
+    {
+     "line": 3,
+     "text": "And English. 最后一句",
+     "note": "no end punctuation: the voice runs into the next line"
+    }
+   ]
+  },
+  {
+   "file": "scripts/cjk.txt",
+   "options": {
+    "language": "fr"
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "你好。今天天气很好！我们去公园吗？",
+     "note": "no end punctuation: the voice runs into the next line"
+    },
+    {
+     "line": 2,
+     "text": "他说：「走吧。」然后离开了。『真的吗？』",
+     "note": "no end punctuation: the voice runs into the next line"
+    },
+    {
+     "line": 3,
+     "text": "And English. 最后一句",
+     "note": "no end punctuation: the voice runs into the next line"
+    }
+   ]
+  },
+  {
+   "file": "scripts/crlf.txt",
+   "options": {},
+   "output": []
+  },
+  {
+   "file": "scripts/crlf.txt",
+   "options": {
+    "notes": true
+   },
+   "output": []
+  },
+  {
+   "file": "scripts/crlf.txt",
+   "options": {
+    "language": "ms"
+   },
+   "output": []
+  },
+  {
+   "file": "scripts/crlf.txt",
+   "options": {
+    "language": "ms",
+    "notes": true
+   },
+   "output": []
+  },
+  {
+   "file": "scripts/crlf.txt",
+   "options": {
+    "language": "en-US"
+   },
+   "output": []
+  },
+  {
+   "file": "scripts/crlf.txt",
+   "options": {
+    "language": "fr"
+   },
+   "output": []
+  },
+  {
+   "file": "scripts/delivery.txt",
+   "options": {},
+   "output": [
+    {
+     "line": 3,
+     "text": "(x) A note of one letter…",
+     "note": "11 words with no breath: the voice picks its own pauses. A comma after the subject, or before a joined phrase, sets one"
+    },
+    {
+     "line": 8,
+     "text": "(outer (inner) note) Nested parentheses do…",
+     "note": "10 words with no breath: the voice picks its own pauses. A comma after the subject, or before a joined phrase, sets one"
+    },
+    {
+     "line": 11,
+     "text": "Next line has no…",
+     "note": "no breath after \"Next\": \"Next, …\""
+    }
+   ]
+  },
+  {
+   "file": "scripts/delivery.txt",
+   "options": {
+    "notes": true
+   },
+   "output": [
+    {
+     "line": 3,
+     "text": "(x) A note of one letter…",
+     "note": "11 words with no breath: the voice picks its own pauses. A comma after the subject, or before a joined phrase, sets one"
+    },
+    {
+     "line": 8,
+     "text": "(outer (inner) note) Nested parentheses do…",
+     "note": "10 words with no breath: the voice picks its own pauses. A comma after the subject, or before a joined phrase, sets one"
+    },
+    {
+     "line": 11,
+     "text": "Next line has no…",
+     "note": "no breath after \"Next\": \"Next, …\""
+    }
+   ]
+  },
+  {
+   "file": "scripts/delivery.txt",
+   "options": {
+    "language": "ms"
+   },
+   "output": [
+    {
+     "line": 3,
+     "text": "(x) A note of one letter…",
+     "note": "11 words with no breath: the voice picks its own pauses. A comma after the subject, or before a joined phrase, sets one"
+    },
+    {
+     "line": 8,
+     "text": "(outer (inner) note) Nested parentheses do…",
+     "note": "10 words with no breath: the voice picks its own pauses. A comma after the subject, or before a joined phrase, sets one"
+    },
+    {
+     "line": 11,
+     "text": "Next line has no…",
+     "note": "no breath after \"Next\": \"Next, …\""
+    }
+   ]
+  },
+  {
+   "file": "scripts/delivery.txt",
+   "options": {
+    "language": "ms",
+    "notes": true
+   },
+   "output": [
+    {
+     "line": 3,
+     "text": "(x) A note of one letter…",
+     "note": "11 words with no breath: the voice picks its own pauses. A comma after the subject, or before a joined phrase, sets one"
+    },
+    {
+     "line": 8,
+     "text": "(outer (inner) note) Nested parentheses do…",
+     "note": "10 words with no breath: the voice picks its own pauses. A comma after the subject, or before a joined phrase, sets one"
+    },
+    {
+     "line": 11,
+     "text": "Next line has no…",
+     "note": "no breath after \"Next\": \"Next, …\""
+    }
+   ]
+  },
+  {
+   "file": "scripts/delivery.txt",
+   "options": {
+    "language": "en-US"
+   },
+   "output": [
+    {
+     "line": 3,
+     "text": "(x) A note of one letter…",
+     "note": "11 words with no breath: the voice picks its own pauses. A comma after the subject, or before a joined phrase, sets one"
+    },
+    {
+     "line": 8,
+     "text": "(outer (inner) note) Nested parentheses do…",
+     "note": "10 words with no breath: the voice picks its own pauses. A comma after the subject, or before a joined phrase, sets one"
+    },
+    {
+     "line": 11,
+     "text": "Next line has no…",
+     "note": "no breath after \"Next\": \"Next, …\""
+    }
+   ]
+  },
+  {
+   "file": "scripts/delivery.txt",
+   "options": {
+    "language": "fr"
+   },
+   "output": [
+    {
+     "line": 3,
+     "text": "(x) A note of one letter…",
+     "note": "11 words with no breath: the voice picks its own pauses. A comma after the subject, or before a joined phrase, sets one"
+    },
+    {
+     "line": 8,
+     "text": "(outer (inner) note) Nested parentheses do…",
+     "note": "10 words with no breath: the voice picks its own pauses. A comma after the subject, or before a joined phrase, sets one"
+    },
+    {
+     "line": 11,
+     "text": "Next line has no…",
+     "note": "no breath after \"Next\": \"Next, …\""
+    }
+   ]
+  },
+  {
+   "file": "scripts/en_beats.txt",
+   "options": {},
+   "output": [
+    {
+     "line": 3,
+     "text": "Then it gathers facts,…",
+     "note": "no breath after \"Then\": \"Then, …\""
+    },
+    {
+     "line": 5,
+     "text": "13.5",
+     "note": "a flag, file name or address: write how it is said, {13.5|…}"
+    },
+    {
+     "line": 5,
+     "text": "Node.js",
+     "note": "a flag, file name or address: write how it is said, {Node.js|…}"
+    }
+   ]
+  },
+  {
+   "file": "scripts/en_beats.txt",
+   "options": {
+    "notes": true
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "What does the user need?",
+     "note": "a question with no delivery note: VoxCPM2 reads it in the take's delivery, and it can come out as a statement. Give it its own line with a note (tts/voxcpm2.md)"
+    },
+    {
+     "line": 3,
+     "text": "Then it gathers facts,…",
+     "note": "no breath after \"Then\": \"Then, …\""
+    },
+    {
+     "line": 5,
+     "text": "13.5",
+     "note": "a flag, file name or address: write how it is said, {13.5|…}"
+    },
+    {
+     "line": 5,
+     "text": "Node.js",
+     "note": "a flag, file name or address: write how it is said, {Node.js|…}"
+    },
+    {
+     "line": 7,
+     "text": "\"Is it done?",
+     "note": "a question with no delivery note: VoxCPM2 reads it in the take's delivery, and it can come out as a statement. Give it its own line with a note (tts/voxcpm2.md)"
+    }
+   ]
+  },
+  {
+   "file": "scripts/en_beats.txt",
+   "options": {
+    "language": "ms"
+   },
+   "output": [
+    {
+     "line": 3,
+     "text": "Then it gathers facts,…",
+     "note": "no breath after \"Then\": \"Then, …\""
+    },
+    {
+     "line": 5,
+     "text": "13.5",
+     "note": "a flag, file name or address: write how it is said, {13.5|…}"
+    },
+    {
+     "line": 5,
+     "text": "Node.js",
+     "note": "a flag, file name or address: write how it is said, {Node.js|…}"
+    }
+   ]
+  },
+  {
+   "file": "scripts/en_beats.txt",
+   "options": {
+    "language": "ms",
+    "notes": true
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "What does the user need?",
+     "note": "a question with no delivery note: VoxCPM2 reads it in the take's delivery, and it can come out as a statement. Give it its own line with a note (tts/voxcpm2.md)"
+    },
+    {
+     "line": 3,
+     "text": "Then it gathers facts,…",
+     "note": "no breath after \"Then\": \"Then, …\""
+    },
+    {
+     "line": 5,
+     "text": "13.5",
+     "note": "a flag, file name or address: write how it is said, {13.5|…}"
+    },
+    {
+     "line": 5,
+     "text": "Node.js",
+     "note": "a flag, file name or address: write how it is said, {Node.js|…}"
+    },
+    {
+     "line": 7,
+     "text": "\"Is it done?",
+     "note": "a question with no delivery note: VoxCPM2 reads it in the take's delivery, and it can come out as a statement. Give it its own line with a note (tts/voxcpm2.md)"
+    }
+   ]
+  },
+  {
+   "file": "scripts/en_beats.txt",
+   "options": {
+    "language": "en-US"
+   },
+   "output": [
+    {
+     "line": 3,
+     "text": "Then it gathers facts,…",
+     "note": "no breath after \"Then\": \"Then, …\""
+    },
+    {
+     "line": 5,
+     "text": "13.5",
+     "note": "a flag, file name or address: write how it is said, {13.5|…}"
+    },
+    {
+     "line": 5,
+     "text": "Node.js",
+     "note": "a flag, file name or address: write how it is said, {Node.js|…}"
+    }
+   ]
+  },
+  {
+   "file": "scripts/en_beats.txt",
+   "options": {
+    "language": "fr"
+   },
+   "output": [
+    {
+     "line": 3,
+     "text": "Then it gathers facts,…",
+     "note": "no breath after \"Then\": \"Then, …\""
+    },
+    {
+     "line": 5,
+     "text": "13.5",
+     "note": "a flag, file name or address: write how it is said, {13.5|…}"
+    },
+    {
+     "line": 5,
+     "text": "Node.js",
+     "note": "a flag, file name or address: write how it is said, {Node.js|…}"
+    }
+   ]
+  },
+  {
+   "file": "scripts/ms_beats.txt",
+   "options": {},
+   "output": []
+  },
+  {
+   "file": "scripts/ms_beats.txt",
+   "options": {
+    "notes": true
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "Korang tahu tak?",
+     "note": "a question with no delivery note: VoxCPM2 reads it in the take's delivery, and it can come out as a statement. Give it its own line with a note (tts/voxcpm2.md)"
+    }
+   ]
+  },
+  {
+   "file": "scripts/ms_beats.txt",
+   "options": {
+    "language": "ms"
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "1857",
+     "note": "digits outside English: write the number as words"
+    }
+   ]
+  },
+  {
+   "file": "scripts/ms_beats.txt",
+   "options": {
+    "language": "ms",
+    "notes": true
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "1857",
+     "note": "digits outside English: write the number as words"
+    },
+    {
+     "line": 1,
+     "text": "Korang tahu tak?",
+     "note": "a question with no delivery note: VoxCPM2 reads it in the take's delivery, and it can come out as a statement. Give it its own line with a note (tts/voxcpm2.md)"
+    }
+   ]
+  },
+  {
+   "file": "scripts/ms_beats.txt",
+   "options": {
+    "language": "en-US"
+   },
+   "output": []
+  },
+  {
+   "file": "scripts/ms_beats.txt",
+   "options": {
+    "language": "fr"
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "1857",
+     "note": "digits outside English: write the number as words"
+    }
+   ]
+  },
+  {
+   "file": "scripts/pauses.txt",
+   "options": {},
+   "output": [
+    {
+     "line": 2,
+     "text": "1.2",
+     "note": "a flag, file name or address: write how it is said, {1.2|…}"
+    },
+    {
+     "line": 2,
+     "text": "0.25",
+     "note": "a flag, file name or address: write how it is said, {0.25|…}"
+    },
+    {
+     "line": 4,
+     "text": "1.2.3",
+     "note": "a flag, file name or address: write how it is said, {1.2.3|…}"
+    },
+    {
+     "line": 7,
+     "text": "0.3][pause",
+     "note": "a flag, file name or address: write how it is said, {0.3][pause|…}"
+    },
+    {
+     "line": 7,
+     "text": "0.9",
+     "note": "a flag, file name or address: write how it is said, {0.9|…}"
+    },
+    {
+     "line": 8,
+     "text": "1.5",
+     "note": "a flag, file name or address: write how it is said, {1.5|…}"
+    },
+    {
+     "line": 8,
+     "text": "of a line",
+     "note": "no end punctuation: the voice runs into the next line"
+    }
+   ]
+  },
+  {
+   "file": "scripts/pauses.txt",
+   "options": {
+    "notes": true
+   },
+   "output": [
+    {
+     "line": 2,
+     "text": "1.2",
+     "note": "a flag, file name or address: write how it is said, {1.2|…}"
+    },
+    {
+     "line": 2,
+     "text": "0.25",
+     "note": "a flag, file name or address: write how it is said, {0.25|…}"
+    },
+    {
+     "line": 4,
+     "text": "1.2.3",
+     "note": "a flag, file name or address: write how it is said, {1.2.3|…}"
+    },
+    {
+     "line": 7,
+     "text": "0.3][pause",
+     "note": "a flag, file name or address: write how it is said, {0.3][pause|…}"
+    },
+    {
+     "line": 7,
+     "text": "0.9",
+     "note": "a flag, file name or address: write how it is said, {0.9|…}"
+    },
+    {
+     "line": 8,
+     "text": "1.5",
+     "note": "a flag, file name or address: write how it is said, {1.5|…}"
+    },
+    {
+     "line": 8,
+     "text": "of a line",
+     "note": "no end punctuation: the voice runs into the next line"
+    }
+   ]
+  },
+  {
+   "file": "scripts/pauses.txt",
+   "options": {
+    "language": "ms"
+   },
+   "output": [
+    {
+     "line": 2,
+     "text": "1.2",
+     "note": "a flag, file name or address: write how it is said, {1.2|…}"
+    },
+    {
+     "line": 2,
+     "text": "0.25",
+     "note": "a flag, file name or address: write how it is said, {0.25|…}"
+    },
+    {
+     "line": 3,
+     "text": "0",
+     "note": "digits outside English: write the number as words"
+    },
+    {
+     "line": 4,
+     "text": "1.2.3",
+     "note": "a flag, file name or address: write how it is said, {1.2.3|…}"
+    },
+    {
+     "line": 6,
+     "text": "2",
+     "note": "digits outside English: write the number as words"
+    },
+    {
+     "line": 7,
+     "text": "0.3][pause",
+     "note": "a flag, file name or address: write how it is said, {0.3][pause|…}"
+    },
+    {
+     "line": 7,
+     "text": "0.9",
+     "note": "a flag, file name or address: write how it is said, {0.9|…}"
+    },
+    {
+     "line": 8,
+     "text": "1.5",
+     "note": "a flag, file name or address: write how it is said, {1.5|…}"
+    },
+    {
+     "line": 8,
+     "text": "of a line",
+     "note": "no end punctuation: the voice runs into the next line"
+    },
+    {
+     "line": 10,
+     "text": "3",
+     "note": "digits outside English: write the number as words"
+    }
+   ]
+  },
+  {
+   "file": "scripts/pauses.txt",
+   "options": {
+    "language": "ms",
+    "notes": true
+   },
+   "output": [
+    {
+     "line": 2,
+     "text": "1.2",
+     "note": "a flag, file name or address: write how it is said, {1.2|…}"
+    },
+    {
+     "line": 2,
+     "text": "0.25",
+     "note": "a flag, file name or address: write how it is said, {0.25|…}"
+    },
+    {
+     "line": 3,
+     "text": "0",
+     "note": "digits outside English: write the number as words"
+    },
+    {
+     "line": 4,
+     "text": "1.2.3",
+     "note": "a flag, file name or address: write how it is said, {1.2.3|…}"
+    },
+    {
+     "line": 6,
+     "text": "2",
+     "note": "digits outside English: write the number as words"
+    },
+    {
+     "line": 7,
+     "text": "0.3][pause",
+     "note": "a flag, file name or address: write how it is said, {0.3][pause|…}"
+    },
+    {
+     "line": 7,
+     "text": "0.9",
+     "note": "a flag, file name or address: write how it is said, {0.9|…}"
+    },
+    {
+     "line": 8,
+     "text": "1.5",
+     "note": "a flag, file name or address: write how it is said, {1.5|…}"
+    },
+    {
+     "line": 8,
+     "text": "of a line",
+     "note": "no end punctuation: the voice runs into the next line"
+    },
+    {
+     "line": 10,
+     "text": "3",
+     "note": "digits outside English: write the number as words"
+    }
+   ]
+  },
+  {
+   "file": "scripts/pauses.txt",
+   "options": {
+    "language": "en-US"
+   },
+   "output": [
+    {
+     "line": 2,
+     "text": "1.2",
+     "note": "a flag, file name or address: write how it is said, {1.2|…}"
+    },
+    {
+     "line": 2,
+     "text": "0.25",
+     "note": "a flag, file name or address: write how it is said, {0.25|…}"
+    },
+    {
+     "line": 4,
+     "text": "1.2.3",
+     "note": "a flag, file name or address: write how it is said, {1.2.3|…}"
+    },
+    {
+     "line": 7,
+     "text": "0.3][pause",
+     "note": "a flag, file name or address: write how it is said, {0.3][pause|…}"
+    },
+    {
+     "line": 7,
+     "text": "0.9",
+     "note": "a flag, file name or address: write how it is said, {0.9|…}"
+    },
+    {
+     "line": 8,
+     "text": "1.5",
+     "note": "a flag, file name or address: write how it is said, {1.5|…}"
+    },
+    {
+     "line": 8,
+     "text": "of a line",
+     "note": "no end punctuation: the voice runs into the next line"
+    }
+   ]
+  },
+  {
+   "file": "scripts/pauses.txt",
+   "options": {
+    "language": "fr"
+   },
+   "output": [
+    {
+     "line": 2,
+     "text": "1.2",
+     "note": "a flag, file name or address: write how it is said, {1.2|…}"
+    },
+    {
+     "line": 2,
+     "text": "0.25",
+     "note": "a flag, file name or address: write how it is said, {0.25|…}"
+    },
+    {
+     "line": 3,
+     "text": "0",
+     "note": "digits outside English: write the number as words"
+    },
+    {
+     "line": 4,
+     "text": "1.2.3",
+     "note": "a flag, file name or address: write how it is said, {1.2.3|…}"
+    },
+    {
+     "line": 6,
+     "text": "2",
+     "note": "digits outside English: write the number as words"
+    },
+    {
+     "line": 7,
+     "text": "0.3][pause",
+     "note": "a flag, file name or address: write how it is said, {0.3][pause|…}"
+    },
+    {
+     "line": 7,
+     "text": "0.9",
+     "note": "a flag, file name or address: write how it is said, {0.9|…}"
+    },
+    {
+     "line": 8,
+     "text": "1.5",
+     "note": "a flag, file name or address: write how it is said, {1.5|…}"
+    },
+    {
+     "line": 8,
+     "text": "of a line",
+     "note": "no end punctuation: the voice runs into the next line"
+    },
+    {
+     "line": 10,
+     "text": "3",
+     "note": "digits outside English: write the number as words"
+    }
+   ]
+  },
+  {
+   "file": "scripts/said_tags.txt",
+   "options": {},
+   "output": []
+  },
+  {
+   "file": "scripts/said_tags.txt",
+   "options": {
+    "notes": true
+   },
+   "output": [
+    {
+     "line": 3,
+     "text": "Betul ke?",
+     "note": "a question with no delivery note: VoxCPM2 reads it in the take's delivery, and it can come out as a statement. Give it its own line with a note (tts/voxcpm2.md)"
+    }
+   ]
+  },
+  {
+   "file": "scripts/said_tags.txt",
+   "options": {
+    "language": "ms"
+   },
+   "output": []
+  },
+  {
+   "file": "scripts/said_tags.txt",
+   "options": {
+    "language": "ms",
+    "notes": true
+   },
+   "output": [
+    {
+     "line": 3,
+     "text": "Betul ke?",
+     "note": "a question with no delivery note: VoxCPM2 reads it in the take's delivery, and it can come out as a statement. Give it its own line with a note (tts/voxcpm2.md)"
+    }
+   ]
+  },
+  {
+   "file": "scripts/said_tags.txt",
+   "options": {
+    "language": "en-US"
+   },
+   "output": []
+  },
+  {
+   "file": "scripts/said_tags.txt",
+   "options": {
+    "language": "fr"
+   },
+   "output": []
+  },
+  {
+   "file": "scripts/whitespace.txt",
+   "options": {},
+   "output": []
+  },
+  {
+   "file": "scripts/whitespace.txt",
+   "options": {
+    "notes": true
+   },
+   "output": []
+  },
+  {
+   "file": "scripts/whitespace.txt",
+   "options": {
+    "language": "ms"
+   },
+   "output": []
+  },
+  {
+   "file": "scripts/whitespace.txt",
+   "options": {
+    "language": "ms",
+    "notes": true
+   },
+   "output": []
+  },
+  {
+   "file": "scripts/whitespace.txt",
+   "options": {
+    "language": "en-US"
+   },
+   "output": []
+  },
+  {
+   "file": "scripts/whitespace.txt",
+   "options": {
+    "language": "fr"
+   },
+   "output": []
+  },
+  {
+   "file": "review/flags_and_addresses.txt",
+   "options": {},
+   "output": [
+    {
+     "line": 1,
+     "text": "--out",
+     "note": "a flag, file name or address: write how it is said, {--out|…}"
+    },
+    {
+     "line": 1,
+     "text": "build.tar.gz",
+     "note": "a flag, file name or address: write how it is said, {build.tar.gz|…}"
+    },
+    {
+     "line": 2,
+     "text": "user.name@example.com",
+     "note": "a flag, file name or address: write how it is said, {user.name@example.com|…}"
+    },
+    {
+     "line": 2,
+     "text": "https://example.com/docs",
+     "note": "a flag, file name or address: write how it is said, {https://example.com/docs|…}"
+    },
+    {
+     "line": 2,
+     "text": "v2",
+     "note": "letters and digits together: write how it is said, {v2|…}"
+    },
+    {
+     "line": 3,
+     "text": "README.md",
+     "note": "a flag, file name or address: write how it is said, {README.md|…}"
+    },
+    {
+     "line": 4,
+     "text": "Version 3 shipped on schedule with…",
+     "note": "9 words with no breath: the voice picks its own pauses. A comma after the subject, or before a joined phrase, sets one"
+    }
+   ]
+  },
+  {
+   "file": "review/flags_and_addresses.txt",
+   "options": {
+    "notes": true
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "--out",
+     "note": "a flag, file name or address: write how it is said, {--out|…}"
+    },
+    {
+     "line": 1,
+     "text": "build.tar.gz",
+     "note": "a flag, file name or address: write how it is said, {build.tar.gz|…}"
+    },
+    {
+     "line": 2,
+     "text": "user.name@example.com",
+     "note": "a flag, file name or address: write how it is said, {user.name@example.com|…}"
+    },
+    {
+     "line": 2,
+     "text": "https://example.com/docs",
+     "note": "a flag, file name or address: write how it is said, {https://example.com/docs|…}"
+    },
+    {
+     "line": 2,
+     "text": "v2",
+     "note": "letters and digits together: write how it is said, {v2|…}"
+    },
+    {
+     "line": 3,
+     "text": "README.md",
+     "note": "a flag, file name or address: write how it is said, {README.md|…}"
+    },
+    {
+     "line": 4,
+     "text": "Version 3 shipped on schedule with…",
+     "note": "9 words with no breath: the voice picks its own pauses. A comma after the subject, or before a joined phrase, sets one"
+    }
+   ]
+  },
+  {
+   "file": "review/flags_and_addresses.txt",
+   "options": {
+    "language": "ms"
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "--out",
+     "note": "a flag, file name or address: write how it is said, {--out|…}"
+    },
+    {
+     "line": 1,
+     "text": "build.tar.gz",
+     "note": "a flag, file name or address: write how it is said, {build.tar.gz|…}"
+    },
+    {
+     "line": 2,
+     "text": "user.name@example.com",
+     "note": "a flag, file name or address: write how it is said, {user.name@example.com|…}"
+    },
+    {
+     "line": 2,
+     "text": "https://example.com/docs",
+     "note": "a flag, file name or address: write how it is said, {https://example.com/docs|…}"
+    },
+    {
+     "line": 2,
+     "text": "v2",
+     "note": "letters and digits together: write how it is said, {v2|…}"
+    },
+    {
+     "line": 3,
+     "text": "README.md",
+     "note": "a flag, file name or address: write how it is said, {README.md|…}"
+    },
+    {
+     "line": 4,
+     "text": "3",
+     "note": "digits outside English: write the number as words"
+    },
+    {
+     "line": 4,
+     "text": "Version 3 shipped on schedule with…",
+     "note": "9 words with no breath: the voice picks its own pauses. A comma after the subject, or before a joined phrase, sets one"
+    }
+   ]
+  },
+  {
+   "file": "review/flags_and_addresses.txt",
+   "options": {
+    "language": "ms",
+    "notes": true
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "--out",
+     "note": "a flag, file name or address: write how it is said, {--out|…}"
+    },
+    {
+     "line": 1,
+     "text": "build.tar.gz",
+     "note": "a flag, file name or address: write how it is said, {build.tar.gz|…}"
+    },
+    {
+     "line": 2,
+     "text": "user.name@example.com",
+     "note": "a flag, file name or address: write how it is said, {user.name@example.com|…}"
+    },
+    {
+     "line": 2,
+     "text": "https://example.com/docs",
+     "note": "a flag, file name or address: write how it is said, {https://example.com/docs|…}"
+    },
+    {
+     "line": 2,
+     "text": "v2",
+     "note": "letters and digits together: write how it is said, {v2|…}"
+    },
+    {
+     "line": 3,
+     "text": "README.md",
+     "note": "a flag, file name or address: write how it is said, {README.md|…}"
+    },
+    {
+     "line": 4,
+     "text": "3",
+     "note": "digits outside English: write the number as words"
+    },
+    {
+     "line": 4,
+     "text": "Version 3 shipped on schedule with…",
+     "note": "9 words with no breath: the voice picks its own pauses. A comma after the subject, or before a joined phrase, sets one"
+    }
+   ]
+  },
+  {
+   "file": "review/flags_and_addresses.txt",
+   "options": {
+    "language": "en-US"
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "--out",
+     "note": "a flag, file name or address: write how it is said, {--out|…}"
+    },
+    {
+     "line": 1,
+     "text": "build.tar.gz",
+     "note": "a flag, file name or address: write how it is said, {build.tar.gz|…}"
+    },
+    {
+     "line": 2,
+     "text": "user.name@example.com",
+     "note": "a flag, file name or address: write how it is said, {user.name@example.com|…}"
+    },
+    {
+     "line": 2,
+     "text": "https://example.com/docs",
+     "note": "a flag, file name or address: write how it is said, {https://example.com/docs|…}"
+    },
+    {
+     "line": 2,
+     "text": "v2",
+     "note": "letters and digits together: write how it is said, {v2|…}"
+    },
+    {
+     "line": 3,
+     "text": "README.md",
+     "note": "a flag, file name or address: write how it is said, {README.md|…}"
+    },
+    {
+     "line": 4,
+     "text": "Version 3 shipped on schedule with…",
+     "note": "9 words with no breath: the voice picks its own pauses. A comma after the subject, or before a joined phrase, sets one"
+    }
+   ]
+  },
+  {
+   "file": "review/flags_and_addresses.txt",
+   "options": {
+    "language": "fr"
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "--out",
+     "note": "a flag, file name or address: write how it is said, {--out|…}"
+    },
+    {
+     "line": 1,
+     "text": "build.tar.gz",
+     "note": "a flag, file name or address: write how it is said, {build.tar.gz|…}"
+    },
+    {
+     "line": 2,
+     "text": "user.name@example.com",
+     "note": "a flag, file name or address: write how it is said, {user.name@example.com|…}"
+    },
+    {
+     "line": 2,
+     "text": "https://example.com/docs",
+     "note": "a flag, file name or address: write how it is said, {https://example.com/docs|…}"
+    },
+    {
+     "line": 2,
+     "text": "v2",
+     "note": "letters and digits together: write how it is said, {v2|…}"
+    },
+    {
+     "line": 3,
+     "text": "README.md",
+     "note": "a flag, file name or address: write how it is said, {README.md|…}"
+    },
+    {
+     "line": 4,
+     "text": "3",
+     "note": "digits outside English: write the number as words"
+    },
+    {
+     "line": 4,
+     "text": "Version 3 shipped on schedule with…",
+     "note": "9 words with no breath: the voice picks its own pauses. A comma after the subject, or before a joined phrase, sets one"
+    }
+   ]
+  },
+  {
+   "file": "review/long_runs.txt",
+   "options": {},
+   "output": [
+    {
+     "line": 1,
+     "text": "The team built the whole system…",
+     "note": "12 words with no breath: the voice picks its own pauses. A comma after the subject, or before a joined phrase, sets one"
+    },
+    {
+     "line": 2,
+     "text": "Then it gathers facts…",
+     "note": "no breath after \"Then\": \"Then, …\""
+    },
+    {
+     "line": 4,
+     "text": "The engineers debated the design because…",
+     "note": "11 words with no breath: the voice picks its own pauses. A comma after the subject, or before \"because\", sets one"
+    }
+   ]
+  },
+  {
+   "file": "review/long_runs.txt",
+   "options": {
+    "notes": true
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "The team built the whole system…",
+     "note": "12 words with no breath: the voice picks its own pauses. A comma after the subject, or before a joined phrase, sets one"
+    },
+    {
+     "line": 2,
+     "text": "Then it gathers facts…",
+     "note": "no breath after \"Then\": \"Then, …\""
+    },
+    {
+     "line": 4,
+     "text": "The engineers debated the design because…",
+     "note": "11 words with no breath: the voice picks its own pauses. A comma after the subject, or before \"because\", sets one"
+    }
+   ]
+  },
+  {
+   "file": "review/long_runs.txt",
+   "options": {
+    "language": "ms"
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "The team built the whole system…",
+     "note": "12 words with no breath: the voice picks its own pauses. A comma after the subject, or before a joined phrase, sets one"
+    },
+    {
+     "line": 2,
+     "text": "Then it gathers facts…",
+     "note": "no breath after \"Then\": \"Then, …\""
+    },
+    {
+     "line": 4,
+     "text": "The engineers debated the design because…",
+     "note": "11 words with no breath: the voice picks its own pauses. A comma after the subject, or before \"because\", sets one"
+    }
+   ]
+  },
+  {
+   "file": "review/long_runs.txt",
+   "options": {
+    "language": "ms",
+    "notes": true
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "The team built the whole system…",
+     "note": "12 words with no breath: the voice picks its own pauses. A comma after the subject, or before a joined phrase, sets one"
+    },
+    {
+     "line": 2,
+     "text": "Then it gathers facts…",
+     "note": "no breath after \"Then\": \"Then, …\""
+    },
+    {
+     "line": 4,
+     "text": "The engineers debated the design because…",
+     "note": "11 words with no breath: the voice picks its own pauses. A comma after the subject, or before \"because\", sets one"
+    }
+   ]
+  },
+  {
+   "file": "review/long_runs.txt",
+   "options": {
+    "language": "en-US"
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "The team built the whole system…",
+     "note": "12 words with no breath: the voice picks its own pauses. A comma after the subject, or before a joined phrase, sets one"
+    },
+    {
+     "line": 2,
+     "text": "Then it gathers facts…",
+     "note": "no breath after \"Then\": \"Then, …\""
+    },
+    {
+     "line": 4,
+     "text": "The engineers debated the design because…",
+     "note": "11 words with no breath: the voice picks its own pauses. A comma after the subject, or before \"because\", sets one"
+    }
+   ]
+  },
+  {
+   "file": "review/long_runs.txt",
+   "options": {
+    "language": "fr"
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "The team built the whole system…",
+     "note": "12 words with no breath: the voice picks its own pauses. A comma after the subject, or before a joined phrase, sets one"
+    },
+    {
+     "line": 2,
+     "text": "Then it gathers facts…",
+     "note": "no breath after \"Then\": \"Then, …\""
+    },
+    {
+     "line": 4,
+     "text": "The engineers debated the design because…",
+     "note": "11 words with no breath: the voice picks its own pauses. A comma after the subject, or before \"because\", sets one"
+    }
+   ]
+  },
+  {
+   "file": "review/malay_digits.txt",
+   "options": {},
+   "output": [
+    {
+     "line": 2,
+     "text": "3.5",
+     "note": "a flag, file name or address: write how it is said, {3.5|…}"
+    }
+   ]
+  },
+  {
+   "file": "review/malay_digits.txt",
+   "options": {
+    "notes": true
+   },
+   "output": [
+    {
+     "line": 2,
+     "text": "3.5",
+     "note": "a flag, file name or address: write how it is said, {3.5|…}"
+    }
+   ]
+  },
+  {
+   "file": "review/malay_digits.txt",
+   "options": {
+    "language": "ms"
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "42",
+     "note": "digits outside English: write the number as words"
+    },
+    {
+     "line": 1,
+     "text": "2020",
+     "note": "digits outside English: write the number as words"
+    },
+    {
+     "line": 2,
+     "text": "3.5",
+     "note": "a flag, file name or address: write how it is said, {3.5|…}"
+    }
+   ]
+  },
+  {
+   "file": "review/malay_digits.txt",
+   "options": {
+    "language": "ms",
+    "notes": true
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "42",
+     "note": "digits outside English: write the number as words"
+    },
+    {
+     "line": 1,
+     "text": "2020",
+     "note": "digits outside English: write the number as words"
+    },
+    {
+     "line": 2,
+     "text": "3.5",
+     "note": "a flag, file name or address: write how it is said, {3.5|…}"
+    }
+   ]
+  },
+  {
+   "file": "review/malay_digits.txt",
+   "options": {
+    "language": "en-US"
+   },
+   "output": [
+    {
+     "line": 2,
+     "text": "3.5",
+     "note": "a flag, file name or address: write how it is said, {3.5|…}"
+    }
+   ]
+  },
+  {
+   "file": "review/malay_digits.txt",
+   "options": {
+    "language": "fr"
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "42",
+     "note": "digits outside English: write the number as words"
+    },
+    {
+     "line": 1,
+     "text": "2020",
+     "note": "digits outside English: write the number as words"
+    },
+    {
+     "line": 2,
+     "text": "3.5",
+     "note": "a flag, file name or address: write how it is said, {3.5|…}"
+    }
+   ]
+  },
+  {
+   "file": "review/missing_end_punct.txt",
+   "options": {},
+   "output": [
+    {
+     "line": 1,
+     "text": "built the system",
+     "note": "no end punctuation: the voice runs into the next line"
+    },
+    {
+     "line": 3,
+     "text": "without a stop",
+     "note": "no end punctuation: the voice runs into the next line"
+    }
+   ]
+  },
+  {
+   "file": "review/missing_end_punct.txt",
+   "options": {
+    "notes": true
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "built the system",
+     "note": "no end punctuation: the voice runs into the next line"
+    },
+    {
+     "line": 3,
+     "text": "without a stop",
+     "note": "no end punctuation: the voice runs into the next line"
+    }
+   ]
+  },
+  {
+   "file": "review/missing_end_punct.txt",
+   "options": {
+    "language": "ms"
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "built the system",
+     "note": "no end punctuation: the voice runs into the next line"
+    },
+    {
+     "line": 3,
+     "text": "without a stop",
+     "note": "no end punctuation: the voice runs into the next line"
+    }
+   ]
+  },
+  {
+   "file": "review/missing_end_punct.txt",
+   "options": {
+    "language": "ms",
+    "notes": true
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "built the system",
+     "note": "no end punctuation: the voice runs into the next line"
+    },
+    {
+     "line": 3,
+     "text": "without a stop",
+     "note": "no end punctuation: the voice runs into the next line"
+    }
+   ]
+  },
+  {
+   "file": "review/missing_end_punct.txt",
+   "options": {
+    "language": "en-US"
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "built the system",
+     "note": "no end punctuation: the voice runs into the next line"
+    },
+    {
+     "line": 3,
+     "text": "without a stop",
+     "note": "no end punctuation: the voice runs into the next line"
+    }
+   ]
+  },
+  {
+   "file": "review/missing_end_punct.txt",
+   "options": {
+    "language": "fr"
+   },
+   "output": [
+    {
+     "line": 1,
+     "text": "built the system",
+     "note": "no end punctuation: the voice runs into the next line"
+    },
+    {
+     "line": 3,
+     "text": "without a stop",
+     "note": "no end punctuation: the voice runs into the next line"
+    }
+   ]
+  },
+  {
+   "file": "review/questions.txt",
+   "options": {},
+   "output": []
+  },
+  {
+   "file": "review/questions.txt",
+   "options": {
+    "notes": true
+   },
+   "output": [
+    {
+     "line": 2,
+     "text": "Where does the water go?",
+     "note": "a question with no delivery note: VoxCPM2 reads it in the take's delivery, and it can come out as a statement. Give it its own line with a note (tts/voxcpm2.md)"
+    },
+    {
+     "line": 3,
+     "text": "Where does it go?",
+     "note": "a question shares its line with other sentences: its note covers them too. Give the question a line of its own"
+    },
+    {
+     "line": 4,
+     "text": "Is it done?",
+     "note": "a question with no delivery note: VoxCPM2 reads it in the take's delivery, and it can come out as a statement. Give it its own line with a note (tts/voxcpm2.md)"
+    }
+   ]
+  },
+  {
+   "file": "review/questions.txt",
+   "options": {
+    "language": "ms"
+   },
+   "output": []
+  },
+  {
+   "file": "review/questions.txt",
+   "options": {
+    "language": "ms",
+    "notes": true
+   },
+   "output": [
+    {
+     "line": 2,
+     "text": "Where does the water go?",
+     "note": "a question with no delivery note: VoxCPM2 reads it in the take's delivery, and it can come out as a statement. Give it its own line with a note (tts/voxcpm2.md)"
+    },
+    {
+     "line": 3,
+     "text": "Where does it go?",
+     "note": "a question shares its line with other sentences: its note covers them too. Give the question a line of its own"
+    },
+    {
+     "line": 4,
+     "text": "Is it done?",
+     "note": "a question with no delivery note: VoxCPM2 reads it in the take's delivery, and it can come out as a statement. Give it its own line with a note (tts/voxcpm2.md)"
+    }
+   ]
+  },
+  {
+   "file": "review/questions.txt",
+   "options": {
+    "language": "en-US"
+   },
+   "output": []
+  },
+  {
+   "file": "review/questions.txt",
+   "options": {
+    "language": "fr"
+   },
+   "output": []
+  }
+ ]
+}

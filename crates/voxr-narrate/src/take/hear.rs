@@ -3,6 +3,7 @@
 
 use crate::check::{HeardWord, StrayPause, Verdict, check_speech, stray_pauses};
 use crate::error::Result;
+use crate::pattern::starts_with_en;
 use crate::transcript::{TranscribeOptions, Transcribed, Transcriber, transcribe_narration};
 
 /// The heard words are clipped to this many UTF-16 code units.
@@ -33,9 +34,7 @@ impl Recognizer {
 /// else [`Recognizer::Default`].
 pub fn asr_model(language: Option<&str>) -> Recognizer {
     match language {
-        Some(l) if !l.is_empty() && !l.get(..2).is_some_and(|p| p.eq_ignore_ascii_case("en")) => {
-            Recognizer::Small
-        }
+        Some(l) if !l.is_empty() && !starts_with_en(l) => Recognizer::Small,
         _ => Recognizer::Default,
     }
 }

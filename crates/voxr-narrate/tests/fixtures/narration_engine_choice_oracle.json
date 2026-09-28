@@ -1,0 +1,1338 @@
+{
+ "cases": [
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "voice": "af_heart"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": "kokoro"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "voice": "af_heart"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs 8 GB of GPU memory (Tiny Card has 4 GB)"
+    }
+   },
+   "output": "kokoro"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "voice": "af_heart"
+    },
+    "readiness": {
+     "ok": true,
+     "why": "Big Card, 24 GB"
+    }
+   },
+   "output": "kokoro"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "voice": "bm_george"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": "kokoro"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "voice": "bm_george"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs 8 GB of GPU memory (Tiny Card has 4 GB)"
+    }
+   },
+   "output": "kokoro"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "voice": "bm_george"
+    },
+    "readiness": {
+     "ok": true,
+     "why": "Big Card, 24 GB"
+    }
+   },
+   "output": "kokoro"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "voice": "AF_HEART"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": "kokoro"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "voice": "AF_HEART"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs 8 GB of GPU memory (Tiny Card has 4 GB)"
+    }
+   },
+   "output": "kokoro"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "voice": "AF_HEART"
+    },
+    "readiness": {
+     "ok": true,
+     "why": "Big Card, 24 GB"
+    }
+   },
+   "output": "voxcpm"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "voice": "af_"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": "kokoro"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "voice": "af_"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs 8 GB of GPU memory (Tiny Card has 4 GB)"
+    }
+   },
+   "output": "kokoro"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "voice": "af_"
+    },
+    "readiness": {
+     "ok": true,
+     "why": "Big Card, 24 GB"
+    }
+   },
+   "output": "voxcpm"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "voice": "not-a-kokoro-voice"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": "kokoro"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "voice": "not-a-kokoro-voice"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs 8 GB of GPU memory (Tiny Card has 4 GB)"
+    }
+   },
+   "output": "kokoro"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "voice": "not-a-kokoro-voice"
+    },
+    "readiness": {
+     "ok": true,
+     "why": "Big Card, 24 GB"
+    }
+   },
+   "output": "voxcpm"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": "kokoro"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs 8 GB of GPU memory (Tiny Card has 4 GB)"
+    }
+   },
+   "output": "kokoro"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {},
+    "readiness": {
+     "ok": true,
+     "why": "Big Card, 24 GB"
+    }
+   },
+   "output": "voxcpm"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "reference": "/clip.wav"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": "voxcpm"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "reference": "/clip.wav"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs 8 GB of GPU memory (Tiny Card has 4 GB)"
+    }
+   },
+   "output": "voxcpm"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "reference": "/clip.wav"
+    },
+    "readiness": {
+     "ok": true,
+     "why": "Big Card, 24 GB"
+    }
+   },
+   "output": "voxcpm"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "reference": ""
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": "kokoro"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "reference": ""
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs 8 GB of GPU memory (Tiny Card has 4 GB)"
+    }
+   },
+   "output": "kokoro"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "reference": ""
+    },
+    "readiness": {
+     "ok": true,
+     "why": "Big Card, 24 GB"
+    }
+   },
+   "output": "voxcpm"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "language": "ms"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "error": "speak --language ms: Kokoro speaks English only, and VoxCPM2 needs an NVIDIA GPU with 8 GB of memory (none found). Use the user's TTS (--command), a recording, or a Hugging Face model whose license allows the video's use (--model, references/tts.md)."
+   }
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "language": "ms"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs 8 GB of GPU memory (Tiny Card has 4 GB)"
+    }
+   },
+   "output": {
+    "error": "speak --language ms: Kokoro speaks English only, and VoxCPM2 needs 8 GB of GPU memory (Tiny Card has 4 GB). Use the user's TTS (--command), a recording, or a Hugging Face model whose license allows the video's use (--model, references/tts.md)."
+   }
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "language": "ms"
+    },
+    "readiness": {
+     "ok": true,
+     "why": "Big Card, 24 GB"
+    }
+   },
+   "output": "voxcpm"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "language": "ms-MY"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "error": "speak --language ms-MY: Kokoro speaks English only, and VoxCPM2 needs an NVIDIA GPU with 8 GB of memory (none found). Use the user's TTS (--command), a recording, or a Hugging Face model whose license allows the video's use (--model, references/tts.md)."
+   }
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "language": "ms-MY"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs 8 GB of GPU memory (Tiny Card has 4 GB)"
+    }
+   },
+   "output": {
+    "error": "speak --language ms-MY: Kokoro speaks English only, and VoxCPM2 needs 8 GB of GPU memory (Tiny Card has 4 GB). Use the user's TTS (--command), a recording, or a Hugging Face model whose license allows the video's use (--model, references/tts.md)."
+   }
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "language": "ms-MY"
+    },
+    "readiness": {
+     "ok": true,
+     "why": "Big Card, 24 GB"
+    }
+   },
+   "output": "voxcpm"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "language": "en"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": "kokoro"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "language": "en"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs 8 GB of GPU memory (Tiny Card has 4 GB)"
+    }
+   },
+   "output": "kokoro"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "language": "en"
+    },
+    "readiness": {
+     "ok": true,
+     "why": "Big Card, 24 GB"
+    }
+   },
+   "output": "voxcpm"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "language": "EN-us"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": "kokoro"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "language": "EN-us"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs 8 GB of GPU memory (Tiny Card has 4 GB)"
+    }
+   },
+   "output": "kokoro"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "language": "EN-us"
+    },
+    "readiness": {
+     "ok": true,
+     "why": "Big Card, 24 GB"
+    }
+   },
+   "output": "voxcpm"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "language": ""
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": "kokoro"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "language": ""
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs 8 GB of GPU memory (Tiny Card has 4 GB)"
+    }
+   },
+   "output": "kokoro"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "language": ""
+    },
+    "readiness": {
+     "ok": true,
+     "why": "Big Card, 24 GB"
+    }
+   },
+   "output": "voxcpm"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": "kokoro"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs 8 GB of GPU memory (Tiny Card has 4 GB)"
+    }
+   },
+   "output": "kokoro"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {},
+    "readiness": {
+     "ok": true,
+     "why": "Big Card, 24 GB"
+    }
+   },
+   "output": "voxcpm"
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "voice": "x_x",
+     "language": "ms"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "error": "speak --language ms: Kokoro speaks English only, and VoxCPM2 needs an NVIDIA GPU with 8 GB of memory (none found). Use the user's TTS (--command), a recording, or a Hugging Face model whose license allows the video's use (--model, references/tts.md)."
+   }
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "voice": "x_x",
+     "language": "ms"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs 8 GB of GPU memory (Tiny Card has 4 GB)"
+    }
+   },
+   "output": {
+    "error": "speak --language ms: Kokoro speaks English only, and VoxCPM2 needs 8 GB of GPU memory (Tiny Card has 4 GB). Use the user's TTS (--command), a recording, or a Hugging Face model whose license allows the video's use (--model, references/tts.md)."
+   }
+  },
+  {
+   "fn": "defaultEngine",
+   "input": {
+    "opts": {
+     "voice": "x_x",
+     "language": "ms"
+    },
+    "readiness": {
+     "ok": true,
+     "why": "Big Card, 24 GB"
+    }
+   },
+   "output": "voxcpm"
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {},
+    "tts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "model",
+    "model": "onnx-community/Kokoro-82M-v1.0-ONNX",
+    "voice": "af_heart",
+    "kokoroModel": true,
+    "speed": 1,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {},
+    "tts": {},
+    "readiness": {
+     "ok": true,
+     "why": "Big Card, 24 GB"
+    }
+   },
+   "output": {
+    "branch": "voxcpm",
+    "voice": "",
+    "speed": 1,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {
+     "engine": "voxcpm",
+     "voice": "designed"
+    },
+    "tts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "voxcpm",
+    "voice": "designed",
+    "speed": 1,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {
+     "engine": "voxcpm"
+    },
+    "tts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "voxcpm",
+    "voice": "",
+    "speed": 1,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {
+     "engine": "kokoro",
+     "voice": "bm_george"
+    },
+    "tts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "model",
+    "model": "onnx-community/Kokoro-82M-v1.0-ONNX",
+    "voice": "bm_george",
+    "kokoroModel": true,
+    "speed": 1,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {
+     "engine": ""
+    },
+    "tts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "model",
+    "model": "onnx-community/Kokoro-82M-v1.0-ONNX",
+    "voice": "af_heart",
+    "kokoroModel": true,
+    "speed": 1,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {
+     "engine": "piper"
+    },
+    "tts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "error": "speak --engine \"piper\": use kokoro or voxcpm, or --model / --command for other engines."
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {},
+    "tts": {
+     "engine": "voxcpm",
+     "voice": "from-config"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "voxcpm",
+    "voice": "from-config",
+    "speed": 1,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {},
+    "tts": {
+     "engine": "kokoro",
+     "voice": "from-config"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "model",
+    "model": "onnx-community/Kokoro-82M-v1.0-ONNX",
+    "voice": "from-config",
+    "kokoroModel": true,
+    "speed": 1,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {
+     "command": "piper --text {text} --out {out}"
+    },
+    "tts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "command",
+    "command": "piper --text {text} --out {out}",
+    "speed": 1,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {},
+    "tts": {
+     "command": "xtts --text {text} --out {out}"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "command",
+    "command": "xtts --text {text} --out {out}",
+    "speed": 1,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {
+     "command": "a --out {out}"
+    },
+    "tts": {
+     "command": "b --out {out}"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "command",
+    "command": "a --out {out}",
+    "speed": 1,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {
+     "model": "onnx-community/Kokoro-82M-v1.0-ONNX"
+    },
+    "tts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "model",
+    "model": "onnx-community/Kokoro-82M-v1.0-ONNX",
+    "voice": "af_heart",
+    "kokoroModel": true,
+    "speed": 1,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {
+     "model": "facebook/mms-tts-eng"
+    },
+    "tts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "model",
+    "model": "facebook/mms-tts-eng",
+    "voice": "af_heart",
+    "kokoroModel": false,
+    "speed": 1,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {},
+    "tts": {
+     "model": "KOKORO-mini"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "model",
+    "model": "KOKORO-mini",
+    "voice": "af_heart",
+    "kokoroModel": true,
+    "speed": 1,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {
+     "engine": "kokoro"
+    },
+    "tts": {
+     "model": "some/other-model"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "model",
+    "model": "onnx-community/Kokoro-82M-v1.0-ONNX",
+    "voice": "af_heart",
+    "kokoroModel": true,
+    "speed": 1,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {
+     "engine": "piper",
+     "model": "x"
+    },
+    "tts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "error": "speak --engine \"piper\": use kokoro or voxcpm, or --model / --command for other engines."
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {
+     "command": "a --out {out}",
+     "model": "facebook/mms-tts-eng"
+    },
+    "tts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "command",
+    "command": "a --out {out}",
+    "speed": 1,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {
+     "engine": "kokoro",
+     "voice": "af_bella"
+    },
+    "tts": {
+     "voice": "af_sky"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "model",
+    "model": "onnx-community/Kokoro-82M-v1.0-ONNX",
+    "voice": "af_bella",
+    "kokoroModel": true,
+    "speed": 1,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {
+     "engine": "kokoro"
+    },
+    "tts": {
+     "voice": "af_sky"
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "model",
+    "model": "onnx-community/Kokoro-82M-v1.0-ONNX",
+    "voice": "af_sky",
+    "kokoroModel": true,
+    "speed": 1,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {
+     "engine": "kokoro"
+    },
+    "tts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "model",
+    "model": "onnx-community/Kokoro-82M-v1.0-ONNX",
+    "voice": "af_heart",
+    "kokoroModel": true,
+    "speed": 1,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {
+     "engine": "kokoro",
+     "speed": 0.4
+    },
+    "tts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "error": "speak --speed 0.4: use 0.5 to 2 (0.9 is 10% slower)."
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {
+     "engine": "kokoro",
+     "speed": 2.1
+    },
+    "tts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "error": "speak --speed 2.1: use 0.5 to 2 (0.9 is 10% slower)."
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {
+     "engine": "kokoro",
+     "speed": "NaN"
+    },
+    "tts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "error": "speak --speed NaN: use 0.5 to 2 (0.9 is 10% slower)."
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {
+     "engine": "kokoro",
+     "speed": 0.5
+    },
+    "tts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "model",
+    "model": "onnx-community/Kokoro-82M-v1.0-ONNX",
+    "voice": "af_heart",
+    "kokoroModel": true,
+    "speed": 0.5,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {
+     "engine": "kokoro",
+     "speed": 2
+    },
+    "tts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "model",
+    "model": "onnx-community/Kokoro-82M-v1.0-ONNX",
+    "voice": "af_heart",
+    "kokoroModel": true,
+    "speed": 2,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {},
+    "tts": {
+     "engine": "kokoro",
+     "speed": 1.4
+    },
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "model",
+    "model": "onnx-community/Kokoro-82M-v1.0-ONNX",
+    "voice": "af_heart",
+    "kokoroModel": true,
+    "speed": 1.4,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {
+     "engine": "voxcpm",
+     "speed": 1.8
+    },
+    "tts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "voxcpm",
+    "voice": "",
+    "speed": 1.8,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "Hello.",
+    "opts": {
+     "language": "ms"
+    },
+    "tts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "error": "speak --language ms: Kokoro speaks English only, and VoxCPM2 needs an NVIDIA GPU with 8 GB of memory (none found). Use the user's TTS (--command), a recording, or a Hugging Face model whose license allows the video's use (--model, references/tts.md)."
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "[sigh] Hello.",
+    "opts": {
+     "engine": "kokoro"
+    },
+    "tts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "model",
+    "model": "onnx-community/Kokoro-82M-v1.0-ONNX",
+    "voice": "af_heart",
+    "kokoroModel": true,
+    "speed": 1,
+    "strippedTags": true,
+    "loggedNotice": true
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "[sigh] Hello.",
+    "opts": {
+     "engine": "voxcpm"
+    },
+    "tts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "voxcpm",
+    "voice": "",
+    "speed": 1,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "[sigh] Hello.",
+    "opts": {
+     "engine": "kokoro",
+     "stretched": true
+    },
+    "tts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "model",
+    "model": "onnx-community/Kokoro-82M-v1.0-ONNX",
+    "voice": "af_heart",
+    "kokoroModel": true,
+    "speed": 1,
+    "strippedTags": true,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "[sigh] Hello.",
+    "opts": {
+     "engine": "kokoro",
+     "lines": true
+    },
+    "tts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "model",
+    "model": "onnx-community/Kokoro-82M-v1.0-ONNX",
+    "voice": "af_heart",
+    "kokoroModel": true,
+    "speed": 1,
+    "strippedTags": true,
+    "loggedNotice": false
+   }
+  },
+  {
+   "fn": "resolveSpeak",
+   "input": {
+    "script": "No tags here.",
+    "opts": {
+     "engine": "kokoro"
+    },
+    "tts": {},
+    "readiness": {
+     "ok": false,
+     "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+    }
+   },
+   "output": {
+    "branch": "model",
+    "model": "onnx-community/Kokoro-82M-v1.0-ONNX",
+    "voice": "af_heart",
+    "kokoroModel": true,
+    "speed": 1,
+    "strippedTags": false,
+    "loggedNotice": false
+   }
+  }
+ ]
+}

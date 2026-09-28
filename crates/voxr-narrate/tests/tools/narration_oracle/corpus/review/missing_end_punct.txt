@@ -1,0 +1,3 @@
+The team built the system
+Second line ends fine.
+Third line trails off without a stop
