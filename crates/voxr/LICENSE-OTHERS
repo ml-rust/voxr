@@ -19,6 +19,9 @@ and NOTICE travel beside the data it covers; this file is the index.
                         ports in src/g2p/spacy_tagger/ and
                         boostr's model/text/spacy_tagger/
                         (feature `spacy-tagger`)
+  src/stretch/          WSOLA tempo engine, following the   pkoshevoy/aeyae 7e01117    MIT
+                        yae audio tempo filter; licence     (yae/ffmpeg/)
+                        text in src/stretch/LICENSE-aeyae
 
 The lexicons are embedded in the binary only when the `misaki` feature is on.
 The spaCy tokenizer data is embedded only when the `spacy-tokenizer` feature

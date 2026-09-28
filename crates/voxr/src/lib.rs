@@ -6,7 +6,8 @@
 //!
 //! Always compiled: RIFF/WAVE in and out ([`wav`]), the polyphase
 //! [`resample`]r, the reference-take [`enhance`] chain, [`pitch`], [`quality`],
-//! two-signal [`spectral`] distance, ASR [`eval`] metrics, the signal and
+//! two-signal [`spectral`] distance, the `atempo`-compatible tempo
+//! [`stretch`], ASR [`eval`] metrics, the signal and
 //! summary halves of the [`tts_eval`] quality gate, and the [`Lang`] tag a
 //! voice carries. Feature gates add the compressed-audio [`decode`]rs, the
 //! misaki G2P backend ([`g2p`]), the spaCy `en_core_web_sm` tokenizer and
@@ -24,6 +25,7 @@ pub mod pitch;
 pub mod quality;
 pub mod resample;
 pub mod spectral;
+pub mod stretch;
 pub mod tts_eval;
 pub mod wav;
 
@@ -63,6 +65,7 @@ pub use resample::{
     DEFAULT_TAPS_PER_PHASE, MAX_FILTER_TAPS, resample, resample_with_taps, to_mono_at_rate,
 };
 pub use spectral::{SpectralDistance, multi_resolution_stft_distance, snr_db};
+pub use stretch::{MAX_TEMPO, MIN_TEMPO, PcmSample, atempo, atempo_interleaved, atempo_pcm16};
 #[cfg(feature = "tts")]
 pub use tts::{SynthesizeOptions, TtsBundle, TtsEngine, TtsError, Voice, default_kokoro_voices};
 #[cfg(feature = "voxcpm")]
