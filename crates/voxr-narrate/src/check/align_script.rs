@@ -4,7 +4,7 @@
 use serde::Serialize;
 
 use super::heard::HeardWord;
-use super::speech_match::{key, match_words, script_words, split_units};
+use super::speech_match::{letters, match_words, script_words, split_units};
 use crate::error::Result;
 use crate::js::js_to_fixed;
 use crate::pattern::{Patterns, split};
@@ -17,12 +17,6 @@ pub const STRAY_PAUSE: f64 = 0.45;
 const TIME_DECIMALS: usize = 3;
 /// Decimals of a stray pause's length.
 const GAP_DECIMALS: usize = 2;
-
-/// Letters that weigh a word when time is shared: its pieces run together,
-/// in UTF-16 code units, at least 1.
-fn letters(p: &Patterns, text: &str) -> usize {
-    key(p, text).encode_utf16().count().max(1)
-}
 
 /// Puts the script's words on the recognized timings.
 ///

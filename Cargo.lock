@@ -979,11 +979,21 @@ checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
 
 [[package]]
 name = "regexr"
-version = "0.6.0"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a10e63d4a65161fc4e8a0bf34c9b65aaee6a325fd6cf44a624204d18276c6551"
 dependencies = [
  "aho-corasick",
  "dynasm",
  "dynasmrt",
+ "memchr",
+]
+
+[[package]]
+name = "regexr"
+version = "0.6.0"
+dependencies = [
+ "aho-corasick",
  "memchr",
 ]
 
@@ -1188,13 +1198,15 @@ dependencies = [
 [[package]]
 name = "splintr"
 version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a7f90e09f5909c2489664667cddf03dd40e8791c150a3a798b11ed1c0ecbe3dd"
 dependencies = [
  "aho-corasick",
  "base64",
  "lru",
  "memchr",
  "rayon",
- "regexr",
+ "regexr 0.5.0",
  "rustc-hash",
  "serde",
  "serde_json",
@@ -1209,6 +1221,8 @@ dependencies = [
 [[package]]
 name = "splintr-vocab-cl100k"
 version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ab174e6f6fda76aef83361badce0aa50ef26dd7be2d1b5cfa43e9e09571c7ea"
 dependencies = [
  "splintr-vocab-pack",
 ]
@@ -1216,6 +1230,8 @@ dependencies = [
 [[package]]
 name = "splintr-vocab-pack"
 version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c7401985534963ab3e0b5f4618133adc0f340a7c5eae42e52e9ba5da64f754a0"
 dependencies = [
  "base64",
  "serde_json",
@@ -1224,6 +1240,8 @@ dependencies = [
 [[package]]
 name = "splintr-vocab-whisper"
 version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9a2ada363a88833d6cb54e094eaa1d6478ef8e22932157fad8865936e44d43c1"
 dependencies = [
  "splintr-vocab-pack",
 ]
@@ -1517,7 +1535,7 @@ dependencies = [
  "flate2",
  "hound",
  "numr",
- "regexr",
+ "regexr 0.6.0",
  "rubato",
  "serde",
  "serde_json",
@@ -1535,7 +1553,7 @@ name = "voxr-narrate"
 version = "0.1.0"
 dependencies = [
  "biquad",
- "regexr",
+ "regexr 0.6.0",
  "serde",
  "serde_json",
  "tempfile",
@@ -1700,3 +1718,7 @@ checksum = "27bc9d5b815bc103f142aa054f561d9187d191692ec7c2d1e2b4737f8dbd7296"
 dependencies = [
  "zune-core",
 ]
+
+[[patch.unused]]
+name = "splintr"
+version = "0.21.0"

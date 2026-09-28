@@ -87,6 +87,12 @@ pub(crate) fn key(p: &Patterns, t: &str) -> String {
     norm(p, t).concat()
 }
 
+/// Letters that weigh a word when time is shared: its pieces run together,
+/// in UTF-16 code units, at least 1.
+pub(crate) fn letters(p: &Patterns, text: &str) -> usize {
+    key(p, text).encode_utf16().count().max(1)
+}
+
 /// A script's words: split at whitespace, words with no pieces dropped.
 pub(crate) fn script_words<'t>(p: &Patterns, script: &'t str) -> Vec<&'t str> {
     split(&p.spaces, script)

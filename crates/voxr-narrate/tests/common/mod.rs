@@ -1,6 +1,6 @@
 //! Shared fixtures for the narration oracle tests: JSON fixture loading, the
-//! fixture freshness check, the deterministic test signals and the polish
-//! cases.
+//! fixture freshness check, the deterministic test signals, the polish
+//! cases and the transcript fixture.
 
 // Each file in `tests/` compiles as its own crate and includes this module
 // whole, so a helper one test crate does not call reads as dead code there.
@@ -14,6 +14,7 @@ use serde_json::Value;
 
 pub mod polish_cases;
 pub mod signals;
+pub mod transcript_cases;
 
 /// Read and parse `path` as JSON, panicking with the path on either failure.
 pub fn load_json<T: DeserializeOwned>(path: &Path) -> T {

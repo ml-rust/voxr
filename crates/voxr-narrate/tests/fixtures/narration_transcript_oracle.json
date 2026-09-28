@@ -1,0 +1,2927 @@
+{
+ "constants": {
+  "audioLead": "0.3",
+  "audioTail": "0.5"
+ },
+ "transcribe": [
+  {
+   "name": "one piece: late onset and loose ends",
+   "n": 96000,
+   "ops": [
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 8000,
+     "len": 11200,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 20800,
+     "len": 11200,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 48000,
+     "len": 19200,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 68800,
+     "len": 19200,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    }
+   ],
+   "language": null,
+   "script": [
+    [
+     [
+      "Rivers",
+      0.52,
+      1.18
+     ],
+     [
+      " carry",
+      1.32,
+      2.9
+     ],
+     [
+      "water",
+      3.25,
+      3.8
+     ],
+     [
+      "that",
+      3.85,
+      4.2
+     ],
+     [
+      "runs",
+      4.35,
+      4.9
+     ],
+     [
+      " downhill.",
+      4.95,
+      null
+     ]
+    ]
+   ],
+   "file": "narration/case0.wav",
+   "input": "c24d8749",
+   "floor": "0.002330269270339708",
+   "pieces": [
+    [
+     0,
+     96000
+    ]
+   ],
+   "calls": [
+    {
+     "n": 96000,
+     "language": "en",
+     "input": "c24d8749"
+    }
+   ],
+   "words": [
+    {
+     "text": "Rivers",
+     "start": "0.5",
+     "end": "1.32"
+    },
+    {
+     "text": "carry",
+     "start": "1.32",
+     "end": "2"
+    },
+    {
+     "text": "water",
+     "start": "3",
+     "end": "3.85"
+    },
+    {
+     "text": "that",
+     "start": "3.85",
+     "end": "4.35"
+    },
+    {
+     "text": "runs",
+     "start": "4.35",
+     "end": "4.95"
+    },
+    {
+     "text": "downhill.",
+     "start": "4.95",
+     "end": "5.5"
+    }
+   ],
+   "looped": false,
+   "duration": "6",
+   "json": "{\n \"file\": \"narration/case0.wav\",\n \"model\": \"onnx-community/whisper-base_timestamped\",\n \"duration\": 6,\n \"words\": [\n  {\n   \"text\": \"Rivers\",\n   \"start\": 0.5,\n   \"end\": 1.32\n  },\n  {\n   \"text\": \"carry\",\n   \"start\": 1.32,\n   \"end\": 2\n  },\n  {\n   \"text\": \"water\",\n   \"start\": 3,\n   \"end\": 3.85\n  },\n  {\n   \"text\": \"that\",\n   \"start\": 3.85,\n   \"end\": 4.35\n  },\n  {\n   \"text\": \"runs\",\n   \"start\": 4.35,\n   \"end\": 4.95\n  },\n  {\n   \"text\": \"downhill.\",\n   \"start\": 4.95,\n   \"end\": 5.5\n  }\n ],\n \"looped\": false\n}",
+   "compose": {
+    "script": "Rivers carry the water that runs downhill.",
+    "scriptFile": "narration/one.txt",
+    "words": [
+     {
+      "text": "Rivers",
+      "start": "0.5",
+      "end": "1.32"
+     },
+     {
+      "text": "carry",
+      "start": "1.32",
+      "end": "2"
+     },
+     {
+      "text": "the",
+      "start": "2",
+      "end": "3"
+     },
+     {
+      "text": "water",
+      "start": "3",
+      "end": "3.85"
+     },
+     {
+      "text": "that",
+      "start": "3.85",
+      "end": "4.35"
+     },
+     {
+      "text": "runs",
+      "start": "4.35",
+      "end": "4.95"
+     },
+     {
+      "text": "downhill.",
+      "start": "4.95",
+      "end": "5.5"
+     }
+    ],
+    "json": "{\n \"file\": \"narration/case0.wav\",\n \"model\": \"onnx-community/whisper-base_timestamped\",\n \"duration\": 6,\n \"words\": [\n  {\n   \"text\": \"Rivers\",\n   \"start\": 0.5,\n   \"end\": 1.32\n  },\n  {\n   \"text\": \"carry\",\n   \"start\": 1.32,\n   \"end\": 2\n  },\n  {\n   \"text\": \"the\",\n   \"start\": 2,\n   \"end\": 3\n  },\n  {\n   \"text\": \"water\",\n   \"start\": 3,\n   \"end\": 3.85\n  },\n  {\n   \"text\": \"that\",\n   \"start\": 3.85,\n   \"end\": 4.35\n  },\n  {\n   \"text\": \"runs\",\n   \"start\": 4.35,\n   \"end\": 4.95\n  },\n  {\n   \"text\": \"downhill.\",\n   \"start\": 4.95,\n   \"end\": 5.5\n  }\n ],\n \"looped\": false,\n \"heard\": [\n  {\n   \"text\": \"Rivers\",\n   \"start\": 0.5,\n   \"end\": 1.32\n  },\n  {\n   \"text\": \"carry\",\n   \"start\": 1.32,\n   \"end\": 2\n  },\n  {\n   \"text\": \"water\",\n   \"start\": 3,\n   \"end\": 3.85\n  },\n  {\n   \"text\": \"that\",\n   \"start\": 3.85,\n   \"end\": 4.35\n  },\n  {\n   \"text\": \"runs\",\n   \"start\": 4.35,\n   \"end\": 4.95\n  },\n  {\n   \"text\": \"downhill.\",\n   \"start\": 4.95,\n   \"end\": 5.5\n  }\n ],\n \"script\": \"narration/one.txt\"\n}"
+   }
+  },
+  {
+   "name": "45 s take cut at silences",
+   "n": 720000,
+   "ops": [
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 3200,
+     "len": 25600,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 33600,
+     "len": 25600,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 64000,
+     "len": 25600,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 94400,
+     "len": 25600,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 124800,
+     "len": 25600,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 155200,
+     "len": 25600,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 185600,
+     "len": 25600,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 216000,
+     "len": 25600,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 251200,
+     "len": 25600,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 281600,
+     "len": 25600,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 312000,
+     "len": 25600,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 342400,
+     "len": 25600,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 372800,
+     "len": 25600,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 403200,
+     "len": 25600,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 433600,
+     "len": 25600,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 464000,
+     "len": 25600,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 494400,
+     "len": 25600,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 529600,
+     "len": 25600,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 560000,
+     "len": 25600,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 590400,
+     "len": 25600,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 620800,
+     "len": 25600,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 651200,
+     "len": 25600,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 681600,
+     "len": 25600,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    }
+   ],
+   "language": "ms",
+   "script": [
+    [
+     [
+      "Semuanya",
+      0.3,
+      0.9
+     ],
+     [
+      "bermula",
+      1,
+      1.6
+     ],
+     [
+      "di",
+      2.3,
+      2.6
+     ],
+     [
+      "sini",
+      2.7,
+      3.4
+     ],
+     [
+      "tahun",
+      8.3,
+      8.9
+     ]
+    ],
+    [
+     [
+      "Raja",
+      0.4,
+      0.8
+     ],
+     [
+      "Muda",
+      0.9,
+      1.5
+     ],
+     [
+      "datang",
+      4.2,
+      4.9
+     ]
+    ],
+    [
+     [
+      "dan",
+      0.2,
+      0.5
+     ],
+     [
+      "pergi.",
+      1.2,
+      1.9
+     ]
+    ]
+   ],
+   "file": "narration/case1.wav",
+   "input": "20fc793e",
+   "floor": "0.002330269270339708",
+   "pieces": [
+    [
+     0,
+     246240
+    ],
+    [
+     246240,
+     524640
+    ],
+    [
+     524640,
+     720000
+    ]
+   ],
+   "calls": [
+    {
+     "n": 246240,
+     "language": "ms",
+     "input": "babeca55"
+    },
+    {
+     "n": 278400,
+     "language": "ms",
+     "input": "553c0a9a"
+    },
+    {
+     "n": 195360,
+     "language": "ms",
+     "input": "a0655b09"
+    }
+   ],
+   "words": [
+    {
+     "text": "Semuanya",
+     "start": "0.2",
+     "end": "1"
+    },
+    {
+     "text": "bermula",
+     "start": "1",
+     "end": "1.6"
+    },
+    {
+     "text": "di",
+     "start": "2.1",
+     "end": "2.7"
+    },
+    {
+     "text": "sini",
+     "start": "2.7",
+     "end": "3.4"
+    },
+    {
+     "text": "tahun",
+     "start": "7.8",
+     "end": "8.9"
+    },
+    {
+     "text": "Raja",
+     "start": "15.7",
+     "end": "16.29"
+    },
+    {
+     "text": "Muda",
+     "start": "16.29",
+     "end": "16.89"
+    },
+    {
+     "text": "datang",
+     "start": "19.5",
+     "end": "20.29"
+    },
+    {
+     "text": "dan",
+     "start": "33.1",
+     "end": "33.39"
+    },
+    {
+     "text": "pergi.",
+     "start": "33.39",
+     "end": "34.7"
+    }
+   ],
+   "looped": false,
+   "duration": "45",
+   "json": "{\n \"file\": \"narration/case1.wav\",\n \"model\": \"onnx-community/whisper-base_timestamped\",\n \"duration\": 45,\n \"words\": [\n  {\n   \"text\": \"Semuanya\",\n   \"start\": 0.2,\n   \"end\": 1\n  },\n  {\n   \"text\": \"bermula\",\n   \"start\": 1,\n   \"end\": 1.6\n  },\n  {\n   \"text\": \"di\",\n   \"start\": 2.1,\n   \"end\": 2.7\n  },\n  {\n   \"text\": \"sini\",\n   \"start\": 2.7,\n   \"end\": 3.4\n  },\n  {\n   \"text\": \"tahun\",\n   \"start\": 7.8,\n   \"end\": 8.9\n  },\n  {\n   \"text\": \"Raja\",\n   \"start\": 15.7,\n   \"end\": 16.29\n  },\n  {\n   \"text\": \"Muda\",\n   \"start\": 16.29,\n   \"end\": 16.89\n  },\n  {\n   \"text\": \"datang\",\n   \"start\": 19.5,\n   \"end\": 20.29\n  },\n  {\n   \"text\": \"dan\",\n   \"start\": 33.1,\n   \"end\": 33.39\n  },\n  {\n   \"text\": \"pergi.\",\n   \"start\": 33.39,\n   \"end\": 34.7\n  }\n ],\n \"looped\": false\n}"
+  },
+  {
+   "name": "no silence: hard cut at 20 s",
+   "n": 400000,
+   "ops": [
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 0,
+     "len": 400000,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    }
+   ],
+   "language": null,
+   "script": [
+    [
+     [
+      "one",
+      1,
+      1.5
+     ],
+     [
+      "two",
+      19.5,
+      20
+     ]
+    ],
+    [
+     [
+      "three",
+      0.2,
+      0.8
+     ],
+     [
+      "four",
+      3,
+      null
+     ]
+    ]
+   ],
+   "file": "narration/case2.wav",
+   "input": "0fd731fd",
+   "floor": "0.002330269270339708",
+   "pieces": [
+    [
+     0,
+     320000
+    ],
+    [
+     320000,
+     400000
+    ]
+   ],
+   "calls": [
+    {
+     "n": 320000,
+     "language": "en",
+     "input": "9cf08650"
+    },
+    {
+     "n": 80000,
+     "language": "en",
+     "input": "ed259a90"
+    }
+   ],
+   "words": [
+    {
+     "text": "one",
+     "start": "0.4",
+     "end": "18.9"
+    },
+    {
+     "text": "two",
+     "start": "18.9",
+     "end": "20"
+    },
+    {
+     "text": "three",
+     "start": "20",
+     "end": "22.4"
+    },
+    {
+     "text": "four",
+     "start": "22.4",
+     "end": "25"
+    }
+   ],
+   "looped": false,
+   "duration": "25",
+   "json": "{\n \"file\": \"narration/case2.wav\",\n \"model\": \"onnx-community/whisper-base_timestamped\",\n \"duration\": 25,\n \"words\": [\n  {\n   \"text\": \"one\",\n   \"start\": 0.4,\n   \"end\": 18.9\n  },\n  {\n   \"text\": \"two\",\n   \"start\": 18.9,\n   \"end\": 20\n  },\n  {\n   \"text\": \"three\",\n   \"start\": 20,\n   \"end\": 22.4\n  },\n  {\n   \"text\": \"four\",\n   \"start\": 22.4,\n   \"end\": 25\n  }\n ],\n \"looped\": false\n}"
+  },
+  {
+   "name": "words in digital silence",
+   "n": 64000,
+   "ops": [
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 8000,
+     "len": 24000,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "noise",
+     "start": 40000,
+     "len": 24000,
+     "amp": 0.00001,
+     "seed": 9
+    }
+   ],
+   "language": null,
+   "script": [
+    [
+     [
+      "hello",
+      0.5,
+      1
+     ],
+     [
+      "world",
+      1.1,
+      1.9
+     ],
+     [
+      "Thanks",
+      2.1,
+      2.4
+     ],
+     [
+      "you",
+      3,
+      3.3
+     ],
+     [
+      "",
+      3.4,
+      3.5
+     ],
+     [
+      "  ",
+      3.5,
+      3.6
+     ]
+    ]
+   ],
+   "file": "narration/case3.wav",
+   "input": "b3ef1592",
+   "floor": "0.002330269270339708",
+   "pieces": [
+    [
+     0,
+     64000
+    ]
+   ],
+   "calls": [
+    {
+     "n": 64000,
+     "language": "en",
+     "input": "b3ef1592"
+    }
+   ],
+   "words": [
+    {
+     "text": "hello",
+     "start": "0.5",
+     "end": "1.1"
+    },
+    {
+     "text": "world",
+     "start": "1.1",
+     "end": "2"
+    }
+   ],
+   "looped": false,
+   "duration": "4",
+   "json": "{\n \"file\": \"narration/case3.wav\",\n \"model\": \"onnx-community/whisper-base_timestamped\",\n \"duration\": 4,\n \"words\": [\n  {\n   \"text\": \"hello\",\n   \"start\": 0.5,\n   \"end\": 1.1\n  },\n  {\n   \"text\": \"world\",\n   \"start\": 1.1,\n   \"end\": 2\n  }\n ],\n \"looped\": false\n}"
+  },
+  {
+   "name": "loops: three copies collapse, two stay",
+   "n": 128000,
+   "ops": [
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 1600,
+     "len": 124800,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    }
+   ],
+   "language": null,
+   "script": [
+    [
+     [
+      "dengan",
+      0.2,
+      0.4
+     ],
+     [
+      "kembali",
+      0.45,
+      0.65
+     ],
+     [
+      "dengan",
+      0.7,
+      0.8999999999999999
+     ],
+     [
+      "kembali",
+      0.95,
+      1.15
+     ],
+     [
+      "Dengan,",
+      1.2,
+      1.4
+     ],
+     [
+      "kembali",
+      1.45,
+      1.65
+     ],
+     [
+      "ke",
+      1.7,
+      1.9
+     ],
+     [
+      "rumah",
+      1.95,
+      2.15
+     ],
+     [
+      "rumah",
+      2.2,
+      2.4000000000000004
+     ],
+     [
+      "ya",
+      2.45,
+      2.6500000000000004
+     ],
+     [
+      "ya",
+      2.7,
+      2.9000000000000004
+     ],
+     [
+      "ya.",
+      2.95,
+      3.1500000000000004
+     ],
+     [
+      "a",
+      3.2,
+      3.4000000000000004
+     ],
+     [
+      "b",
+      3.45,
+      3.6500000000000004
+     ],
+     [
+      "c",
+      3.7,
+      3.9000000000000004
+     ],
+     [
+      "d",
+      3.95,
+      4.15
+     ],
+     [
+      "a",
+      4.2,
+      4.4
+     ],
+     [
+      "b",
+      4.45,
+      4.65
+     ],
+     [
+      "c",
+      4.7,
+      4.9
+     ],
+     [
+      "d",
+      4.95,
+      5.15
+     ],
+     [
+      "A",
+      5.2,
+      5.4
+     ],
+     [
+      "b",
+      5.45,
+      5.65
+     ],
+     [
+      "c",
+      5.7,
+      5.9
+     ],
+     [
+      "d.",
+      5.95,
+      6.15
+     ],
+     [
+      "selesai",
+      6.2,
+      6.4
+     ]
+    ]
+   ],
+   "file": "narration/case4.wav",
+   "input": "f84cf1cb",
+   "floor": "0.002330269270339708",
+   "pieces": [
+    [
+     0,
+     128000
+    ]
+   ],
+   "calls": [
+    {
+     "n": 128000,
+     "language": "en",
+     "input": "f84cf1cb"
+    }
+   ],
+   "words": [
+    {
+     "text": "dengan",
+     "start": "0.1",
+     "end": "0.45"
+    },
+    {
+     "text": "kembali",
+     "start": "0.45",
+     "end": "1.1"
+    },
+    {
+     "text": "ke",
+     "start": "1.1",
+     "end": "1.95"
+    },
+    {
+     "text": "rumah",
+     "start": "1.95",
+     "end": "2.2"
+    },
+    {
+     "text": "rumah",
+     "start": "2.2",
+     "end": "2.45"
+    },
+    {
+     "text": "ya",
+     "start": "2.45",
+     "end": "2.66"
+    },
+    {
+     "text": "a",
+     "start": "2.66",
+     "end": "3.45"
+    },
+    {
+     "text": "b",
+     "start": "3.45",
+     "end": "3.7"
+    },
+    {
+     "text": "c",
+     "start": "3.7",
+     "end": "3.95"
+    },
+    {
+     "text": "d",
+     "start": "3.95",
+     "end": "5.6"
+    },
+    {
+     "text": "selesai",
+     "start": "5.6",
+     "end": "7.9"
+    }
+   ],
+   "looped": true,
+   "duration": "8",
+   "json": "{\n \"file\": \"narration/case4.wav\",\n \"model\": \"onnx-community/whisper-base_timestamped\",\n \"duration\": 8,\n \"words\": [\n  {\n   \"text\": \"dengan\",\n   \"start\": 0.1,\n   \"end\": 0.45\n  },\n  {\n   \"text\": \"kembali\",\n   \"start\": 0.45,\n   \"end\": 1.1\n  },\n  {\n   \"text\": \"ke\",\n   \"start\": 1.1,\n   \"end\": 1.95\n  },\n  {\n   \"text\": \"rumah\",\n   \"start\": 1.95,\n   \"end\": 2.2\n  },\n  {\n   \"text\": \"rumah\",\n   \"start\": 2.2,\n   \"end\": 2.45\n  },\n  {\n   \"text\": \"ya\",\n   \"start\": 2.45,\n   \"end\": 2.66\n  },\n  {\n   \"text\": \"a\",\n   \"start\": 2.66,\n   \"end\": 3.45\n  },\n  {\n   \"text\": \"b\",\n   \"start\": 3.45,\n   \"end\": 3.7\n  },\n  {\n   \"text\": \"c\",\n   \"start\": 3.7,\n   \"end\": 3.95\n  },\n  {\n   \"text\": \"d\",\n   \"start\": 3.95,\n   \"end\": 5.6\n  },\n  {\n   \"text\": \"selesai\",\n   \"start\": 5.6,\n   \"end\": 7.9\n  }\n ],\n \"looped\": true\n}"
+  },
+  {
+   "name": "crushed pair split by raw length",
+   "n": 48000,
+   "ops": [
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 16000,
+     "len": 24000,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    }
+   ],
+   "language": null,
+   "script": [
+    [
+     [
+      "Hi,",
+      1,
+      1.02
+     ],
+     [
+      "there.",
+      1.03,
+      1.6
+     ],
+     [
+      "friend",
+      1.7,
+      2.4
+     ]
+    ]
+   ],
+   "file": "narration/case5.wav",
+   "input": "b433f69e",
+   "floor": "0.002330269270339708",
+   "pieces": [
+    [
+     0,
+     48000
+    ]
+   ],
+   "calls": [
+    {
+     "n": 48000,
+     "language": "en",
+     "input": "b433f69e"
+    }
+   ],
+   "words": [
+    {
+     "text": "Hi,",
+     "start": "1",
+     "end": "1.2"
+    },
+    {
+     "text": "there.",
+     "start": "1.2",
+     "end": "1.7"
+    },
+    {
+     "text": "friend",
+     "start": "1.7",
+     "end": "2.5"
+    }
+   ],
+   "looped": false,
+   "duration": "3",
+   "json": "{\n \"file\": \"narration/case5.wav\",\n \"model\": \"onnx-community/whisper-base_timestamped\",\n \"duration\": 3,\n \"words\": [\n  {\n   \"text\": \"Hi,\",\n   \"start\": 1,\n   \"end\": 1.2\n  },\n  {\n   \"text\": \"there.\",\n   \"start\": 1.2,\n   \"end\": 1.7\n  },\n  {\n   \"text\": \"friend\",\n   \"start\": 1.7,\n   \"end\": 2.5\n  }\n ],\n \"looped\": false\n}"
+  },
+  {
+   "name": "crushed run at the end of the audio",
+   "n": 48000,
+   "ops": [
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 8000,
+     "len": 40000,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    }
+   ],
+   "language": null,
+   "script": [
+    [
+     [
+      "Absolutely",
+      0.5,
+      2.95
+     ],
+     [
+      "fine",
+      2.95,
+      2.96
+     ],
+     [
+      "today.",
+      2.96,
+      2.97
+     ]
+    ]
+   ],
+   "file": "narration/case6.wav",
+   "input": "1513cf73",
+   "floor": "0.002330269270339708",
+   "pieces": [
+    [
+     0,
+     48000
+    ]
+   ],
+   "calls": [
+    {
+     "n": 48000,
+     "language": "en",
+     "input": "1513cf73"
+    }
+   ],
+   "words": [
+    {
+     "text": "Absolutely",
+     "start": "0.5",
+     "end": "1.858"
+    },
+    {
+     "text": "fine",
+     "start": "1.858",
+     "end": "2.401"
+    },
+    {
+     "text": "today.",
+     "start": "2.401",
+     "end": "3"
+    }
+   ],
+   "looped": false,
+   "duration": "3",
+   "json": "{\n \"file\": \"narration/case6.wav\",\n \"model\": \"onnx-community/whisper-base_timestamped\",\n \"duration\": 3,\n \"words\": [\n  {\n   \"text\": \"Absolutely\",\n   \"start\": 0.5,\n   \"end\": 1.858\n  },\n  {\n   \"text\": \"fine\",\n   \"start\": 1.858,\n   \"end\": 2.401\n  },\n  {\n   \"text\": \"today.\",\n   \"start\": 2.401,\n   \"end\": 3\n  }\n ],\n \"looped\": false\n}"
+  },
+  {
+   "name": "phrase spans with trailing speech",
+   "n": 96000,
+   "ops": [
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 8000,
+     "len": 14400,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 24000,
+     "len": 14400,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 48000,
+     "len": 12800,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 73600,
+     "len": 12800,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    }
+   ],
+   "language": null,
+   "script": [
+    [
+     [
+      "The",
+      0.5,
+      0.7
+     ],
+     [
+      "river",
+      0.72,
+      1.1
+     ],
+     [
+      "runs",
+      1.15,
+      1.4
+     ],
+     [
+      "north.",
+      1.5,
+      2.3
+     ],
+     [
+      "Statusnya",
+      3,
+      3.5
+     ],
+     [
+      "terancam.",
+      3.5,
+      3.8
+     ]
+    ]
+   ],
+   "file": "narration/case7.wav",
+   "input": "9d251ec5",
+   "floor": "0.002330269270339708",
+   "pieces": [
+    [
+     0,
+     96000
+    ]
+   ],
+   "calls": [
+    {
+     "n": 96000,
+     "language": "en",
+     "input": "9d251ec5"
+    }
+   ],
+   "words": [
+    {
+     "text": "The",
+     "start": "0.5",
+     "end": "0.72"
+    },
+    {
+     "text": "river",
+     "start": "0.72",
+     "end": "1.15"
+    },
+    {
+     "text": "runs",
+     "start": "1.15",
+     "end": "1.5"
+    },
+    {
+     "text": "north.",
+     "start": "1.5",
+     "end": "2.3"
+    },
+    {
+     "text": "Statusnya",
+     "start": "3",
+     "end": "3.5"
+    },
+    {
+     "text": "terancam.",
+     "start": "3.5",
+     "end": "3.8"
+    }
+   ],
+   "looped": false,
+   "duration": "6",
+   "json": "{\n \"file\": \"narration/case7.wav\",\n \"model\": \"onnx-community/whisper-base_timestamped\",\n \"duration\": 6,\n \"words\": [\n  {\n   \"text\": \"The\",\n   \"start\": 0.5,\n   \"end\": 0.72\n  },\n  {\n   \"text\": \"river\",\n   \"start\": 0.72,\n   \"end\": 1.15\n  },\n  {\n   \"text\": \"runs\",\n   \"start\": 1.15,\n   \"end\": 1.5\n  },\n  {\n   \"text\": \"north.\",\n   \"start\": 1.5,\n   \"end\": 2.3\n  },\n  {\n   \"text\": \"Statusnya\",\n   \"start\": 3,\n   \"end\": 3.5\n  },\n  {\n   \"text\": \"terancam.\",\n   \"start\": 3.5,\n   \"end\": 3.8\n  }\n ],\n \"looped\": false\n}",
+   "compose": {
+    "phrases": [
+     {
+      "text": "The river runs north.",
+      "start": 0.4,
+      "end": 2.6
+     },
+     {
+      "text": "Statusnya, terancam.",
+      "start": 2.8,
+      "end": 5.8
+     }
+    ],
+    "phrasesFile": "narration/take.srt",
+    "scriptFile": "narration/take.srt",
+    "words": [
+     {
+      "text": "The",
+      "start": "0.5",
+      "end": "0.72"
+     },
+     {
+      "text": "river",
+      "start": "0.72",
+      "end": "1.15"
+     },
+     {
+      "text": "runs",
+      "start": "1.15",
+      "end": "1.5"
+     },
+     {
+      "text": "north.",
+      "start": "1.5",
+      "end": "2.4"
+     },
+     {
+      "text": "Statusnya,",
+      "start": "3",
+      "end": "3.5"
+     },
+     {
+      "text": "terancam.",
+      "start": "4.6",
+      "end": "5.4"
+     }
+    ],
+    "json": "{\n \"file\": \"narration/case7.wav\",\n \"model\": \"onnx-community/whisper-base_timestamped\",\n \"duration\": 6,\n \"words\": [\n  {\n   \"text\": \"The\",\n   \"start\": 0.5,\n   \"end\": 0.72\n  },\n  {\n   \"text\": \"river\",\n   \"start\": 0.72,\n   \"end\": 1.15\n  },\n  {\n   \"text\": \"runs\",\n   \"start\": 1.15,\n   \"end\": 1.5\n  },\n  {\n   \"text\": \"north.\",\n   \"start\": 1.5,\n   \"end\": 2.4\n  },\n  {\n   \"text\": \"Statusnya,\",\n   \"start\": 3,\n   \"end\": 3.5\n  },\n  {\n   \"text\": \"terancam.\",\n   \"start\": 4.6,\n   \"end\": 5.4\n  }\n ],\n \"looped\": false,\n \"heard\": [\n  {\n   \"text\": \"The\",\n   \"start\": 0.5,\n   \"end\": 0.72\n  },\n  {\n   \"text\": \"river\",\n   \"start\": 0.72,\n   \"end\": 1.15\n  },\n  {\n   \"text\": \"runs\",\n   \"start\": 1.15,\n   \"end\": 1.5\n  },\n  {\n   \"text\": \"north.\",\n   \"start\": 1.5,\n   \"end\": 2.3\n  },\n  {\n   \"text\": \"Statusnya\",\n   \"start\": 3,\n   \"end\": 3.5\n  },\n  {\n   \"text\": \"terancam.\",\n   \"start\": 3.5,\n   \"end\": 3.8\n  }\n ],\n \"phrases\": \"narration/take.srt\",\n \"script\": \"narration/take.srt\"\n}"
+   }
+  }
+ ],
+ "signals": [
+  {
+   "name": "gapped",
+   "n": 96000,
+   "ops": [
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 8000,
+     "len": 11200,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 20800,
+     "len": 11200,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 48000,
+     "len": 19200,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    },
+    {
+     "kind": "tone",
+     "hz": "200",
+     "start": 68800,
+     "len": 19200,
+     "amp": 0.3,
+     "attack": 160,
+     "release": 160
+    }
+   ],
+   "input": "c24d8749",
+   "floor": "0.002330269270339708",
+   "snapOnsets": [
+    {
+     "words": [
+      {
+       "text": "late",
+       "start": 3.25,
+       "end": 3.8
+      }
+     ],
+     "out": [
+      {
+       "text": "late",
+       "start": "3",
+       "end": "3.8"
+      }
+     ]
+    },
+    {
+     "words": [
+      {
+       "text": "first",
+       "start": 0.8,
+       "end": 1.1
+      }
+     ],
+     "out": [
+      {
+       "text": "first",
+       "start": "0.5",
+       "end": "1.1"
+      }
+     ]
+    },
+    {
+     "words": [
+      {
+       "text": "close",
+       "start": 0.5,
+       "end": 1.15
+      },
+      {
+       "text": "behind",
+       "start": 1.3,
+       "end": 1.9
+      }
+     ],
+     "out": [
+      {
+       "text": "close",
+       "start": "0.5",
+       "end": "1.15"
+      },
+      {
+       "text": "behind",
+       "start": "1.3",
+       "end": "1.9"
+      }
+     ]
+    },
+    {
+     "words": [
+      {
+       "text": "far",
+       "start": 4,
+       "end": 4.2
+      }
+     ],
+     "out": [
+      {
+       "text": "far",
+       "start": "3.4",
+       "end": "4.2"
+      }
+     ]
+    },
+    {
+     "words": [
+      {
+       "text": "prev",
+       "start": 2.9,
+       "end": 3.2
+      },
+      {
+       "text": "bounded",
+       "start": 3.6,
+       "end": 4.1
+      }
+     ],
+     "out": [
+      {
+       "text": "prev",
+       "start": "2.9",
+       "end": "3.2"
+      },
+      {
+       "text": "bounded",
+       "start": "3.2",
+       "end": "4.1"
+      }
+     ]
+    }
+   ],
+   "snapEnds": [
+    {
+     "words": [
+      {
+       "text": "loose",
+       "start": 3,
+       "end": 4.9
+      },
+      {
+       "text": "next",
+       "start": 5,
+       "end": 5.4
+      }
+     ],
+     "out": [
+      {
+       "text": "loose",
+       "start": "3",
+       "end": "4.2"
+      },
+      {
+       "text": "next",
+       "start": "5",
+       "end": "5.4"
+      }
+     ]
+    },
+    {
+     "words": [
+      {
+       "text": "Hi,",
+       "start": 3.1,
+       "end": 3.12
+      },
+      {
+       "text": "there.",
+       "start": 3.13,
+       "end": 3.9
+      }
+     ],
+     "out": [
+      {
+       "text": "Hi,",
+       "start": "3.1",
+       "end": "3.367"
+      },
+      {
+       "text": "there.",
+       "start": "3.367",
+       "end": "3.9"
+      }
+     ]
+    },
+    {
+     "words": [
+      {
+       "text": "a",
+       "start": 3.1,
+       "end": 3.12
+      },
+      {
+       "text": "far",
+       "start": 3.6,
+       "end": 4.1
+      }
+     ],
+     "out": [
+      {
+       "text": "a",
+       "start": "3.1",
+       "end": "3.6"
+      },
+      {
+       "text": "far",
+       "start": "3.6",
+       "end": "4.1"
+      }
+     ]
+    },
+    {
+     "words": [
+      {
+       "text": "silent",
+       "start": 2.3,
+       "end": 2.6
+      },
+      {
+       "text": "then",
+       "start": 3,
+       "end": 3.5
+      }
+     ],
+     "out": [
+      {
+       "text": "silent",
+       "start": "2.3",
+       "end": "2.6"
+      },
+      {
+       "text": "then",
+       "start": "3",
+       "end": "3.5"
+      }
+     ]
+    },
+    {
+     "words": [
+      {
+       "text": "last",
+       "start": 4.3,
+       "end": 5.95
+      }
+     ],
+     "out": [
+      {
+       "text": "last",
+       "start": "4.3",
+       "end": "5.5"
+      }
+     ]
+    }
+   ],
+   "fitToSound": [
+    {
+     "words": [
+      {
+       "text": "early",
+       "start": 2.2,
+       "end": 2.5
+      },
+      {
+       "text": "next",
+       "start": 4.3,
+       "end": 5
+      }
+     ],
+     "out": [
+      {
+       "text": "early",
+       "start": "3",
+       "end": "4.3"
+      },
+      {
+       "text": "next",
+       "start": "4.3",
+       "end": "5.5"
+      }
+     ]
+    },
+    {
+     "words": [
+      {
+       "text": "hello",
+       "start": 0.5,
+       "end": 1
+      },
+      {
+       "text": "there",
+       "start": 1.4,
+       "end": 2
+      }
+     ],
+     "out": [
+      {
+       "text": "hello",
+       "start": "0.5",
+       "end": "1.4"
+      },
+      {
+       "text": "there",
+       "start": "1.4",
+       "end": "2"
+      }
+     ]
+    },
+    {
+     "words": [
+      {
+       "text": "trimmed",
+       "start": 3,
+       "end": 4.28
+      },
+      {
+       "text": "end",
+       "start": 4.4,
+       "end": 5.9
+      }
+     ],
+     "out": [
+      {
+       "text": "trimmed",
+       "start": "3",
+       "end": "4.4"
+      },
+      {
+       "text": "end",
+       "start": "4.4",
+       "end": "5.5"
+      }
+     ]
+    },
+    {
+     "words": [
+      {
+       "text": "b",
+       "start": 1,
+       "end": 1.2
+      },
+      {
+       "text": "a",
+       "start": 0.9,
+       "end": 0.95
+      },
+      {
+       "text": "c",
+       "start": 1.25,
+       "end": 1.1
+      }
+     ],
+     "out": [
+      {
+       "text": "b",
+       "start": "1",
+       "end": "1.14"
+      },
+      {
+       "text": "a",
+       "start": "1.14",
+       "end": "1.2799999999999998"
+      },
+      {
+       "text": "c",
+       "start": "1.2799999999999998",
+       "end": "2"
+      }
+     ]
+    },
+    {
+     "words": [
+      {
+       "text": "swallowed",
+       "start": 3,
+       "end": 4.1
+      },
+      {
+       "text": "it",
+       "start": 4.1,
+       "end": 4.11
+      },
+      {
+       "text": "all",
+       "start": 4.11,
+       "end": 4.12
+      },
+      {
+       "text": "up",
+       "start": 4.3,
+       "end": 5
+      }
+     ],
+     "out": [
+      {
+       "text": "swallowed",
+       "start": "3",
+       "end": "4.1"
+      },
+      {
+       "text": "it",
+       "start": "4.1",
+       "end": "4.425714285714285"
+      },
+      {
+       "text": "all",
+       "start": "4.425714285714285",
+       "end": "4.914285714285714"
+      },
+      {
+       "text": "up",
+       "start": "4.914285714285714",
+       "end": "5.5"
+      }
+     ]
+    }
+   ],
+   "lastRun": [
+    {
+     "from": 2,
+     "to": 6,
+     "out": [
+      "3",
+      "5.5"
+     ]
+    },
+    {
+     "from": 0,
+     "to": 2.9,
+     "out": [
+      "0.5",
+      "2"
+     ]
+    },
+    {
+     "from": 2.05,
+     "to": 2.95,
+     "out": null
+    },
+    {
+     "from": 5.45,
+     "to": 6,
+     "out": [
+      "5.45",
+      "5.5"
+     ]
+    },
+    {
+     "from": 4.25,
+     "to": 4.35,
+     "out": [
+      "4.3",
+      "4.35"
+     ]
+    }
+   ],
+   "fitFile": [
+    {
+     "words": [
+      {
+       "text": "Rivers",
+       "start": 0.52,
+       "end": 1.18
+      },
+      {
+       "text": "carry",
+       "start": 1.32,
+       "end": 2
+      },
+      {
+       "text": "water",
+       "start": 2.2,
+       "end": 3.8
+      }
+     ],
+     "phrase": null,
+     "spans": null,
+     "out": [
+      {
+       "text": "Rivers",
+       "start": "0.52",
+       "end": "1.32"
+      },
+      {
+       "text": "carry",
+       "start": "1.32",
+       "end": "2"
+      },
+      {
+       "text": "water",
+       "start": "3",
+       "end": "5.5"
+      }
+     ]
+    },
+    {
+     "words": [
+      {
+       "text": "Rivers",
+       "start": 0.3,
+       "end": 1.18
+      },
+      {
+       "text": "carry",
+       "start": 1.32,
+       "end": 2
+      },
+      {
+       "text": "stray",
+       "start": 2.1,
+       "end": 2.2
+      },
+      {
+       "text": "water",
+       "start": 3,
+       "end": 3.8
+      },
+      {
+       "text": "flows",
+       "start": 3.9,
+       "end": 4
+      }
+     ],
+     "phrase": [
+      0,
+      0,
+      2,
+      2,
+      2
+     ],
+     "spans": [
+      {
+       "text": "Rivers carry",
+       "start": 0.4,
+       "end": 2.2
+      },
+      {
+       "text": "unheard",
+       "start": 2.2,
+       "end": 2.4
+      },
+      {
+       "text": "stray water flows",
+       "start": 2.4,
+       "end": 6
+      }
+     ],
+     "out": [
+      {
+       "text": "Rivers",
+       "start": "0.5",
+       "end": "1.32"
+      },
+      {
+       "text": "carry",
+       "start": "1.32",
+       "end": "2"
+      },
+      {
+       "text": "stray",
+       "start": "2.4",
+       "end": "3"
+      },
+      {
+       "text": "water",
+       "start": "3",
+       "end": "3.9"
+      },
+      {
+       "text": "flows",
+       "start": "3.9",
+       "end": "5.5"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "evenOut": [
+  {
+   "words": [
+    {
+     "text": "swallowed",
+     "start": 0,
+     "end": 2
+    },
+    {
+     "text": "it",
+     "start": 2,
+     "end": 2.01
+    },
+    {
+     "text": "all",
+     "start": 2.01,
+     "end": 2.02
+    },
+    {
+     "text": "next",
+     "start": 3,
+     "end": 3.4
+    }
+   ],
+   "limit": null,
+   "out": [
+    {
+     "text": "swallowed",
+     "start": "0",
+     "end": "1.2985714285714285"
+    },
+    {
+     "text": "it",
+     "start": "1.2985714285714285",
+     "end": "1.5871428571428572"
+    },
+    {
+     "text": "all",
+     "start": "1.5871428571428572",
+     "end": "2.02"
+    },
+    {
+     "text": "next",
+     "start": "3",
+     "end": "3.4"
+    }
+   ]
+  },
+  {
+   "words": [
+    {
+     "text": "long",
+     "start": 0,
+     "end": 0.5
+    },
+    {
+     "text": "a",
+     "start": 0.95,
+     "end": 0.96
+    },
+    {
+     "text": "b",
+     "start": 0.96,
+     "end": 0.97
+    }
+   ],
+   "limit": 1,
+   "out": [
+    {
+     "text": "long",
+     "start": "0",
+     "end": "0.6666666666666666"
+    },
+    {
+     "text": "a",
+     "start": "0.6666666666666666",
+     "end": "0.8333333333333333"
+    },
+    {
+     "text": "b",
+     "start": "0.8333333333333333",
+     "end": "0.9999999999999999"
+    }
+   ]
+  },
+  {
+   "words": [
+    {
+     "text": "x",
+     "start": 1,
+     "end": 1.01
+    },
+    {
+     "text": "neighbour",
+     "start": 1.05,
+     "end": 1.9
+    },
+    {
+     "text": "after",
+     "start": 2.5,
+     "end": 2.9
+    }
+   ],
+   "limit": null,
+   "out": [
+    {
+     "text": "x",
+     "start": "1",
+     "end": "1.05"
+    },
+    {
+     "text": "neighbour",
+     "start": "1.05",
+     "end": "1.9"
+    },
+    {
+     "text": "after",
+     "start": "2.5",
+     "end": "2.9"
+    }
+   ]
+  },
+  {
+   "words": [
+    {
+     "text": "a",
+     "start": 1,
+     "end": 1.0005
+    },
+    {
+     "text": "b",
+     "start": 1.001,
+     "end": 1.0014999999999998
+    },
+    {
+     "text": "c",
+     "start": 1.002,
+     "end": 1.0025
+    },
+    {
+     "text": "d",
+     "start": 1.003,
+     "end": 1.0034999999999998
+    },
+    {
+     "text": "e",
+     "start": 1.004,
+     "end": 1.0045
+    },
+    {
+     "text": "f",
+     "start": 1.005,
+     "end": 1.0054999999999998
+    },
+    {
+     "text": "g",
+     "start": 1.006,
+     "end": 1.0065
+    },
+    {
+     "text": "h",
+     "start": 1.007,
+     "end": 1.0074999999999998
+    },
+    {
+     "text": "i",
+     "start": 1.008,
+     "end": 1.0085
+    }
+   ],
+   "limit": 1.2,
+   "out": [
+    {
+     "text": "a",
+     "start": "1",
+     "end": "1.0142777777777778"
+    },
+    {
+     "text": "b",
+     "start": "1.0142777777777778",
+     "end": "1.0285555555555557"
+    },
+    {
+     "text": "c",
+     "start": "1.0285555555555557",
+     "end": "1.0428333333333335"
+    },
+    {
+     "text": "d",
+     "start": "1.0428333333333335",
+     "end": "1.0571111111111113"
+    },
+    {
+     "text": "e",
+     "start": "1.0571111111111113",
+     "end": "1.0713888888888892"
+    },
+    {
+     "text": "f",
+     "start": "1.0713888888888892",
+     "end": "1.085666666666667"
+    },
+    {
+     "text": "g",
+     "start": "1.085666666666667",
+     "end": "1.0999444444444448"
+    },
+    {
+     "text": "h",
+     "start": "1.0999444444444448",
+     "end": "1.1142222222222227"
+    },
+    {
+     "text": "i",
+     "start": "1.1142222222222227",
+     "end": "1.1285000000000005"
+    }
+   ]
+  },
+  {
+   "words": [
+    {
+     "text": "ok",
+     "start": 0,
+     "end": 0.3
+    },
+    {
+     "text": "fine",
+     "start": 0.3,
+     "end": 0.9
+    }
+   ],
+   "limit": 1,
+   "out": [
+    {
+     "text": "ok",
+     "start": "0",
+     "end": "0.3"
+    },
+    {
+     "text": "fine",
+     "start": "0.3",
+     "end": "0.9"
+    }
+   ]
+  }
+ ],
+ "collapse": [
+  {
+   "words": [
+    {
+     "text": "x",
+     "start": 0,
+     "end": 0.25
+    },
+    {
+     "text": "x",
+     "start": 0.3,
+     "end": 0.55
+    },
+    {
+     "text": "x",
+     "start": 0.6,
+     "end": 0.85
+    },
+    {
+     "text": "y",
+     "start": 0.8999999999999999,
+     "end": 1.15
+    }
+   ],
+   "out": [
+    {
+     "text": "x",
+     "start": "0",
+     "end": "0.25"
+    },
+    {
+     "text": "y",
+     "start": "0.8999999999999999",
+     "end": "1.15"
+    }
+   ],
+   "found": true
+  },
+  {
+   "words": [
+    {
+     "text": "a",
+     "start": 0,
+     "end": 0.25
+    },
+    {
+     "text": "b",
+     "start": 0.3,
+     "end": 0.55
+    },
+    {
+     "text": "a",
+     "start": 0.6,
+     "end": 0.85
+    },
+    {
+     "text": "b",
+     "start": 0.8999999999999999,
+     "end": 1.15
+    },
+    {
+     "text": "a",
+     "start": 1.2,
+     "end": 1.45
+    },
+    {
+     "text": "b",
+     "start": 1.5,
+     "end": 1.75
+    },
+    {
+     "text": "c",
+     "start": 1.7999999999999998,
+     "end": 2.05
+    }
+   ],
+   "out": [
+    {
+     "text": "a",
+     "start": "0",
+     "end": "0.25"
+    },
+    {
+     "text": "b",
+     "start": "0.3",
+     "end": "0.55"
+    },
+    {
+     "text": "c",
+     "start": "1.7999999999999998",
+     "end": "2.05"
+    }
+   ],
+   "found": true
+  },
+  {
+   "words": [
+    {
+     "text": "one",
+     "start": 0,
+     "end": 0.25
+    },
+    {
+     "text": "two",
+     "start": 0.3,
+     "end": 0.55
+    },
+    {
+     "text": "three",
+     "start": 0.6,
+     "end": 0.85
+    },
+    {
+     "text": "four",
+     "start": 0.8999999999999999,
+     "end": 1.15
+    },
+    {
+     "text": "One,",
+     "start": 1.2,
+     "end": 1.45
+    },
+    {
+     "text": "two",
+     "start": 1.5,
+     "end": 1.75
+    },
+    {
+     "text": "three",
+     "start": 1.7999999999999998,
+     "end": 2.05
+    },
+    {
+     "text": "four.",
+     "start": 2.1,
+     "end": 2.35
+    },
+    {
+     "text": "one",
+     "start": 2.4,
+     "end": 2.65
+    },
+    {
+     "text": "two",
+     "start": 2.6999999999999997,
+     "end": 2.9499999999999997
+    },
+    {
+     "text": "three",
+     "start": 3,
+     "end": 3.25
+    },
+    {
+     "text": "four",
+     "start": 3.3,
+     "end": 3.55
+    },
+    {
+     "text": "five",
+     "start": 3.5999999999999996,
+     "end": 3.8499999999999996
+    }
+   ],
+   "out": [
+    {
+     "text": "one",
+     "start": "0",
+     "end": "0.25"
+    },
+    {
+     "text": "two",
+     "start": "0.3",
+     "end": "0.55"
+    },
+    {
+     "text": "three",
+     "start": "0.6",
+     "end": "0.85"
+    },
+    {
+     "text": "four",
+     "start": "0.8999999999999999",
+     "end": "1.15"
+    },
+    {
+     "text": "five",
+     "start": "3.5999999999999996",
+     "end": "3.8499999999999996"
+    }
+   ],
+   "found": true
+  },
+  {
+   "words": [
+    {
+     "text": "rumah",
+     "start": 0,
+     "end": 0.25
+    },
+    {
+     "text": "rumah",
+     "start": 0.3,
+     "end": 0.55
+    },
+    {
+     "text": "kita",
+     "start": 0.6,
+     "end": 0.85
+    },
+    {
+     "text": "ke",
+     "start": 0.8999999999999999,
+     "end": 1.15
+    },
+    {
+     "text": "sana",
+     "start": 1.2,
+     "end": 1.45
+    },
+    {
+     "text": "ke",
+     "start": 1.5,
+     "end": 1.75
+    },
+    {
+     "text": "sana",
+     "start": 1.7999999999999998,
+     "end": 2.05
+    }
+   ],
+   "out": [
+    {
+     "text": "rumah",
+     "start": "0",
+     "end": "0.25"
+    },
+    {
+     "text": "rumah",
+     "start": "0.3",
+     "end": "0.55"
+    },
+    {
+     "text": "kita",
+     "start": "0.6",
+     "end": "0.85"
+    },
+    {
+     "text": "ke",
+     "start": "0.8999999999999999",
+     "end": "1.15"
+    },
+    {
+     "text": "sana",
+     "start": "1.2",
+     "end": "1.45"
+    },
+    {
+     "text": "ke",
+     "start": "1.5",
+     "end": "1.75"
+    },
+    {
+     "text": "sana",
+     "start": "1.7999999999999998",
+     "end": "2.05"
+    }
+   ],
+   "found": false
+  },
+  {
+   "words": [
+    {
+     "text": "go",
+     "start": 0,
+     "end": 0.25
+    },
+    {
+     "text": "go",
+     "start": 0.3,
+     "end": 0.55
+    },
+    {
+     "text": "go",
+     "start": 0.6,
+     "end": 0.85
+    },
+    {
+     "text": "go",
+     "start": 0.8999999999999999,
+     "end": 1.15
+    },
+    {
+     "text": "go",
+     "start": 1.2,
+     "end": 1.45
+    },
+    {
+     "text": "stop",
+     "start": 1.5,
+     "end": 1.75
+    },
+    {
+     "text": "and",
+     "start": 1.7999999999999998,
+     "end": 2.05
+    },
+    {
+     "text": "stop",
+     "start": 2.1,
+     "end": 2.35
+    },
+    {
+     "text": "and",
+     "start": 2.4,
+     "end": 2.65
+    },
+    {
+     "text": "stop",
+     "start": 2.6999999999999997,
+     "end": 2.9499999999999997
+    },
+    {
+     "text": "and",
+     "start": 3,
+     "end": 3.25
+    }
+   ],
+   "out": [
+    {
+     "text": "go",
+     "start": "0",
+     "end": "0.25"
+    },
+    {
+     "text": "stop",
+     "start": "1.5",
+     "end": "1.75"
+    },
+    {
+     "text": "and",
+     "start": "1.7999999999999998",
+     "end": "2.05"
+    }
+   ],
+   "found": true
+  }
+ ],
+ "alignPhrases": [
+  {
+   "words": [
+    {
+     "text": "The",
+     "start": 0.4,
+     "end": 0.55
+    },
+    {
+     "text": "river",
+     "start": 0.6,
+     "end": 0.9
+    },
+    {
+     "text": "runs",
+     "start": 0.95,
+     "end": 1.5
+    },
+    {
+     "text": "to",
+     "start": 1.55,
+     "end": 1.75
+    },
+    {
+     "text": "the",
+     "start": 1.85,
+     "end": 2
+    },
+    {
+     "text": "sea",
+     "start": 2.1,
+     "end": 3.1
+    },
+    {
+     "text": "and",
+     "start": 5,
+     "end": 5.2
+    },
+    {
+     "text": "back",
+     "start": 5.3,
+     "end": 5.6
+    },
+    {
+     "text": "one",
+     "start": 6.1,
+     "end": 6.3
+    },
+    {
+     "text": "two",
+     "start": 9,
+     "end": 9.2
+    },
+    {
+     "text": "three",
+     "start": 6.6,
+     "end": 6.9
+    }
+   ],
+   "phrases": [
+    {
+     "text": "The river runs",
+     "start": 0.5,
+     "end": 1.6
+    },
+    {
+     "text": "to the sea",
+     "start": 1.8,
+     "end": 3
+    },
+    {
+     "text": "and back",
+     "start": 3.5,
+     "end": 4.5
+    },
+    {
+     "text": "—",
+     "start": 4.6,
+     "end": 4.8
+    },
+    {
+     "text": "one two three",
+     "start": 6,
+     "end": 7
+    }
+   ],
+   "out": [
+    {
+     "text": "The",
+     "start": "0.5",
+     "end": "0.6"
+    },
+    {
+     "text": "river",
+     "start": "0.6",
+     "end": "0.9"
+    },
+    {
+     "text": "runs",
+     "start": "0.95",
+     "end": "1.5"
+    },
+    {
+     "text": "to",
+     "start": "1.8",
+     "end": "1.85"
+    },
+    {
+     "text": "the",
+     "start": "1.85",
+     "end": "2"
+    },
+    {
+     "text": "sea",
+     "start": "2",
+     "end": "3"
+    },
+    {
+     "text": "and",
+     "start": "3.5",
+     "end": "3.9285714285714284"
+    },
+    {
+     "text": "back",
+     "start": "3.9285714285714284",
+     "end": "4.5"
+    },
+    {
+     "text": "one",
+     "start": "6.1",
+     "end": "6.3"
+    },
+    {
+     "text": "two",
+     "start": "6.3",
+     "end": "6.6"
+    },
+    {
+     "text": "three",
+     "start": "6.6",
+     "end": "6.9"
+    }
+   ],
+   "phrase": [
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    2,
+    2,
+    4,
+    4,
+    4
+   ]
+  },
+  {
+   "words": [
+    {
+     "text": "Lapan",
+     "start": 1,
+     "end": 1.3
+    },
+    {
+     "text": "1857,",
+     "start": 1.3,
+     "end": 2.4
+    },
+    {
+     "text": "Raja",
+     "start": 2.6,
+     "end": 3
+    }
+   ],
+   "phrases": [
+    {
+     "text": "Lapan belas lima puluh tujuh,",
+     "start": 0.9,
+     "end": 2.5
+    },
+    {
+     "text": "Raja Muda",
+     "start": 2.5,
+     "end": 3.6
+    }
+   ],
+   "out": [
+    {
+     "text": "Lapan",
+     "start": "1",
+     "end": "1.3"
+    },
+    {
+     "text": "belas",
+     "start": "1.3",
+     "end": "1.589"
+    },
+    {
+     "text": "lima",
+     "start": "1.589",
+     "end": "1.821"
+    },
+    {
+     "text": "puluh",
+     "start": "1.821",
+     "end": "2.111"
+    },
+    {
+     "text": "tujuh,",
+     "start": "2.111",
+     "end": "2.4"
+    },
+    {
+     "text": "Raja",
+     "start": "2.6",
+     "end": "3"
+    },
+    {
+     "text": "Muda",
+     "start": "3",
+     "end": "3.6"
+    }
+   ],
+   "phrase": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1
+   ]
+  }
+ ],
+ "findPhrase": {
+  "words": [
+   {
+    "text": "Semuanya",
+    "start": 1,
+    "end": 1.4
+   },
+   {
+    "text": "bermula",
+    "start": 1.5,
+    "end": 1.9
+   },
+   {
+    "text": "pada",
+    "start": 2,
+    "end": 2.4
+   },
+   {
+    "text": "tahun",
+    "start": 2.5,
+    "end": 2.9
+   },
+   {
+    "text": "1857,",
+    "start": 3,
+    "end": 3.4
+   },
+   {
+    "text": "ketika",
+    "start": 3.5,
+    "end": 3.9
+   },
+   {
+    "text": "Raja",
+    "start": 4,
+    "end": 4.4
+   },
+   {
+    "text": "Muda",
+    "start": 4.5,
+    "end": 4.9
+   },
+   {
+    "text": "datang.",
+    "start": 5,
+    "end": 5.4
+   },
+   {
+    "text": "Raja",
+    "start": 5.5,
+    "end": 5.9
+   },
+   {
+    "text": "Muda",
+    "start": 6,
+    "end": 6.4
+   },
+   {
+    "text": "pergi.",
+    "start": 6.5,
+    "end": 6.9
+   }
+  ],
+  "cases": [
+   {
+    "phrase": "bermula pada tahun",
+    "near": 0,
+    "out": {
+     "start": "1.5",
+     "end": "2.9",
+     "score": "1"
+    }
+   },
+   {
+    "phrase": "bermula pada tahun 1857 kemudian",
+    "near": 0,
+    "out": {
+     "start": "1.5",
+     "end": "3.9",
+     "score": "0.8"
+    }
+   },
+   {
+    "phrase": "bermula sini tahun 1985 kemudian",
+    "near": 0,
+    "out": null
+   },
+   {
+    "phrase": "bermula pada sini 1985 ketika",
+    "near": 0,
+    "out": null
+   },
+   {
+    "phrase": "Raja Muda",
+    "near": 0,
+    "out": {
+     "start": "4",
+     "end": "4.9",
+     "score": "1"
+    }
+   },
+   {
+    "phrase": "Raja Muda",
+    "near": 10,
+    "out": {
+     "start": "5.5",
+     "end": "6.4",
+     "score": "1"
+    }
+   },
+   {
+    "phrase": "Tahun 1857,",
+    "near": 0,
+    "out": {
+     "start": "2.5",
+     "end": "3.4",
+     "score": "1"
+    }
+   },
+   {
+    "phrase": "—",
+    "near": 0,
+    "out": null
+   },
+   {
+    "phrase": "Semuanya bermula pada tahun 1857 ketika Raja Muda datang Raja Muda pergi lagi",
+    "near": 0,
+    "out": null
+   }
+  ]
+ },
+ "wordsFile": [
+  {
+   "file": "narration/voiceover.wav",
+   "out": "out/voice/voiceover.words.json"
+  },
+  {
+   "file": "take.v2.mp3",
+   "out": "out/voice/take.v2.words.json"
+  },
+  {
+   "file": "noext",
+   "out": "out/voice/noext.words.json"
+  },
+  {
+   "file": "/abs/path/.hidden",
+   "out": "out/voice/.words.json"
+  },
+  {
+   "file": "dir/file.",
+   "out": "out/voice/file..words.json"
+  },
+  {
+   "file": "dir/sub/",
+   "out": "out/voice/sub.words.json"
+  }
+ ],
+ "spoken": {
+  "manifest": {
+   "outDir": null,
+   "voiceover": {
+    "file": "narration/voiceover.wav",
+    "at": -1
+   },
+   "scenes": [
+    {
+     "name": "intro",
+     "start": 0
+    },
+    {
+     "name": "demo",
+     "start": 4,
+     "audio": "narration/demo.wav",
+     "script": "narration/demo.txt"
+    },
+    {
+     "name": "outro",
+     "start": 9.5,
+     "audio": "narration/outro.wav"
+    }
+   ]
+  },
+  "files": {
+   "voiceover.words.json": "{\n \"file\": \"narration/voiceover.wav\",\n \"model\": \"onnx-community/whisper-base_timestamped\",\n \"duration\": 3.2,\n \"looped\": false,\n \"words\": [\n  {\n   \"text\": \"Lead\",\n   \"start\": 0.2,\n   \"end\": 0.9\n  },\n  {\n   \"text\": \"edge\",\n   \"start\": 0.9,\n   \"end\": 1\n  },\n  {\n   \"text\": \"straddle\",\n   \"start\": 0.8,\n   \"end\": 1.4\n  },\n  {\n   \"text\": \"after\",\n   \"start\": 1.5,\n   \"end\": 2.25\n  },\n  {\n   \"text\": \"last\",\n   \"start\": 2.3,\n   \"end\": 3.1\n  }\n ]\n}",
+   "demo.words.json": "{\n \"file\": \"narration/demo.wav\",\n \"model\": \"onnx-community/whisper-base_timestamped\",\n \"duration\": 2,\n \"looped\": true,\n \"words\": [\n  {\n   \"text\": \"Demo\",\n   \"start\": 0.05,\n   \"end\": 0.4\n  },\n  {\n   \"text\": \"starts\",\n   \"start\": 0.45,\n   \"end\": 1.05\n  },\n  {\n   \"text\": \"now.\",\n   \"start\": 1.1,\n   \"end\": 1.5\n  }\n ]\n}"
+  },
+  "narrations": [
+   {
+    "file": "narration/voiceover.wav",
+    "at": "-1",
+    "where": "voiceover",
+    "script": null
+   },
+   {
+    "file": "narration/demo.wav",
+    "at": "4.3",
+    "where": "scene demo",
+    "script": "narration/demo.txt"
+   },
+   {
+    "file": "narration/outro.wav",
+    "at": "9.8",
+    "where": "scene outro",
+    "script": null
+   }
+  ],
+  "words": [
+   {
+    "text": "straddle",
+    "start": "0",
+    "end": "0.3999999999999999"
+   },
+   {
+    "text": "after",
+    "start": "0.5",
+    "end": "1.25"
+   },
+   {
+    "text": "last",
+    "start": "1.2999999999999998",
+    "end": "2.1"
+   },
+   {
+    "text": "Demo",
+    "start": "4.35",
+    "end": "4.7"
+   },
+   {
+    "text": "starts",
+    "start": "4.75",
+    "end": "5.35"
+   },
+   {
+    "text": "now.",
+    "start": "5.4",
+    "end": "5.8"
+   }
+  ],
+  "missing": [
+   {
+    "file": "narration/outro.wav",
+    "at": "9.8",
+    "where": "scene outro",
+    "script": null
+   }
+  ],
+  "timeline": "{\n \"words\": [\n  {\n   \"text\": \"straddle\",\n   \"start\": 0,\n   \"end\": 0.4\n  },\n  {\n   \"text\": \"after\",\n   \"start\": 0.5,\n   \"end\": 1.25\n  },\n  {\n   \"text\": \"last\",\n   \"start\": 1.3,\n   \"end\": 2.1\n  },\n  {\n   \"text\": \"Demo\",\n   \"start\": 4.35,\n   \"end\": 4.7\n  },\n  {\n   \"text\": \"starts\",\n   \"start\": 4.75,\n   \"end\": 5.35\n  },\n  {\n   \"text\": \"now.\",\n   \"start\": 5.4,\n   \"end\": 5.8\n  }\n ]\n}"
+ }
+}

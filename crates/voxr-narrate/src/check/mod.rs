@@ -1,7 +1,7 @@
 //! Checks a spoken take against its script: word alignment, the speech
 //! check verdict, and script words placed on recognized timings.
 
-mod speech_match;
+pub(crate) mod speech_match;
 
 pub mod align_script;
 pub mod heard;
