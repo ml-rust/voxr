@@ -1,14 +1,7 @@
 //! Take-quality metrics for recorded/decoded speech: peak, RMS, noise floor, SNR.
 //!
-//! Rust port of `audio/pipeline/record.py`'s `dbfs()` and `measure()` (the
-//! Python voice-corpus recorder). Definitions matched to that script because
-//! `audio/corpus/manifests/sources.tsv` — the ground-truth manifest checked
-//! against in tests — was committed in the same commit as `record.py` and no
-//! other tool in that repository computes `floor_dbfs`/`snr_db`; `record.py`
-//! itself only reads WAV via Python's `wave` module and never touches the
-//! FLAC sources the manifest lists, so the manifest's exact generator is not
-//! present in the repo. `record.py` is therefore the best-available reference,
-//! not a confirmed match for the manifest.
+//! The definitions follow the voice-corpus recorder's `dbfs()` and
+//! `measure()`. Each function below states its exact formula.
 //!
 //! **CPU-only.** Two sequential passes over `samples` (one for the running
 //! sum of squares and max, one for the per-block RMS histogram) — there is
@@ -19,8 +12,8 @@ use crate::error::{Error, Result};
 
 /// dBFS floor used in place of `-inf` for a zero (or non-positive) amplitude.
 ///
-/// `record.py` returns `float("-inf")` for `dbfs(0)`. This module cannot: an
-/// all-silent signal has both `rms == 0` and `floor == 0`, and
+/// The voice-corpus recorder returns `float("-inf")` for `dbfs(0)`. This
+/// module cannot: an all-silent signal has both `rms == 0` and `floor == 0`, and
 /// `snr_db = rms_dbfs - floor_dbfs` would then be `-inf - -inf = NaN`. A
 /// large-but-finite sentinel, far below any real recording's noise floor,
 /// keeps every field finite while still reading as "silence" to a caller.
@@ -56,13 +49,14 @@ pub struct TakeQuality {
 ///
 /// The noise floor is the 5th percentile of per-block RMS, blocks being
 /// non-overlapping 100 ms windows (`sample_rate / 10` samples), matching
-/// `record.py`'s `blk = sr // 10` and `floor = blocks[len(blocks) // 20]`
-/// after sorting ascending. As in the reference, a trailing partial block is
-/// dropped rather than measured. When `samples` is shorter than one block
-/// there are no blocks at all; `floor_dbfs` then falls back to
-/// [`SILENCE_DBFS`] (documented above) rather than the reference's `-inf`.
-/// When there is at least one block but fewer than 20, the floor is the
-/// single quietest block (`blocks[0]`), also matching the reference.
+/// the voice-corpus recorder's `blk = sr // 10` and
+/// `floor = blocks[len(blocks) // 20]` after sorting ascending. A trailing
+/// partial block is dropped rather than measured, also matching the
+/// voice-corpus recorder. When `samples` is shorter than one block there are
+/// no blocks at all; `floor_dbfs` then falls back to [`SILENCE_DBFS`]
+/// (documented above) rather than `-inf`. When there is at least one block
+/// but fewer than 20, the floor is the single quietest block (`blocks[0]`),
+/// also matching the voice-corpus recorder.
 ///
 /// Returns [`Error::InvalidArgument`] when `samples` is empty or
 /// `sample_rate` is 0. Never panics and never produces `NaN`: an all-silent
@@ -139,10 +133,12 @@ pub fn measure_quality(samples: &[f32], sample_rate: u32) -> Result<TakeQuality>
 mod tests {
     //! Tests for [`super::measure_quality`].
     //!
-    //! Test 6 cross-checks against `audio/corpus/manifests/sources.tsv`, the
-    //! real-corpus manifest referenced in the module docs. It is skipped (not
-    //! failed) when the corpus fixture or the manifest file is absent, matching
-    //! `crate::test_utils::corpus_flac`'s own skip-if-absent policy.
+    //! `matches_the_real_corpus_manifest_where_possible` cross-checks against
+    //! a real-corpus manifest: a tab-separated file with a header row, each
+    //! data row holding `file`, an unused column, `duration_s`, `floor_dbfs`,
+    //! `snr_db`. It is skipped (not failed) when the corpus fixture or the
+    //! manifest file is absent, matching `corpus_flac`'s own skip-if-absent
+    //! policy.
 
     use super::*;
     #[cfg(feature = "decode")]
@@ -234,7 +230,8 @@ mod tests {
             samples.extend(sine(0.001, 440.0, RATE, block_len));
         }
         // One extra sample so the loop's `n > block_len` block-count math has a
-        // trailing partial block to drop, same as the reference.
+        // trailing partial block to drop, matching the voice-corpus recorder's
+        // convention of dropping it rather than measuring it.
         samples.push(0.0);
 
         let q = measure_quality(&samples, RATE).expect("measure");
@@ -271,7 +268,9 @@ mod tests {
         assert_eq!(q.clipped_samples, 0);
     }
 
-    /// One row of `audio/corpus/manifests/sources.tsv`.
+    /// One row of the real-corpus manifest: `file`, `duration_s`,
+    /// `floor_dbfs`, `snr_db` (an unused column sits between `file` and
+    /// `duration_s`).
     #[cfg(feature = "decode")]
     struct ManifestRow {
         file: String,
@@ -341,13 +340,10 @@ mod tests {
             row.file
         );
 
-        // floor_dbfs/snr_db in the manifest were NOT confirmed to come from this
-        // module's reference (record.py): record.py only decodes WAV via
-        // Python's `wave` module and never touches the FLAC sources this
-        // manifest lists, and no other tool producing these columns was found
-        // in the audio/ repo (see module docs). Assert only sane-range
-        // properties here; a numeric tolerance against the manifest would need
-        // the original tool's definitions confirmed first.
+        // floor_dbfs and snr_db in the manifest are unconfirmed to share this
+        // module's formulas, so this checks only sane-range properties. A
+        // numeric tolerance against the manifest needs the manifest's
+        // formulas confirmed first.
         assert!(
             q.floor_dbfs < q.rms_dbfs,
             "floor_dbfs {} should be below rms for a real recording",
