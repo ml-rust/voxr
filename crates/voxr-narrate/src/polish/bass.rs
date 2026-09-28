@@ -1,8 +1,9 @@
 //! A voice's bass against its presence, and a thin voice's bass lifted to
 //! level with it by a low shelf.
 //!
-//! The band levels and the shelf run through [`super::filter`], so a level
-//! or a lifted sample can differ from the JavaScript in the last bits.
+//! The band levels and the shelf run through the crate's biquad filter, so
+//! a level or a lifted sample can differ from the JavaScript in the last
+//! bits.
 
 use super::filter::{Kind, filter};
 use crate::js::js_min;

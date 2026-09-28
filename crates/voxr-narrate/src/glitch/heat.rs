@@ -28,7 +28,7 @@ const MIN_RMS: f64 = 0.01;
 const VOICED: f64 = 0.4;
 /// A reading more than this factor off the part's own median is a tracking
 /// error: an octave.
-const OCTAVE: f64 = 1.9;
+pub const OCTAVE: f64 = 1.9;
 /// A part with fewer readings than this, about 0.8 s of voicing, is too
 /// short to judge.
 const MIN_READINGS: usize = 40;
