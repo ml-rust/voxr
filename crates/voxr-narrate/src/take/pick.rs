@@ -76,6 +76,8 @@ fn request<'r, H>(
         seed: spec.seed,
         cfg: setup.cfg,
         steps: setup.steps,
+        // VoxCPM2 is never sped up: its pace comes from the reference.
+        speed: 1.0,
     }
 }
 

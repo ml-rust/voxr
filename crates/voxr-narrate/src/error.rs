@@ -2,8 +2,8 @@
 //!
 //! Argument checks on scripts and takes, data that does not fit the
 //! pipeline, the built-in patterns failing to compile, a speech recognizer
-//! failing to load or read, and a cache or output file failing to read or
-//! write.
+//! failing to load or read, a speech engine failing to make audio, and a
+//! cache or output file failing to read or write.
 
 /// voxr-narrate result type.
 pub type Result<T> = std::result::Result<T, Error>;
@@ -38,6 +38,14 @@ pub enum Error {
     #[error("recognizer error: {reason}")]
     Recognizer {
         /// Description of what went wrong.
+        reason: String,
+    },
+
+    /// A speech engine failed to make audio: a TTS command exited nonzero
+    /// or wrote no audio the decoder reads.
+    #[error("speech engine error: {reason}")]
+    Engine {
+        /// What failed, on which text, and the next action.
         reason: String,
     },
 

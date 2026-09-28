@@ -9,12 +9,15 @@
 //! Also the kept takes shaped and joined into the voiceover, with each
 //! phrase's span and each part's check, heat and marks. Also the take
 //! cache on disk, and a whole VoxCPM2 run from script to voiceover. Also
-//! which engine, model, voice and speed a run resolves to speak with.
+//! which engine, model, voice and speed a run resolves to speak with, and
+//! the per-phrase run of every other engine, the user's TTS command among
+//! them.
 
 pub mod anchor;
 pub mod anchor_files;
 mod anchor_step;
 pub mod cache;
+pub mod command;
 pub mod engine;
 pub mod engine_choice;
 pub mod files;
@@ -26,6 +29,8 @@ pub mod judge;
 pub mod pace;
 pub mod pick;
 pub mod seed;
+pub mod simple;
+pub mod simple_setup;
 pub mod speak;
 pub mod speak_resolve;
 pub mod speak_setup;
@@ -46,6 +51,7 @@ pub use cache::{
     mtime_millis, prepared_marker, prepared_reference_key, ref_id, reference_file, take_file,
     take_key, voice_design_file, voice_file, voice_transcript_file,
 };
+pub use command::{CommandEngine, OUT_FILE, TEXT_FILE, command_line, shell_quote};
 pub use engine::{
     CloneReference, Graded, SpeakRequest, SpeechEngine, Take, TakeJudge, TakeSpec, TakeStore,
     VoiceSource,
@@ -66,6 +72,8 @@ pub use pace::{
 };
 pub use pick::{ATTEMPTS, PickSetup, RETRY_STEP, TakeLoop};
 pub use seed::text_seed;
+pub use simple::speak_phrases;
+pub use simple_setup::{SimpleRun, SimpleSetup, SimpleStep, WholeCheck, check_kokoro_voice};
 pub use speak::{WHOLE_MAX, speak_voxcpm};
 pub use speak_resolve::{EngineChoice, SpeakOpts, SpeakResolution, TtsConfig, resolve_speak};
 pub use speak_setup::{VoiceReference, VoxcpmRun, VoxcpmSetup};

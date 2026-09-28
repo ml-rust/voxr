@@ -1,0 +1,1011 @@
+{
+ "voices": [
+  "af_heart",
+  "af_bella",
+  "bm_george"
+ ],
+ "cases": [
+  {
+   "name": "kokoro, every kind of pause",
+   "script": "(calm) The river runs north. It turns east at the hill.\nThe herds come back to graze.\n\nThey rest here [pause 1.2] then move on [pause] at dawn.",
+   "opts": {
+    "engine": "kokoro",
+    "command": null,
+    "model": null,
+    "voice": null,
+    "reference": null,
+    "language": null,
+    "speed": null,
+    "oneCall": false
+   },
+   "hear": {
+    "default": [
+     {
+      "words": [
+       {
+        "text": "The",
+        "start": 0,
+        "end": 0.4
+       },
+       {
+        "text": "river",
+        "start": 0.5,
+        "end": 0.9
+       },
+       {
+        "text": "runs",
+        "start": 1,
+        "end": 1.4
+       },
+       {
+        "text": "north.",
+        "start": 1.5,
+        "end": 1.9
+       },
+       {
+        "text": "It",
+        "start": 2,
+        "end": 2.4
+       },
+       {
+        "text": "turns",
+        "start": 2.5,
+        "end": 2.9
+       },
+       {
+        "text": "east",
+        "start": 3,
+        "end": 3.4
+       },
+       {
+        "text": "at",
+        "start": 3.5,
+        "end": 3.9
+       },
+       {
+        "text": "the",
+        "start": 4,
+        "end": 4.4
+       },
+       {
+        "text": "hill.",
+        "start": 4.5,
+        "end": 4.9
+       },
+       {
+        "text": "The",
+        "start": 5,
+        "end": 5.4
+       },
+       {
+        "text": "herds",
+        "start": 5.5,
+        "end": 5.9
+       },
+       {
+        "text": "come",
+        "start": 6,
+        "end": 6.4
+       },
+       {
+        "text": "back",
+        "start": 6.5,
+        "end": 6.9
+       },
+       {
+        "text": "to",
+        "start": 7,
+        "end": 7.4
+       },
+       {
+        "text": "graze.",
+        "start": 7.5,
+        "end": 7.9
+       },
+       {
+        "text": "They",
+        "start": 8,
+        "end": 8.4
+       },
+       {
+        "text": "rest",
+        "start": 8.5,
+        "end": 8.9
+       },
+       {
+        "text": "here",
+        "start": 9,
+        "end": 9.4
+       },
+       {
+        "text": "then",
+        "start": 9.5,
+        "end": 9.9
+       },
+       {
+        "text": "move",
+        "start": 10,
+        "end": 10.4
+       },
+       {
+        "text": "on",
+        "start": 10.5,
+        "end": 10.9
+       },
+       {
+        "text": "at",
+        "start": 11,
+        "end": 11.4
+       },
+       {
+        "text": "dawn.",
+        "start": 11.5,
+        "end": 11.9
+       }
+      ],
+      "looped": false
+     }
+    ],
+    "small": []
+   },
+   "calls": [
+    {
+     "text": "The river runs north.",
+     "voice": "af_heart",
+     "speed": 1,
+     "rate": 24000,
+     "n": 7200,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 7200,
+       "amp": 0.00002,
+       "seed": 11
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 6720,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    },
+    {
+     "text": "It turns east at the hill.",
+     "voice": "af_heart",
+     "speed": 1,
+     "rate": 24000,
+     "n": 9600,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 9600,
+       "amp": 0.00002,
+       "seed": 12
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 9120,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    },
+    {
+     "text": "The herds come back to graze.",
+     "voice": "af_heart",
+     "speed": 1,
+     "rate": 24000,
+     "n": 9600,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 9600,
+       "amp": 0.00002,
+       "seed": 13
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 9120,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    },
+    {
+     "text": "They rest here",
+     "voice": "af_heart",
+     "speed": 1,
+     "rate": 24000,
+     "n": 6000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 6000,
+       "amp": 0.00002,
+       "seed": 14
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 5520,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    },
+    {
+     "text": "then move on",
+     "voice": "af_heart",
+     "speed": 1,
+     "rate": 24000,
+     "n": 6000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 6000,
+       "amp": 0.00002,
+       "seed": 15
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 5520,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    },
+    {
+     "text": "at dawn.",
+     "voice": "af_heart",
+     "speed": 1,
+     "rate": 24000,
+     "n": 4800,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 4800,
+       "amp": 0.00002,
+       "seed": 16
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 4320,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    }
+   ],
+   "messages": [],
+   "heard": [
+    {
+     "model": "default",
+     "language": null,
+     "samples": "83a0e74b"
+    }
+   ],
+   "joined": {
+    "samples": "4ca5feb8",
+    "rate": 24000
+   },
+   "wav": "2f8bb6ae",
+   "error": null,
+   "result": {
+    "duration": "5.15",
+    "phrases": "[\n {\n  \"text\": \"The river runs north.\",\n  \"start\": 0,\n  \"end\": 0.3\n },\n {\n  \"text\": \"It turns east at the hill.\",\n  \"start\": 0.6,\n  \"end\": 1\n },\n {\n  \"text\": \"The herds come back to graze.\",\n  \"start\": 1.45,\n  \"end\": 1.85\n },\n {\n  \"text\": \"They rest here\",\n  \"start\": 2.65,\n  \"end\": 2.9\n },\n {\n  \"text\": \"then move on\",\n  \"start\": 4.1,\n  \"end\": 4.35\n },\n {\n  \"text\": \"at dawn.\",\n  \"start\": 4.95,\n  \"end\": 5.15\n }\n]",
+    "checks": "[\n {\n  \"at\": 0,\n  \"text\": \"The river runs north. It turns east at the hill. The herds come back to graze. They rest here then move on at dawn.\",\n  \"ok\": true,\n  \"heard\": \"The river runs north. It turns east at the hill. The herds come back to graze. They rest here then move on at dawn.\",\n  \"why\": \"\",\n  \"doubt\": [],\n  \"pauses\": []\n }\n]",
+    "problems": [],
+    "engine": "Kokoro (af_heart)"
+   }
+  },
+  {
+   "name": "kokoro at 1.25 in another voice, a stray pause heard",
+   "script": "Fish swim upstream in spring.\nBirds fly south.",
+   "opts": {
+    "engine": "kokoro",
+    "command": null,
+    "model": null,
+    "voice": "bm_george",
+    "reference": null,
+    "language": null,
+    "speed": 1.25,
+    "oneCall": false
+   },
+   "hear": {
+    "default": [
+     {
+      "words": [
+       {
+        "text": "Fish",
+        "start": 0,
+        "end": 0.4
+       },
+       {
+        "text": "swim",
+        "start": 0.5,
+        "end": 0.9
+       },
+       {
+        "text": "upstream",
+        "start": 2,
+        "end": 2.4
+       },
+       {
+        "text": "in",
+        "start": 2.5,
+        "end": 2.9
+       },
+       {
+        "text": "spring.",
+        "start": 3,
+        "end": 3.4
+       },
+       {
+        "text": "Birds",
+        "start": 3.5,
+        "end": 3.9
+       },
+       {
+        "text": "fly",
+        "start": 4,
+        "end": 4.4
+       },
+       {
+        "text": "south.",
+        "start": 4.5,
+        "end": 4.9
+       }
+      ],
+      "looped": false
+     }
+    ],
+    "small": []
+   },
+   "calls": [
+    {
+     "text": "Fish swim upstream in spring.",
+     "voice": "bm_george",
+     "speed": 1.25,
+     "rate": 24000,
+     "n": 6720,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 6720,
+       "amp": 0.00002,
+       "seed": 11
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 6240,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    },
+    {
+     "text": "Birds fly south.",
+     "voice": "bm_george",
+     "speed": 1.25,
+     "rate": 24000,
+     "n": 4800,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 4800,
+       "amp": 0.00002,
+       "seed": 12
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 4320,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    }
+   ],
+   "messages": [],
+   "heard": [
+    {
+     "model": "default",
+     "language": null,
+     "samples": "7797cc0d"
+    }
+   ],
+   "joined": {
+    "samples": "88da8d66",
+    "rate": 24000
+   },
+   "wav": "3d7e6209",
+   "error": null,
+   "result": {
+    "duration": "0.93",
+    "phrases": "[\n {\n  \"text\": \"Fish swim upstream in spring.\",\n  \"start\": 0,\n  \"end\": 0.28\n },\n {\n  \"text\": \"Birds fly south.\",\n  \"start\": 0.73,\n  \"end\": 0.93\n }\n]",
+    "checks": "[\n {\n  \"at\": 0,\n  \"text\": \"Fish swim upstream in spring. Birds fly south.\",\n  \"ok\": true,\n  \"heard\": \"Fish swim upstream in spring. Birds fly south.\",\n  \"why\": \"\",\n  \"doubt\": [],\n  \"pauses\": [\n   {\n    \"after\": \"swim\",\n    \"before\": \"upstream\",\n    \"gap\": 1.1\n   }\n  ]\n }\n]",
+    "problems": [],
+    "engine": "Kokoro (bm_george)"
+   }
+  },
+  {
+   "name": "a model in Malay, a word both recognizers mishear",
+   "script": "The river runs north today.",
+   "opts": {
+    "engine": null,
+    "command": null,
+    "model": "facebook/mms-tts-eng",
+    "voice": null,
+    "reference": null,
+    "language": "ms",
+    "speed": null,
+    "oneCall": false
+   },
+   "hear": {
+    "default": [
+     {
+      "words": [
+       {
+        "text": "the",
+        "start": 0,
+        "end": 0.4
+       },
+       {
+        "text": "river",
+        "start": 0.5,
+        "end": 0.9
+       },
+       {
+        "text": "walks",
+        "start": 1,
+        "end": 1.4
+       },
+       {
+        "text": "north",
+        "start": 1.5,
+        "end": 1.9
+       },
+       {
+        "text": "today",
+        "start": 2,
+        "end": 2.4
+       }
+      ],
+      "looped": false
+     }
+    ],
+    "small": [
+     {
+      "words": [
+       {
+        "text": "the",
+        "start": 0,
+        "end": 0.4
+       },
+       {
+        "text": "river",
+        "start": 0.5,
+        "end": 0.9
+       },
+       {
+        "text": "walks",
+        "start": 1,
+        "end": 1.4
+       },
+       {
+        "text": "north",
+        "start": 1.5,
+        "end": 1.9
+       },
+       {
+        "text": "today",
+        "start": 2,
+        "end": 2.4
+       }
+      ],
+      "looped": false
+     }
+    ]
+   },
+   "calls": [
+    {
+     "text": "The river runs north today.",
+     "voice": null,
+     "speed": null,
+     "rate": 16000,
+     "n": 8400,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 8400,
+       "amp": 0.00002,
+       "seed": 11
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 7920,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    }
+   ],
+   "messages": [],
+   "heard": [
+    {
+     "model": "small",
+     "language": "ms",
+     "samples": "459a5e59"
+    },
+    {
+     "model": "default",
+     "language": "ms",
+     "samples": "459a5e59"
+    }
+   ],
+   "joined": {
+    "samples": "9ff8cd91",
+    "rate": 16000
+   },
+   "wav": "f5c5e11c",
+   "error": null,
+   "result": {
+    "duration": "0.525",
+    "phrases": "[\n {\n  \"text\": \"The river runs north today.\",\n  \"start\": 0,\n  \"end\": 0.525\n }\n]",
+    "checks": "[\n {\n  \"at\": 0,\n  \"text\": \"The river runs north today.\",\n  \"ok\": true,\n  \"heard\": \"the river walks north today\",\n  \"why\": \"\",\n  \"doubt\": [\n   \"runs\"\n  ],\n  \"pauses\": []\n }\n]",
+    "problems": [],
+    "engine": "facebook/mms-tts-eng"
+   }
+  },
+  {
+   "name": "a command per phrase, the check fails",
+   "script": "Pay $$ now.\nThen $& after it.\n\nDone.",
+   "opts": {
+    "engine": null,
+    "command": "tts --say {text} --file {text_file} --out {out} --voice {voice} --ref {reference}",
+    "model": null,
+    "voice": "o'neil",
+    "reference": "ref {text}.wav",
+    "language": null,
+    "speed": null,
+    "oneCall": false
+   },
+   "hear": {
+    "default": [
+     {
+      "words": [
+       {
+        "text": "Pay",
+        "start": 0,
+        "end": 0.4
+       },
+       {
+        "text": "now.",
+        "start": 0.5,
+        "end": 0.9
+       }
+      ],
+      "looped": false
+     }
+    ],
+    "small": []
+   },
+   "calls": [
+    {
+     "line": "tts --say 'Pay $ now.' --file '<dir>/script.txt' --out '<dir>/speech.wav' --voice 'o'\\''neil' --ref 'ref 'Pay $ now.'.wav'",
+     "textFile": "Pay $$ now.\n",
+     "status": 0,
+     "n": 6000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 6000,
+       "amp": 0.00002,
+       "seed": 11
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 5520,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ],
+     "garbage": false
+    },
+    {
+     "line": "tts --say 'Then {text} after it.' --file '<dir>/script.txt' --out '<dir>/speech.wav' --voice 'o'\\''neil' --ref 'ref 'Then {text} after it.'.wav'",
+     "textFile": "Then $& after it.\n",
+     "status": 0,
+     "n": 7200,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 7200,
+       "amp": 0.00002,
+       "seed": 12
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 6720,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ],
+     "garbage": false
+    },
+    {
+     "line": "tts --say 'Done.' --file '<dir>/script.txt' --out '<dir>/speech.wav' --voice 'o'\\''neil' --ref 'ref 'Done.'.wav'",
+     "textFile": "Done.\n",
+     "status": 0,
+     "n": 3600,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 3600,
+       "amp": 0.00002,
+       "seed": 13
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 3120,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ],
+     "garbage": false
+    }
+   ],
+   "messages": [
+    "tts command: 1/3 phrases",
+    "tts command: 2/3 phrases",
+    "tts command: 3/3 phrases"
+   ],
+   "heard": [
+    {
+     "model": "default",
+     "language": null,
+     "samples": "9f3b8f4a"
+    }
+   ],
+   "joined": {
+    "samples": "026e8fd2",
+    "rate": 48000
+   },
+   "wav": "a7f44b29",
+   "error": null,
+   "result": {
+    "duration": "1.6",
+    "phrases": "[\n {\n  \"text\": \"Pay $$ now.\",\n  \"start\": 0,\n  \"end\": 0.125\n },\n {\n  \"text\": \"Then $& after it.\",\n  \"start\": 0.575,\n  \"end\": 0.725\n },\n {\n  \"text\": \"Done.\",\n  \"start\": 1.525,\n  \"end\": 1.6\n }\n]",
+    "checks": "[\n {\n  \"at\": 0,\n  \"text\": \"Pay $$ now. Then $& after it. Done.\",\n  \"ok\": false,\n  \"heard\": \"Pay now.\",\n  \"why\": \"missing \\\"Then after it. Done.\\\", only 33% of its words recognized\",\n  \"doubt\": [],\n  \"pauses\": []\n }\n]",
+    "problems": [
+     "missing \"Then after it. Done.\", only 33% of its words recognized. Heard: \"Pay now.\"."
+    ],
+    "engine": "command: tts --say {text} --file {text_file} --out {out} --voice {voice} --ref {reference}"
+   }
+  },
+  {
+   "name": "a command in one call, looped then heard again",
+   "script": "One line here.\n\nAnother line [pause 0.5] there.",
+   "opts": {
+    "engine": null,
+    "command": "tts --say {text} --file {text_file} --out {out} --voice {voice} --ref {reference}",
+    "model": null,
+    "voice": null,
+    "reference": null,
+    "language": null,
+    "speed": null,
+    "oneCall": true
+   },
+   "hear": {
+    "default": [
+     {
+      "words": [
+       {
+        "text": "One",
+        "start": 0,
+        "end": 0.4
+       },
+       {
+        "text": "line",
+        "start": 0.5,
+        "end": 0.9
+       }
+      ],
+      "looped": true
+     }
+    ],
+    "small": [
+     {
+      "words": [
+       {
+        "text": "One",
+        "start": 0,
+        "end": 0.4
+       },
+       {
+        "text": "line",
+        "start": 0.5,
+        "end": 0.9
+       },
+       {
+        "text": "here.",
+        "start": 1,
+        "end": 1.4
+       },
+       {
+        "text": "Another",
+        "start": 1.5,
+        "end": 1.9
+       },
+       {
+        "text": "line",
+        "start": 2,
+        "end": 2.4
+       },
+       {
+        "text": "there.",
+        "start": 2.5,
+        "end": 2.9
+       }
+      ],
+      "looped": false
+     }
+    ]
+   },
+   "calls": [
+    {
+     "line": "tts --say 'One line here. Another line there.' --file '<dir>/script.txt' --out '<dir>/speech.wav' --voice '' --ref ''",
+     "textFile": "One line here. Another line there.\n",
+     "status": 0,
+     "n": 9600,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 9600,
+       "amp": 0.00002,
+       "seed": 11
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 9120,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ],
+     "garbage": false
+    }
+   ],
+   "messages": [],
+   "heard": [
+    {
+     "model": "default",
+     "language": null,
+     "samples": "82825e14"
+    },
+    {
+     "model": "small",
+     "language": null,
+     "samples": "82825e14"
+    }
+   ],
+   "joined": {
+    "samples": "542440a4",
+    "rate": 48000
+   },
+   "wav": "53ee7eaf",
+   "error": null,
+   "result": {
+    "duration": "0.2",
+    "phrases": null,
+    "checks": "[\n {\n  \"at\": 0,\n  \"text\": \"One line here. Another line there.\",\n  \"ok\": true,\n  \"heard\": \"One line here. Another line there.\",\n  \"why\": \"\",\n  \"doubt\": [],\n  \"pauses\": []\n }\n]",
+    "problems": [],
+    "engine": "command: tts --say {text} --file {text_file} --out {out} --voice {voice} --ref {reference}"
+   }
+  },
+  {
+   "name": "a command that exits nonzero",
+   "script": "First part.\nSecond part.\nThird part.",
+   "opts": {
+    "engine": null,
+    "command": "tts --say {text} --file {text_file} --out {out} --voice {voice} --ref {reference}",
+    "model": null,
+    "voice": null,
+    "reference": null,
+    "language": null,
+    "speed": null,
+    "oneCall": false
+   },
+   "hear": {
+    "default": [],
+    "small": []
+   },
+   "calls": [
+    {
+     "line": "tts --say 'First part.' --file '<dir>/script.txt' --out '<dir>/speech.wav' --voice '' --ref ''",
+     "textFile": "First part.\n",
+     "status": 0,
+     "n": 4800,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 4800,
+       "amp": 0.00002,
+       "seed": 11
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 4320,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ],
+     "garbage": false
+    },
+    {
+     "line": "tts --say 'Second part.' --file '<dir>/script.txt' --out '<dir>/speech.wav' --voice '' --ref ''",
+     "textFile": "Second part.\n",
+     "status": 3,
+     "n": null,
+     "ops": null,
+     "garbage": false
+    }
+   ],
+   "messages": [
+    "tts command: 1/3 phrases"
+   ],
+   "heard": [],
+   "joined": null,
+   "wav": null,
+   "error": "speak: the TTS command exited 3 on \"Second part.\": tts --say {text} --file {text_file} --out {out} --voice {voice} --ref {reference}",
+   "result": null
+  },
+  {
+   "name": "a command a signal ends",
+   "script": "First part.\nSecond part.",
+   "opts": {
+    "engine": null,
+    "command": "tts --say {text} --file {text_file} --out {out} --voice {voice} --ref {reference}",
+    "model": null,
+    "voice": null,
+    "reference": null,
+    "language": null,
+    "speed": null,
+    "oneCall": false
+   },
+   "hear": {
+    "default": [],
+    "small": []
+   },
+   "calls": [
+    {
+     "line": "tts --say 'First part.' --file '<dir>/script.txt' --out '<dir>/speech.wav' --voice '' --ref ''",
+     "textFile": "First part.\n",
+     "status": null,
+     "n": null,
+     "ops": null,
+     "garbage": false
+    }
+   ],
+   "messages": [],
+   "heard": [],
+   "joined": null,
+   "wav": null,
+   "error": "speak: the TTS command exited null on \"First part.\": tts --say {text} --file {text_file} --out {out} --voice {voice} --ref {reference}",
+   "result": null
+  },
+  {
+   "name": "a command that writes no audio",
+   "script": "First part.",
+   "opts": {
+    "engine": null,
+    "command": "tts --say {text} --file {text_file} --out {out} --voice {voice} --ref {reference}",
+    "model": null,
+    "voice": null,
+    "reference": null,
+    "language": null,
+    "speed": null,
+    "oneCall": false
+   },
+   "hear": {
+    "default": [],
+    "small": []
+   },
+   "calls": [
+    {
+     "line": "tts --say 'First part.' --file '<dir>/script.txt' --out '<dir>/speech.wav' --voice '' --ref ''",
+     "textFile": "First part.\n",
+     "status": 0,
+     "n": null,
+     "ops": null,
+     "garbage": true
+    }
+   ],
+   "messages": [],
+   "heard": [],
+   "joined": null,
+   "wav": null,
+   "error": "speak: the TTS command wrote no audio ffmpeg can read at {out}. Check that the command writes its output to the {out} path.",
+   "result": null
+  },
+  {
+   "name": "kokoro with a voice it lacks",
+   "script": "Hello there.",
+   "opts": {
+    "engine": "kokoro",
+    "command": null,
+    "model": null,
+    "voice": "zz_nobody",
+    "reference": null,
+    "language": null,
+    "speed": null,
+    "oneCall": false
+   },
+   "hear": {
+    "default": [],
+    "small": []
+   },
+   "calls": [],
+   "messages": [],
+   "heard": [],
+   "joined": null,
+   "wav": null,
+   "error": "speak: Kokoro has no voice \"zz_nobody\". Voices: af_heart, af_bella, bm_george.",
+   "result": null
+  }
+ ]
+}

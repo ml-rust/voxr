@@ -180,6 +180,7 @@ pub fn design_voice<E: SpeechEngine>(
         seed: setup.seed,
         cfg: setup.cfg,
         steps: setup.steps,
+        speed: 1.0,
     })?;
     let design = repaired(at_anchor_rate(&first)?);
     let mut reference = pcm16_round_trip(&design);
@@ -213,6 +214,7 @@ pub fn design_voice<E: SpeechEngine>(
             seed: spec.seed,
             cfg: setup.cfg,
             steps: setup.steps,
+            speed: 1.0,
         })?;
         reference = pcm16_round_trip(&repaired(at_anchor_rate(&take)?));
         retries.push((spec, take));

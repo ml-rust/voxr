@@ -67,6 +67,7 @@ fn reason(e: Error) -> String {
         | Error::DataError { reason }
         | Error::Pattern { reason }
         | Error::Recognizer { reason }
+        | Error::Engine { reason }
         | Error::File { reason } => reason,
     }
 }

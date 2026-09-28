@@ -159,11 +159,17 @@ pub struct Call {
 }
 
 impl Call {
-    /// `request` as the stub model records it. A clone from a handle is
-    /// refused: the take loop clones from samples.
+    /// `request` as the stub model records it. A clone from a handle and a
+    /// named voice are refused: VoxCPM2 designs a voice or clones one from
+    /// samples.
     pub fn of(request: &SpeakRequest<'_, ()>) -> Result<Self> {
         let (design, transcript, reference) = match request.voice {
             VoiceSource::Own { design } => (design, None, None),
+            VoiceSource::Named { name } => {
+                return Err(Error::DataError {
+                    reason: format!("VoxCPM2 has no named voice {name:?}"),
+                });
+            }
             VoiceSource::Clone {
                 reference: CloneReference::Samples { samples, .. },
                 transcript,

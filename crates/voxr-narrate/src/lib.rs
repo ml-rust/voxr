@@ -5,7 +5,8 @@
 //! the take loop's cache keys, file names and take-record files, and its
 //! pick of each part's best take through a speech engine and a judge, the
 //! designed or prepared voice every take clones, a whole VoxCPM2 run from
-//! script to voiceover, and the skill's WAV files.
+//! script to voiceover, the per-phrase run of every other engine, and the
+//! skill's WAV files.
 
 mod error;
 mod js;

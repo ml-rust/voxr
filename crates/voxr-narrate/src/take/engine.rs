@@ -40,6 +40,11 @@ impl<H> Copy for CloneReference<'_, H> {}
 /// The voice a take speaks in.
 #[derive(Debug)]
 pub enum VoiceSource<'a, H> {
+    /// One of the engine's own named voices, such as Kokoro's `af_heart`.
+    Named {
+        /// The voice's name.
+        name: &'a str,
+    },
     /// The model's own voice, or one a description designs.
     Own {
         /// The voice description, such as `(young woman, warm, low)`.
@@ -65,9 +70,10 @@ impl<H> Clone for VoiceSource<'_, H> {
 impl<H> Copy for VoiceSource<'_, H> {}
 
 impl<H> VoiceSource<'_, H> {
-    /// `own`, `handle` or `samples`: which kind of voice this is.
+    /// `named`, `own`, `handle` or `samples`: which kind of voice this is.
     pub fn kind(&self) -> &'static str {
         match self {
+            Self::Named { .. } => "named",
             Self::Own { .. } => "own",
             Self::Clone {
                 reference: CloneReference::Handle(_),
@@ -100,6 +106,11 @@ pub struct SpeakRequest<'a, H> {
     pub cfg: f64,
     /// Diffusion steps.
     pub steps: u32,
+    /// The pace: 1 is the engine's own, 0.9 is 10% slower. Only an engine
+    /// with a native speed (Kokoro) reads it. VoxCPM2 takes its pace from
+    /// the reference and the delivery notes, and every other engine is
+    /// time-stretched once its audio is joined.
+    pub speed: f64,
 }
 
 impl<H> SpeakRequest<'_, H> {
@@ -340,6 +351,7 @@ pub(crate) mod tests {
             seed: 7.0,
             cfg: 1.6,
             steps: 16,
+            speed: 1.0,
         }
     }
 
@@ -359,6 +371,10 @@ pub(crate) mod tests {
         let handle = 3u8;
         let samples = [0.0f32; 4];
         assert_eq!(VoiceSource::<u8>::Own { design: None }.kind(), "own");
+        assert_eq!(
+            VoiceSource::<u8>::Named { name: "af_heart" }.kind(),
+            "named"
+        );
         let by_handle = VoiceSource::Clone {
             reference: CloneReference::Handle(&handle),
             transcript: None,
