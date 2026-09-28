@@ -21,13 +21,15 @@
 
 #![cfg(feature = "voxcpm")]
 
-use std::path::{Path, PathBuf};
+mod common;
+
+use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
 
-use boostr::model::audio::voxcpm::VoxCpm2Weights;
+use common::voxcpm::{WINDOW, assert_bit_identical, gguf_fixture, voices_fixture};
 use voxr::TtsEngine;
-use voxr::voxcpm::{VoxCpm2Engine, VoxCpm2LoadOptions, VoxCpm2SynthOptions, ZERO_SHOT_VOICE_ID};
+use voxr::voxcpm::{VoxCpm2SynthOptions, ZERO_SHOT_VOICE_ID};
 
 /// Three prompts of different length, so the batch is left-padded and the
 /// rows finish at different steps.
@@ -36,10 +38,6 @@ const PROMPTS: [&str; 3] = [
     "The quick brown fox jumps over the lazy dog, dan kemudian ia tidur di bawah pokok.",
     "Satu dua tiga.",
 ];
-
-/// Long enough that every concurrent request lands in the same drain window
-/// whatever the machine is doing.
-const WINDOW: Duration = Duration::from_millis(500);
 
 /// The cold-start drain window of the continuous engine. Short, so the first
 /// request is generating well before the second is queued.
@@ -62,16 +60,6 @@ const JOIN_DELAY: Duration = Duration::from_millis(400);
 const JOIN_WIDTH: usize = 4;
 const JOIN_CAPACITY: usize = 1024;
 
-fn gguf_fixture() -> Option<PathBuf> {
-    let path = PathBuf::from(std::env::var("VOXCPM2_GGUF").ok()?);
-    path.is_file().then_some(path)
-}
-
-fn voices_fixture() -> Option<PathBuf> {
-    let path = PathBuf::from(std::env::var("VOXCPM2_VOICES_DIR").ok()?);
-    path.is_dir().then_some(path)
-}
-
 fn load_engine(gguf: &Path, voices: Option<&Path>) -> Arc<dyn TtsEngine> {
     load_engine_with(
         gguf,
@@ -89,67 +77,7 @@ fn load_engine_with(
     voices: Option<&Path>,
     synth: VoxCpm2SynthOptions,
 ) -> Arc<dyn TtsEngine> {
-    let weights = VoxCpm2Weights::Gguf {
-        path: gguf.to_path_buf(),
-        config: None,
-    };
-    #[cfg(feature = "cuda")]
-    {
-        use boostr::runtime::cuda::{CudaDevice, CudaRuntime};
-        use numr::runtime::Runtime;
-        let device = CudaDevice::new(0);
-        let client = Arc::new(CudaRuntime::default_client(&device));
-        let options = VoxCpm2LoadOptions {
-            dtype: None,
-            vae_decoder_dtype: Some(numr::dtype::DType::F16),
-            synth,
-            adapter: None,
-        };
-        Arc::new(
-            VoxCpm2Engine::<CudaRuntime>::load(&weights, None, voices, &device, client, options)
-                .expect("load VoxCPM2 on CUDA"),
-        )
-    }
-    #[cfg(not(feature = "cuda"))]
-    {
-        use numr::runtime::Runtime;
-        use numr::runtime::cpu::{CpuDevice, CpuRuntime};
-        let device = CpuDevice::new();
-        let client = Arc::new(CpuRuntime::default_client(&device));
-        let options = VoxCpm2LoadOptions {
-            dtype: None,
-            vae_decoder_dtype: None,
-            synth,
-            adapter: None,
-        };
-        Arc::new(
-            VoxCpm2Engine::<CpuRuntime>::load(&weights, None, voices, &device, client, options)
-                .expect("load VoxCPM2 on CPU"),
-        )
-    }
-}
-
-fn assert_bit_identical(batched: &[f32], alone: &[f32], label: &str) {
-    assert_eq!(
-        batched.len(),
-        alone.len(),
-        "{label}: batched {} samples, alone {}",
-        batched.len(),
-        alone.len()
-    );
-    let mismatch = batched
-        .iter()
-        .zip(alone)
-        .position(|(b, a)| b.to_bits() != a.to_bits());
-    if let Some(i) = mismatch {
-        panic!(
-            "{label}: sample {i} is {:e} ({:#010x}) batched, {:e} ({:#010x}) alone",
-            batched[i],
-            batched[i].to_bits(),
-            alone[i],
-            alone[i].to_bits()
-        );
-    }
+    Arc::new(common::voxcpm::load_engine(gguf, voices, synth))
 }
 
 /// The request set: every prompt zero-shot, plus the first prompt with the

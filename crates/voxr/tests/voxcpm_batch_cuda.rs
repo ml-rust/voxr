@@ -22,6 +22,8 @@
 
 #![cfg(all(feature = "voxcpm", feature = "cuda"))]
 
+mod common;
+
 use std::path::{Path, PathBuf};
 
 use boostr::model::audio::voxcpm::VoxCpm2Weights;
@@ -31,6 +33,7 @@ use boostr::model::audio::voxcpm::model::{
     unfold_patches,
 };
 use boostr::model::audio::voxcpm::vae::decoder::SAMPLE_RATE;
+use common::voxcpm::{gguf_fixture, ref_wav_fixture};
 use numr::dtype::DType;
 use numr::runtime::Runtime;
 use numr::runtime::cuda::{CudaClient, CudaDevice, CudaRuntime};
@@ -161,8 +164,7 @@ fn render_single(
 
 #[test]
 fn batch_of_two_matches_single_renders() {
-    let (Some(gguf), Some(ref_wav)) = (env_path("VOXCPM2_GGUF"), env_path("VOXCPM2_REF_WAV"))
-    else {
+    let (Some(gguf), Some(ref_wav)) = (gguf_fixture(), ref_wav_fixture()) else {
         eprintln!("VOXCPM2_GGUF or VOXCPM2_REF_WAV unset or absent; skipping");
         return;
     };
@@ -325,8 +327,7 @@ fn batch_of_two_matches_single_renders() {
 /// differences it measured.
 #[test]
 fn duplicate_rows_match_each_other_and_the_single() {
-    let (Some(gguf), Some(ref_wav)) = (env_path("VOXCPM2_GGUF"), env_path("VOXCPM2_REF_WAV"))
-    else {
+    let (Some(gguf), Some(ref_wav)) = (gguf_fixture(), ref_wav_fixture()) else {
         eprintln!("VOXCPM2_GGUF or VOXCPM2_REF_WAV unset or absent; skipping");
         return;
     };

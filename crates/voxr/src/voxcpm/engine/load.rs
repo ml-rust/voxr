@@ -19,7 +19,7 @@ use crate::resample::to_mono_at_rate;
 use crate::voxcpm::engine::batch::spawn_worker;
 use crate::voxcpm::engine::types::{
     EncodedVoice, EngineInner, REF_RATE, VOICE_EXTENSIONS, VoxCpm2Engine, VoxCpm2RenderClient,
-    ZERO_SHOT_VOICE_ID,
+    ZERO_SHOT_VOICE_ID, next_engine_id,
 };
 use crate::voxcpm::options::VoxCpm2LoadOptions;
 use crate::voxcpm::tokenizer::load_tokenizer;
@@ -115,8 +115,8 @@ where
         }
 
         // The owner thread starts here and ends with the engine: every
-        // render goes through it, so the model is touched from exactly one
-        // thread for the engine's whole life.
+        // render and every request-level reference encode goes through it,
+        // so after load the model is touched from exactly one thread.
         let inner = Arc::new(EngineInner {
             model,
             client,
@@ -124,6 +124,7 @@ where
             voices,
             options: synth,
             adapter: adapter_report,
+            id: next_engine_id(),
         });
         let (jobs, worker) = spawn_worker(Arc::clone(&inner))?;
         Ok(Self {
@@ -186,7 +187,7 @@ fn list_voice_files(dir: &Path) -> Result<Vec<(String, PathBuf)>> {
         let Some(stem) = path.file_stem().and_then(|s| s.to_str()) else {
             continue;
         };
-        voices.push((stem.to_string(), path.clone()));
+        voices.push((stem.to_string(), path));
     }
     voices.sort();
     Ok(voices)

@@ -6,7 +6,9 @@
 
 use std::sync::mpsc::{Receiver, TryRecvError};
 
-use crate::voxcpm::engine::batch::Job;
+use numr::runtime::Runtime;
+
+use crate::voxcpm::engine::batch::{EncodeJob, Job, Work};
 
 /// A fixed-width table of slots, each free or holding one `T`.
 ///
@@ -76,18 +78,24 @@ impl<T> Slots<T> {
     }
 }
 
-/// Take at most `free` queued jobs, blocking on nothing.
+/// Take at most `free` queued render jobs, blocking on nothing. A reference
+/// encode met on the way is handed to `serve` at once and takes no slot.
 ///
 /// The second value is `true` once the queue has closed, which is what
 /// [`Drop`] on the engine does. Jobs taken before that are still returned.
 ///
 /// This is the whole of the steady-state wait. A request arriving after this
 /// returns is taken by the next call, one step later.
-pub(super) fn drain(jobs: &Receiver<Job>, free: usize) -> (Vec<Job>, bool) {
+pub(super) fn drain<R: Runtime>(
+    jobs: &Receiver<Work<R>>,
+    free: usize,
+    serve: &mut dyn FnMut(EncodeJob<R>),
+) -> (Vec<Job<R>>, bool) {
     let mut taken = Vec::new();
     while taken.len() < free {
         match jobs.try_recv() {
-            Ok(job) => taken.push(job),
+            Ok(Work::Render(job)) => taken.push(job),
+            Ok(Work::Encode(encode)) => serve(encode),
             Err(TryRecvError::Empty) => return (taken, false),
             Err(TryRecvError::Disconnected) => return (taken, true),
         }
@@ -98,21 +106,33 @@ pub(super) fn drain(jobs: &Receiver<Job>, free: usize) -> (Vec<Job>, bool) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::voxcpm::engine::batch::Reply;
+    use crate::voxcpm::engine::batch::JobVoice;
+    use crate::voxcpm::engine::reply::Reply;
+    use numr::runtime::cpu::CpuRuntime;
     use std::sync::mpsc::channel;
 
-    fn job() -> Job {
+    fn job() -> Work<CpuRuntime> {
         let (tx, rx) = channel();
         // In the engine the job's owner keeps the receiver alive. Here
         // nothing reads it, so it is dropped and the send fails.
         drop(rx);
-        Job {
-            voice: None,
+        Work::Render(Job {
+            voice: JobVoice::ZeroShot,
+            seed: 0,
             text_token_ids: vec![1, 2],
             max_len: 22,
             seq_len: 2,
             reply: Reply::Buffered(tx),
-        }
+        })
+    }
+
+    fn encode() -> Work<CpuRuntime> {
+        let (tx, rx) = channel();
+        drop(rx);
+        Work::Encode(EncodeJob {
+            samples: vec![0.0; 4],
+            reply: tx,
+        })
     }
 
     /// Seating fills the lowest free slot, taking frees it again, and the
@@ -175,11 +195,11 @@ mod tests {
         for _ in 0..5 {
             tx.send(job()).expect("queue");
         }
-        let (taken, closed) = drain(&rx, 2);
+        let (taken, closed) = drain(&rx, 2, &mut |_| {});
         assert_eq!(taken.len(), 2);
         assert!(!closed);
 
-        let (taken, closed) = drain(&rx, 8);
+        let (taken, closed) = drain(&rx, 8, &mut |_| {});
         assert_eq!(taken.len(), 3, "an empty queue ends the drain at once");
         assert!(!closed);
     }
@@ -189,12 +209,12 @@ mod tests {
     #[test]
     fn drain_of_an_empty_queue_or_a_full_table_takes_nothing() {
         let (tx, rx) = channel();
-        let (taken, closed) = drain(&rx, 4);
+        let (taken, closed) = drain(&rx, 4, &mut |_| {});
         assert!(taken.is_empty());
         assert!(!closed);
 
         tx.send(job()).expect("queue");
-        let (taken, closed) = drain(&rx, 0);
+        let (taken, closed) = drain(&rx, 0, &mut |_| {});
         assert!(taken.is_empty(), "no free slot takes no job");
         assert!(!closed);
     }
@@ -205,8 +225,22 @@ mod tests {
         let (tx, rx) = channel();
         tx.send(job()).expect("queue");
         drop(tx);
-        let (taken, closed) = drain(&rx, 4);
+        let (taken, closed) = drain(&rx, 4, &mut |_| {});
         assert_eq!(taken.len(), 1);
         assert!(closed, "the queue closed");
+    }
+
+    /// An encode between two renders is served and takes no slot.
+    #[test]
+    fn drain_serves_encodes_without_spending_a_slot() {
+        let (tx, rx) = channel();
+        tx.send(job()).expect("queue");
+        tx.send(encode()).expect("queue");
+        tx.send(job()).expect("queue");
+        let mut served = 0;
+        let (taken, closed) = drain(&rx, 2, &mut |_| served += 1);
+        assert_eq!(taken.len(), 2);
+        assert_eq!(served, 1);
+        assert!(!closed);
     }
 }

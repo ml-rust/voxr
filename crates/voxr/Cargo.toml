@@ -138,6 +138,14 @@ name = "voxcpm_stream_parity"
 required-features = ["voxcpm"]
 
 [[test]]
+name = "voxcpm_request"
+required-features = ["voxcpm"]
+
+[[test]]
+name = "voxcpm_batch_engine"
+required-features = ["voxcpm"]
+
+[[test]]
 name = "voxcpm_batch_cuda"
 required-features = ["voxcpm", "cuda"]
 

@@ -1,5 +1,6 @@
 //! The owner thread's continuous-batching loop: one persistent
 //! [`GenerateState`], its slot table, and the admit/step/release cycle.
+//! A reference encode queued meanwhile runs between two steps.
 
 use std::sync::mpsc::Receiver;
 
@@ -8,12 +9,14 @@ use numr::runtime::Runtime;
 use numr::tensor::Tensor;
 
 use boostr::model::audio::voxcpm::model::{
-    GenerateOptions, GenerateState, PrefillRow, RowOptions, VoxCpm2Model,
+    GenerateOptions, GenerateState, PrefillRow, VoxCpm2Model,
 };
 
 use crate::error::{Error, Result};
-use crate::voxcpm::engine::batch::{Job, clamp_max_batch, collect_batch};
+use crate::voxcpm::engine::batch::{EncodeJob, FREE_ROW, Job, Work, clamp_max_batch};
+use crate::voxcpm::engine::continuous::refuse::{refuse_queue, too_large};
 use crate::voxcpm::engine::continuous::slots::{Slots, drain};
+use crate::voxcpm::engine::queue::{collect_batch, recv_job};
 use crate::voxcpm::engine::run::Row;
 use crate::voxcpm::engine::types::{EngineInner, MAX_LEN_CAP, VoxCpm2RenderClient};
 
@@ -21,12 +24,13 @@ use crate::voxcpm::engine::types::{EngineInner, MAX_LEN_CAP, VoxCpm2RenderClient
 ///
 /// The cycle: take whatever is queued into free slots, step the batch once,
 /// then reply for and release every slot that finished. Only the cold start
-/// blocks, because an empty batch has nothing to step.
+/// blocks, because an empty batch has nothing to step. A reference encode
+/// taken off the queue runs at once, between two steps.
 ///
 /// A failure to open the batch, or a failed step, is not survivable. Every
 /// row reads the state behind it. Every waiting caller is failed and every
 /// later request refused, so no caller blocks on a stopped thread.
-pub(in crate::voxcpm::engine) fn run_continuous<R>(inner: &EngineInner<R>, jobs: &Receiver<Job>)
+pub(in crate::voxcpm::engine) fn run_continuous<R>(inner: &EngineInner<R>, jobs: &Receiver<Work<R>>)
 where
     R: Runtime<DType = DType> + 'static,
     R::Client: VoxCpm2RenderClient<R>,
@@ -43,18 +47,19 @@ where
         Err(err) => return refuse_queue(jobs, &err),
     };
 
+    let mut serve = |encode: EncodeJob<R>| inner.serve_encode(encode);
     let mut closed = false;
     loop {
         if !closed {
-            closed = batch.admit_queued(inner, jobs);
+            closed = batch.admit_queued(inner, jobs, &mut serve);
         }
         if !batch.slots.any_occupied() {
             if closed {
                 return;
             }
-            match jobs.recv() {
-                Ok(first) => batch.cold_start(inner, jobs, first),
-                Err(_) => return,
+            match recv_job(jobs, &mut serve) {
+                Some(first) => batch.cold_start(inner, jobs, first, &mut serve),
+                None => return,
             }
             // Every job of the cold start can have been refused. Go round
             // again to block for the next one rather than step an empty
@@ -90,17 +95,15 @@ fn slot_capacity<R: Runtime<DType = DType>>(inner: &EngineInner<R>) -> Result<us
 
 /// One persistent batch: the state every slot steps in, the rows seated in
 /// it, and the per-row options the loop reads.
-struct Batch<'a, R: Runtime<DType = DType>> {
+struct Batch<R: Runtime<DType = DType>> {
     state: GenerateState<R>,
-    slots: Slots<Row<'a, R>>,
+    slots: Slots<Row<R>>,
     options: GenerateOptions,
     /// Cache positions one slot holds — see [`slot_capacity`].
     capacity: usize,
-    /// The engine seed every row draws from.
-    seed: u64,
 }
 
-impl<'a, R> Batch<'a, R>
+impl<R> Batch<R>
 where
     R: Runtime<DType = DType> + 'static,
     R::Client: VoxCpm2RenderClient<R>,
@@ -118,7 +121,9 @@ where
     /// [`GenerateState`] recomputes on every seat and release. That stepped
     /// width is the DiT Euler graph cache's shape key and takes one of a
     /// short list of values, so the captures are shared.
-    fn open(inner: &'a EngineInner<R>, width: usize, capacity: usize) -> Result<Self> {
+    fn open(inner: &EngineInner<R>, width: usize, capacity: usize) -> Result<Self> {
+        // `rows` names every slot's seed, so the load-time seed here is only
+        // the loop's fallback and reaches no row.
         let mut options = GenerateOptions::new(MAX_LEN_CAP, inner.options.seed);
         options.cfm.n_timesteps = inner.options.n_timesteps;
         options.cfm.cfg_value = inner.options.cfg_value;
@@ -128,16 +133,20 @@ where
             slots: Slots::new(width),
             options,
             capacity,
-            seed: inner.options.seed,
         };
         batch.refresh_options();
         Ok(batch)
     }
 
-    /// Take whatever is queued into the free slots. Returns `true` once the
-    /// queue has closed.
-    fn admit_queued(&mut self, inner: &'a EngineInner<R>, jobs: &Receiver<Job>) -> bool {
-        let (taken, closed) = drain(jobs, self.slots.free_count());
+    /// Take whatever is queued into the free slots, serving any reference
+    /// encode met on the way. Returns `true` once the queue has closed.
+    fn admit_queued(
+        &mut self,
+        inner: &EngineInner<R>,
+        jobs: &Receiver<Work<R>>,
+        serve: &mut dyn FnMut(EncodeJob<R>),
+    ) -> bool {
+        let (taken, closed) = drain(jobs, self.slots.free_count(), serve);
         for job in taken {
             self.seat_next(inner, job);
         }
@@ -150,21 +159,27 @@ where
     /// This is the ONE place the drain window applies. In the steady state a
     /// joiner is taken between two steps and waits for neither the window nor
     /// the batch. A request arriving alone pays the window once, here.
-    fn cold_start(&mut self, inner: &'a EngineInner<R>, jobs: &Receiver<Job>, first: Job) {
+    fn cold_start(
+        &mut self,
+        inner: &EngineInner<R>,
+        jobs: &Receiver<Work<R>>,
+        first: Job<R>,
+        serve: &mut dyn FnMut(EncodeJob<R>),
+    ) {
         let free = self.slots.free_count();
-        for job in collect_batch(jobs, first, inner.options.batch_window, free) {
+        for job in collect_batch(jobs, first, inner.options.batch_window, free, serve) {
             self.seat_next(inner, job);
         }
     }
 
     /// Seat `job` in the lowest free slot.
-    fn seat_next(&mut self, inner: &'a EngineInner<R>, job: Job) {
+    fn seat_next(&mut self, inner: &EngineInner<R>, job: Job<R>) {
         match self.slots.free() {
             Some(slot) => self.seat(inner, slot, job),
             None => job.reply.fail(Error::ModelError {
                 reason: format!(
-                    "VoxCPM2 continuous batch has no free slot among its {}; this request \
-                     should have stayed queued",
+                    "VoxCPM2 continuous batch took a request with no free slot among its {}; \
+                     this is an engine bug, report it with the batch width",
                     self.slots.width()
                 ),
             }),
@@ -180,14 +195,14 @@ where
     /// Anything that refuses the request — an unknown voice, a request too
     /// long for a slot, a prefill error — is reported on the job's own reply
     /// and leaves the slot free and the batch untouched.
-    fn seat(&mut self, inner: &'a EngineInner<R>, slot: usize, job: Job) {
+    fn seat(&mut self, inner: &EngineInner<R>, slot: usize, job: Job<R>) {
         // One past the last patch is where the lane table advances to on the
         // final step, so the budget is strictly below the slot's capacity.
         if job.seq_len + job.max_len >= self.capacity {
             job.reply.fail(too_large(&job, self.capacity));
             return;
         }
-        let ref_feat = match inner.reference(job.voice.as_deref()) {
+        let ref_feat = match inner.reference(&job.voice) {
             Ok(ref_feat) => ref_feat,
             Err(err) => return job.reply.fail(err),
         };
@@ -208,18 +223,16 @@ where
             Ok(prefilled) => prefilled,
             Err(err) => return job.reply.fail(Error::from(err)),
         };
-        let options = RowOptions {
-            max_len: job.max_len,
-            seed: self.seed,
-        };
-        if let Err(err) = self.state.admit(client, slot, &prefilled, options) {
+        if let Err(err) = self
+            .state
+            .admit(client, slot, &prefilled, job.row_options())
+        {
             return job.reply.fail(Error::from(err));
         }
         self.slots.seat(
             slot,
             Row {
                 job,
-                ref_feat,
                 live: true,
                 emitted: 0,
             },
@@ -237,7 +250,7 @@ where
     /// A released slot's row is DROPPED here, which drops its reply sender.
     /// That ends a streaming caller's drain loop, whether the row ran to its
     /// stop token or was retired mid-stream.
-    fn step(&mut self, inner: &'a EngineInner<R>) -> Result<()> {
+    fn step(&mut self, inner: &EngineInner<R>) -> Result<()> {
         let client = inner.client.as_ref();
         let chunk = inner.options.stream_chunk_patches.max(1);
         inner
@@ -281,123 +294,18 @@ where
         }
     }
 
-    /// Rebuild the per-row caps from the state's own slot record.
+    /// Rebuild the per-row caps and seeds from the state's own slot record.
     ///
     /// `admit` and `release` write [`GenerateState::slot_options`], so the
-    /// loop's caps cannot disagree with the slots they belong to. The options
-    /// carry one entry per slot, and a free slot counts no patch, so its cap
-    /// is the smallest legal one.
+    /// loop's caps and seeds cannot disagree with the slots they belong to.
+    /// The options carry one entry per slot, and a free slot takes
+    /// [`FREE_ROW`].
     fn refresh_options(&mut self) {
-        let seed = self.seed;
         self.options.rows = self
             .state
             .slot_options
             .iter()
-            .map(|seated| seated.unwrap_or(RowOptions { max_len: 1, seed }))
+            .map(|seated| seated.unwrap_or(FREE_ROW))
             .collect();
-    }
-}
-
-/// Fail every queued and every later request until the queue closes.
-///
-/// A caller blocks on its reply channel, so a stopped thread must keep
-/// answering rather than stop reading the queue.
-fn refuse_queue(jobs: &Receiver<Job>, err: &Error) {
-    let reason = format!("VoxCPM2 continuous batch is not running: {err}");
-    while let Ok(job) = jobs.recv() {
-        job.reply.fail(Error::ModelError {
-            reason: reason.clone(),
-        });
-    }
-}
-
-/// A request no slot of a persistent batch can hold.
-fn too_large(job: &Job, capacity: usize) -> Error {
-    Error::InvalidArgument {
-        arg: "text",
-        reason: format!(
-            "this request needs {} cache positions ({} for its prefill, {} for its patches, \
-             1 past the last) but a continuous batch's slot holds {capacity}; shorten the \
-             text, or use a shorter reference recording",
-            job.seq_len + job.max_len + 1,
-            job.seq_len,
-            job.max_len,
-        ),
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::voxcpm::engine::batch::Reply;
-    use std::sync::mpsc::channel;
-
-    fn job(seq_len: usize, max_len: usize) -> (Job, std::sync::mpsc::Receiver<Result<Vec<f32>>>) {
-        let (tx, rx) = channel();
-        (
-            Job {
-                voice: None,
-                text_token_ids: vec![1, 2],
-                max_len,
-                seq_len,
-                reply: Reply::Buffered(tx),
-            },
-            rx,
-        )
-    }
-
-    /// The default slot size holds an ordinary clone request: a reference
-    /// recording of a few hundred patches, a sentence of around a hundred
-    /// tokens, and the patches that sentence generates.
-    ///
-    /// A default that stops holding an ordinary request refuses one at the
-    /// engine's door.
-    #[test]
-    fn the_default_slot_holds_an_ordinary_request() {
-        use crate::voxcpm::options::VoxCpm2SynthOptions;
-        let (t_ref, text_len) = (256usize, 96usize);
-        let prefill = t_ref + 2 + text_len;
-        let patches = text_len * 6 + 10;
-        let capacity = VoxCpm2SynthOptions::default().continuous_capacity;
-        assert!(
-            prefill + patches < capacity,
-            "prefill {prefill} + patches {patches} must leave the {capacity}-position slot \
-             the one position the lane table advances past the last patch"
-        );
-    }
-
-    /// A request whose prefill plus patches fills the slot exactly is one
-    /// position too long. The lane table advances once past the last patch.
-    #[test]
-    fn a_request_that_cannot_fit_a_slot_is_refused_with_its_own_numbers() {
-        let (job, rx) = job(100, 28);
-        job.reply.fail(too_large(&job, 128));
-        let err = rx.recv().expect("reply").expect_err("refused");
-        let text = err.to_string();
-        assert!(text.contains("129"), "{text}");
-        assert!(text.contains("100"), "{text}");
-        assert!(text.contains("128"), "{text}");
-    }
-
-    /// The refusal reaches the caller rather than leaving it queued.
-    #[test]
-    fn a_refused_queue_answers_every_waiting_caller() {
-        let (tx, rx) = channel();
-        let (first, first_reply) = job(4, 4);
-        let (second, second_reply) = job(4, 4);
-        tx.send(first).expect("queue");
-        tx.send(second).expect("queue");
-        drop(tx);
-
-        refuse_queue(
-            &rx,
-            &Error::ModelError {
-                reason: "boom".into(),
-            },
-        );
-        for reply in [first_reply, second_reply] {
-            let err = reply.recv().expect("reply").expect_err("refused");
-            assert!(err.to_string().contains("boom"), "{err}");
-        }
     }
 }

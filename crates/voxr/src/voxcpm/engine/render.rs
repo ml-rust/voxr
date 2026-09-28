@@ -1,11 +1,12 @@
-//! The caller's half of a request: resolve the voice, tokenize, size the
-//! patch budget, queue the job, and block on the reply.
+//! The caller's half of a request: resolve the voice and the seed,
+//! tokenize, size the patch budget, queue the job, and block on the reply.
 //!
 //! Everything here runs on the caller's thread. No device work happens on
-//! it, so a bad request — an unknown voice, empty text, a speed the model
-//! cannot serve — fails before it ever reaches a batch. The generation
-//! itself runs on the engine's owner thread (`super::batch`, `super::run`),
-//! which groups whatever is queued at the same time into ONE generation.
+//! it, so a bad request — an unknown voice, a reference from another engine,
+//! empty text, a speed the model cannot serve — fails before it ever reaches
+//! a batch. The generation itself runs on the engine's owner thread
+//! (`super::batch`, `super::run`), which groups whatever is queued at the
+//! same time into ONE generation.
 //!
 //! A streaming caller keeps its sink here and drains decoded chunks off a
 //! channel: the sink is not `Send`, so it must not cross to the owner
@@ -27,7 +28,9 @@ use boostr::model::audio::voxcpm::vae::decoder::SAMPLE_RATE;
 use crate::error::{Error, Result};
 use crate::lang::Lang;
 use crate::tts::{TtsEngine, Voice};
-use crate::voxcpm::engine::batch::{Job, Reply};
+use crate::voxcpm::engine::batch::{Job, JobVoice, Work};
+use crate::voxcpm::engine::reply::Reply;
+use crate::voxcpm::engine::request::{SynthRequest, VoiceSource};
 use crate::voxcpm::engine::types::{
     MAX_LEN_CAP, VoxCpm2Engine, VoxCpm2RenderClient, ZERO_SHOT_VOICE_ID,
 };
@@ -40,38 +43,16 @@ where
     VoxCpm2Model<R>: Send + Sync,
     Tensor<R>: Send + Sync,
 {
-    /// Everything before device work: resolve the voice, tokenize, size the
-    /// budget. Runs on the caller's thread, so a bad request never joins a
-    /// batch.
+    /// Everything before device work: resolve the voice and the seed,
+    /// tokenize, size the budget. Runs on the caller's thread, so a bad
+    /// request never joins a batch.
     ///
-    /// The job carries the voice ID, not the voice's tensor: a queued job
-    /// must borrow nothing from the engine, and the owner thread looks the
-    /// same ID up when it builds the batch.
-    fn plan(&self, text: &str, voice_id: &str, reply: Reply) -> Result<Job> {
-        let ref_len = if voice_id == ZERO_SHOT_VOICE_ID {
-            None
-        } else {
-            let voice = self
-                .inner
-                .voices
-                .get(voice_id)
-                .ok_or_else(|| Error::InvalidArgument {
-                    arg: "voice",
-                    reason: format!(
-                        "unknown voice {voice_id:?}; available voices: [{}], or {:?} for \
-                         zero-shot rendering",
-                        self.inner
-                            .voices
-                            .keys()
-                            .cloned()
-                            .collect::<Vec<_>>()
-                            .join(", "),
-                        ZERO_SHOT_VOICE_ID,
-                    ),
-                })?;
-            Some(voice.ref_feat.shape()[0])
-        };
-        let normalized = normalize_whitespace(text);
+    /// The job owns what it reads: a table voice travels as its id, which
+    /// the owner thread looks up when it builds the batch, and a request
+    /// reference travels as an [`Arc`] of its tensor.
+    fn plan(&self, request: &SynthRequest<'_, R>, reply: Reply) -> Result<Job<R>> {
+        let (voice, ref_len) = self.resolve_voice(request.voice)?;
+        let normalized = normalize_whitespace(request.text);
         if normalized.is_empty() {
             return Err(Error::InvalidArgument {
                 arg: "text",
@@ -88,7 +69,8 @@ where
         let seq_len = seq_len_for(ref_len, text_token_ids.len());
 
         Ok(Job {
-            voice: (voice_id != ZERO_SHOT_VOICE_ID).then(|| voice_id.to_string()),
+            voice,
+            seed: request.seed.unwrap_or(self.inner.options.seed),
             text_token_ids,
             max_len,
             seq_len,
@@ -96,31 +78,80 @@ where
         })
     }
 
-    /// Queue a job for the owner thread.
-    fn submit(&self, job: Job) -> Result<()> {
+    /// The job's voice and its reference length in patches, `None` for
+    /// zero-shot. An id outside the voice table, or a reference another
+    /// engine encoded, is refused here.
+    fn resolve_voice(&self, voice: VoiceSource<'_, R>) -> Result<(JobVoice<R>, Option<usize>)> {
+        match voice {
+            VoiceSource::ZeroShot => Ok((JobVoice::ZeroShot, None)),
+            VoiceSource::Named(id) if id == ZERO_SHOT_VOICE_ID => Ok((JobVoice::ZeroShot, None)),
+            VoiceSource::Named(id) => {
+                let voice = self
+                    .inner
+                    .voices
+                    .get(id)
+                    .ok_or_else(|| Error::InvalidArgument {
+                        arg: "voice",
+                        reason: format!(
+                            "unknown voice {id:?}; available voices: [{}], or {:?} for \
+                             zero-shot rendering",
+                            self.inner
+                                .voices
+                                .keys()
+                                .cloned()
+                                .collect::<Vec<_>>()
+                                .join(", "),
+                            ZERO_SHOT_VOICE_ID,
+                        ),
+                    })?;
+                let patches = voice.ref_feat.shape().first().copied().unwrap_or(0);
+                Ok((JobVoice::Named(id.to_string()), Some(patches)))
+            }
+            VoiceSource::Reference(reference) => {
+                if reference.engine != self.inner.id {
+                    return Err(Error::InvalidArgument {
+                        arg: "voice",
+                        reason: "this reference was encoded by a different VoxCPM2 engine; \
+                                 encode it again with this engine's encode_reference"
+                            .into(),
+                    });
+                }
+                Ok((
+                    JobVoice::Reference(Arc::clone(&reference.feat)),
+                    Some(reference.patches()),
+                ))
+            }
+        }
+    }
+
+    /// Queue work for the owner thread.
+    pub(super) fn submit(&self, work: Work<R>) -> Result<()> {
         let Some(jobs) = self.jobs.as_ref() else {
             return Err(worker_gone());
         };
-        jobs.send(job).map_err(|_| worker_gone())
+        jobs.send(work).map_err(|_| worker_gone())
     }
 
-    /// Whole-utterance render: queue the request, wait for its waveform.
-    fn render(&self, text: &str, voice_id: &str) -> Result<Vec<f32>> {
+    /// Whole-utterance render of one request: queue it, wait for its
+    /// waveform.
+    ///
+    /// Equal requests render equal samples on one backend, alone or batched
+    /// with any others.
+    pub fn render_request(&self, request: &SynthRequest<'_, R>) -> Result<Vec<f32>> {
         let (done, reply) = channel();
-        self.submit(self.plan(text, voice_id, Reply::Buffered(done))?)?;
+        self.submit(Work::Render(self.plan(request, Reply::Buffered(done))?))?;
         reply.recv().map_err(|_| worker_gone())?
     }
 
-    /// Chunked render: queue the request, then drain the decoded chunks into
-    /// `sink` as the owner thread produces them. The sender drops when the
-    /// batch ends, which is how the last chunk is recognised.
+    /// Chunked render of one request: queue it, then drain the decoded
+    /// chunks into `sink` as the owner thread produces them. The sender
+    /// drops when the row ends, which is how the last chunk is recognised.
     ///
     /// A `sink` error cancels this row and returns at once; the batch runs
     /// on for the other rows.
-    fn render_stream(
+    pub fn render_request_stream(
         &self,
-        text: &str,
-        voice_id: &str,
+        request: &SynthRequest<'_, R>,
         sink: &mut dyn FnMut(&[f32]) -> Result<()>,
     ) -> Result<()> {
         if self.inner.options.stream_chunk_patches == 0 {
@@ -132,14 +163,13 @@ where
         let (chunks, reply) = channel();
         let cancelled = Arc::new(AtomicBool::new(false));
         let job = self.plan(
-            text,
-            voice_id,
+            request,
             Reply::Streaming {
                 chunks,
                 cancelled: Arc::clone(&cancelled),
             },
         )?;
-        self.submit(job)?;
+        self.submit(Work::Render(job))?;
 
         let mut delivered = false;
         while let Ok(message) = reply.recv() {
@@ -157,6 +187,22 @@ where
         } else {
             Err(worker_gone())
         }
+    }
+
+    /// Whole-utterance render in a voice-table voice at the load-time seed.
+    fn render(&self, text: &str, voice_id: &str) -> Result<Vec<f32>> {
+        self.render_request(&SynthRequest::new(text, VoiceSource::Named(voice_id)))
+    }
+
+    /// Chunked render in a voice-table voice at the load-time seed.
+    fn render_stream(
+        &self,
+        text: &str,
+        voice_id: &str,
+        sink: &mut dyn FnMut(&[f32]) -> Result<()>,
+    ) -> Result<()> {
+        let request = SynthRequest::new(text, VoiceSource::Named(voice_id));
+        self.render_request_stream(&request, sink)
     }
 }
 
@@ -204,7 +250,7 @@ where
 
 /// The owner thread is gone: it panicked, or the engine is shutting down.
 /// Every waiting caller gets this instead of blocking forever.
-fn worker_gone() -> Error {
+pub(super) fn worker_gone() -> Error {
     Error::ModelError {
         reason: "VoxCPM2 render thread is not running; an earlier render panicked or the \
                  engine is shutting down"

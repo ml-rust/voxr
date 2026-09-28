@@ -2,6 +2,10 @@
 //! voice, prefill each request on its own and seat it into a slot, drive the
 //! per-patch loop, and hand each row its audio.
 //!
+//! A row's reference is either a voice-table tensor in [`EngineInner`] or
+//! the tensor its job holds an [`Arc`](std::sync::Arc) of. Both are looked
+//! up where the prefill reads them, so a row stores no borrow.
+//!
 //! Every row of a batch steps on every iteration; a finished row's patches
 //! are computed and its bookkeeping stands still. That is what lets a row be
 //! retired mid-batch — a cancelled streaming row is marked finished and runs
@@ -21,14 +25,13 @@ use boostr::model::audio::voxcpm::model::{
 };
 
 use crate::error::{Error, Result};
-use crate::voxcpm::engine::batch::{Job, batch_width, row_options};
+use crate::voxcpm::engine::batch::{Job, JobVoice, batch_width, row_options};
 use crate::voxcpm::engine::types::{EngineInner, VoxCpm2RenderClient};
 
-/// One row of a running batch: the request, its reference tensor, and
-/// whether the caller is still taking output.
-pub(super) struct Row<'a, R: Runtime> {
-    pub(super) job: Job,
-    pub(super) ref_feat: Option<&'a Tensor<R>>,
+/// One row of a running batch: the request, and whether the caller is still
+/// taking output.
+pub(super) struct Row<R: Runtime> {
+    pub(super) job: Job<R>,
     /// Cleared once the row's caller went away or its own decode failed.
     /// A dead row keeps stepping; nothing is decoded or sent for it again.
     pub(super) live: bool,
@@ -47,13 +50,13 @@ where
     ///
     /// Never propagates: this is the owner thread's top level, so every
     /// failure leaves through the rows' reply channels.
-    pub(super) fn run_batch(&self, jobs: Vec<Job>) {
+    pub(super) fn run_batch(&self, jobs: Vec<Job<R>>) {
         let mut rows = Vec::with_capacity(jobs.len());
         for job in jobs {
-            match self.reference(job.voice.as_deref()) {
-                Ok(ref_feat) => rows.push(Row {
+            let known = self.reference(&job.voice).map(|_| ());
+            match known {
+                Ok(()) => rows.push(Row {
                     job,
-                    ref_feat,
                     live: true,
                     emitted: 0,
                 }),
@@ -68,40 +71,50 @@ where
         }
     }
 
-    /// A voice ID's encoded reference. `None` in, `None` out: that is
-    /// zero-shot. The voice table is fixed at load, so an unknown ID here
-    /// means the caller's own check and this one disagree.
-    pub(super) fn reference(&self, voice: Option<&str>) -> Result<Option<&Tensor<R>>> {
-        let Some(voice_id) = voice else {
-            return Ok(None);
-        };
-        let voice = self
-            .voices
-            .get(voice_id)
-            .ok_or_else(|| Error::InvalidArgument {
-                arg: "voice",
-                reason: format!("unknown voice {voice_id:?}"),
-            })?;
-        Ok(Some(&voice.ref_feat))
+    /// A job voice's encoded reference: the voice-table tensor for an id,
+    /// the job's own tensor for a request reference, `None` for zero-shot.
+    /// The voice table is fixed at load, so an unknown id here means the
+    /// caller's own check and this one disagree.
+    pub(super) fn reference<'a>(&'a self, voice: &'a JobVoice<R>) -> Result<Option<&'a Tensor<R>>> {
+        match voice {
+            JobVoice::ZeroShot => Ok(None),
+            JobVoice::Reference(feat) => Ok(Some(feat.as_ref())),
+            JobVoice::Named(voice_id) => {
+                let voice = self
+                    .voices
+                    .get(voice_id)
+                    .ok_or_else(|| Error::InvalidArgument {
+                        arg: "voice",
+                        reason: format!(
+                            "voice {voice_id:?} passed the request check but is not in the \
+                             engine's voice table; this is an engine bug, report it with \
+                             the voice id"
+                        ),
+                    })?;
+                Ok(Some(&voice.ref_feat))
+            }
+        }
     }
 
     /// Prefill, generate and decode the whole batch. An error here belongs
     /// to every row; a per-row failure is reported on that row and does not
     /// return.
-    fn generate_batch(&self, rows: &mut [Row<'_, R>]) -> Result<()> {
+    fn generate_batch(&self, rows: &mut [Row<R>]) -> Result<()> {
         let width = batch_width(rows.len());
-        let real_max_lens: Vec<usize> = rows.iter().map(|row| row.job.max_len).collect();
-        let max_len = real_max_lens.iter().copied().max().unwrap_or(1);
+        let real: Vec<_> = rows.iter().map(|row| row.job.row_options()).collect();
+        let max_len = real.iter().map(|row| row.max_len).max().unwrap_or(1);
         let s_max = rows.iter().map(|row| row.job.seq_len).max().unwrap_or(1);
         // One capacity for every slot: the longest prefill in this batch plus
         // the largest patch budget any of its rows asked for.
         let capacity = s_max + max_len;
 
+        // `rows` names every slot's seed, so the load-time seed here is only
+        // the loop's fallback and reaches no row.
         let mut options = GenerateOptions::new(max_len, self.options.seed);
         options.cfm.n_timesteps = self.options.n_timesteps;
         options.cfm.cfg_value = self.options.cfg_value;
         options.min_len = self.options.min_len;
-        options.rows = row_options(&real_max_lens, width, self.options.seed);
+        options.rows = row_options(&real, width);
 
         // Each request prefills on its own and is seated into its own slot.
         // The slots past the last request stay free: they still run every
@@ -112,7 +125,7 @@ where
             let prefilled = self.model.prefill_batch(
                 client,
                 &[PrefillRow {
-                    ref_feat: row.ref_feat,
+                    ref_feat: self.reference(&row.job.voice)?,
                     text_token_ids: &row.job.text_token_ids,
                 }],
                 capacity,
@@ -131,7 +144,7 @@ where
         &self,
         state: &mut GenerateState<R>,
         options: &GenerateOptions,
-        rows: &mut [Row<'_, R>],
+        rows: &mut [Row<R>],
     ) -> Result<()> {
         let chunk = self.options.stream_chunk_patches.max(1);
         let client = self.client.as_ref();
@@ -159,7 +172,7 @@ where
         &self,
         state: &mut GenerateState<R>,
         b: usize,
-        row: &mut Row<'_, R>,
+        row: &mut Row<R>,
         chunk: usize,
     ) {
         if !row.live {
@@ -192,7 +205,7 @@ where
     /// Final reply per row: the whole waveform for a buffered caller, the
     /// tail chunk for a streaming one. A streaming caller sees the end when
     /// its sender drops with the batch.
-    fn deliver(&self, state: &GenerateState<R>, rows: &mut [Row<'_, R>]) {
+    fn deliver(&self, state: &GenerateState<R>, rows: &mut [Row<R>]) {
         for (b, row) in rows.iter_mut().enumerate() {
             self.deliver_row(state, b, row);
         }
@@ -201,7 +214,7 @@ where
     /// Row `b`'s last message: the whole waveform for a buffered caller, the
     /// patches a streaming one has not seen yet. The row is dead afterwards
     /// either way; its caller sees the end when the row's sender drops.
-    pub(super) fn deliver_row(&self, state: &GenerateState<R>, b: usize, row: &mut Row<'_, R>) {
+    pub(super) fn deliver_row(&self, state: &GenerateState<R>, b: usize, row: &mut Row<R>) {
         if !row.live {
             return;
         }
@@ -245,7 +258,7 @@ pub(super) fn retire<R: Runtime>(state: &mut GenerateState<R>, b: usize) {
 }
 
 /// Report a per-row failure and retire the row; the rest of the batch runs on.
-fn fail_row<R: Runtime>(state: &mut GenerateState<R>, b: usize, row: &mut Row<'_, R>, err: Error) {
+fn fail_row<R: Runtime>(state: &mut GenerateState<R>, b: usize, row: &mut Row<R>, err: Error) {
     row.job.reply.fail(err);
     retire(state, b);
     row.live = false;
@@ -255,7 +268,7 @@ fn fail_row<R: Runtime>(state: &mut GenerateState<R>, b: usize, row: &mut Row<'_
 ///
 /// The error moves to the first live row unchanged, so a batch of one keeps
 /// the exact error a single render returns today; the rest carry its text.
-pub(super) fn fail_all<R: Runtime>(rows: &[Row<'_, R>], err: Error) {
+pub(super) fn fail_all<R: Runtime>(rows: &[Row<R>], err: Error) {
     let text = err.to_string();
     let mut original = Some(err);
     for row in rows.iter().filter(|row| row.live) {

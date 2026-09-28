@@ -12,6 +12,12 @@ use std::path::{Path, PathBuf};
 use numr::runtime::cpu::{CpuClient, CpuDevice};
 use serde::de::DeserializeOwned;
 
+/// Fixtures shared by the VoxCPM2 engine tests: model/voices/reference-wav
+/// resolution, the runtime alias, the engine loader and a bit-exact sample
+/// comparison.
+#[cfg(feature = "voxcpm")]
+pub mod voxcpm;
+
 pub const RATE: u32 = 48_000;
 
 /// A deterministic pseudo-random hiss in `[-amp, amp]`.

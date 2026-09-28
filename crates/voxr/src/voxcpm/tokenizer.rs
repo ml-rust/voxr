@@ -1,4 +1,5 @@
-//! Load VoxCPM2's `tokenizer.json` through splintr.
+//! Load VoxCPM2's `tokenizer.json` through splintr, and prepare text for it:
+//! whitespace normalization and the [`paren`] style prefix.
 //!
 //! This is the same split as `format::gguf_vocab`: splintr owns tokenization,
 //! boostr only hands it the bytes. A [`TokenizerSource`] is either the
@@ -105,9 +106,24 @@ pub fn tokenize(tokenizer: &AnyTokenizer, text: &str) -> Vec<u32> {
     tokenizer.encode_raw(&normalize_whitespace(text))
 }
 
+/// Wrap a style or voice-design prompt in parentheses, the form VoxCPM2
+/// reads as a delivery instruction rather than as text to speak.
+///
+/// Trims `prompt` first. An empty prompt stays empty, and a prompt that
+/// already starts with `(` is returned trimmed and otherwise unchanged. A
+/// caller prefixes the result to the text: `paren(style) + text`.
+pub fn paren(prompt: &str) -> String {
+    let prompt = prompt.trim();
+    if prompt.is_empty() || prompt.starts_with('(') {
+        prompt.to_string()
+    } else {
+        format!("({prompt})")
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{load_tokenizer, normalize_whitespace, tokenize};
+    use super::{load_tokenizer, normalize_whitespace, paren, tokenize};
     use boostr::model::audio::voxcpm::TokenizerSource;
     use splintr::from_json_bytes;
 
@@ -195,5 +211,28 @@ mod tests {
     fn empty_and_whitespace_only_input_produce_empty_string() {
         assert_eq!(normalize_whitespace(""), "");
         assert_eq!(normalize_whitespace("   \t\n  "), "");
+    }
+
+    #[test]
+    fn paren_wraps_a_bare_prompt() {
+        assert_eq!(paren("relaxed, explaining"), "(relaxed, explaining)");
+    }
+
+    #[test]
+    fn paren_trims_before_wrapping() {
+        assert_eq!(paren("  A calm male narrator \n"), "(A calm male narrator)");
+    }
+
+    #[test]
+    fn paren_leaves_a_wrapped_prompt_alone_after_trimming() {
+        assert_eq!(paren(" (warm) "), "(warm)");
+        // Only the opening parenthesis is checked.
+        assert_eq!(paren("(warm"), "(warm");
+    }
+
+    #[test]
+    fn paren_keeps_an_empty_prompt_empty() {
+        assert_eq!(paren(""), "");
+        assert_eq!(paren(" \t "), "");
     }
 }

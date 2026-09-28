@@ -4,6 +4,7 @@
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::mpsc::Sender;
 use std::thread::JoinHandle;
 
@@ -20,7 +21,7 @@ use boostr::model::audio::voxcpm::VoxCpmClient;
 use boostr::model::audio::voxcpm::model::{LoraAdapterReport, VoxCpm2Model};
 use boostr::quant::traits::DequantOps;
 
-use crate::voxcpm::engine::batch::Job;
+use crate::voxcpm::engine::batch::Work;
 use crate::voxcpm::options::VoxCpm2SynthOptions;
 
 /// Sample rate the reference encoder expects.
@@ -104,7 +105,8 @@ pub(super) struct EncodedVoice<R: Runtime> {
 /// Everything a render reads, shared by every caller thread and the owner
 /// thread behind an [`Arc`]. Immutable after [`VoxCpm2Engine::load`]: a
 /// caller reads the voice table and the tokenizer to plan its request, the
-/// owner thread reads the model and the client to run it.
+/// owner thread reads the model and the client to run it. Only the owner
+/// thread runs the model, reference encodes included.
 pub(super) struct EngineInner<R: Runtime<DType = DType>> {
     pub(super) model: VoxCpm2Model<R>,
     pub(super) client: Arc<R::Client>,
@@ -112,13 +114,24 @@ pub(super) struct EngineInner<R: Runtime<DType = DType>> {
     pub(super) voices: BTreeMap<String, EncodedVoice<R>>,
     pub(super) options: VoxCpm2SynthOptions,
     pub(super) adapter: Option<LoraAdapterReport>,
+    /// This engine's identity, unique within the process. A
+    /// [`Reference`](crate::voxcpm::Reference) records it, so a reference
+    /// encoded by another engine is refused.
+    pub(super) id: u64,
+}
+
+/// A fresh [`EngineInner::id`]: every call returns a value no earlier call
+/// in this process returned.
+pub(super) fn next_engine_id() -> u64 {
+    static NEXT: AtomicU64 = AtomicU64::new(0);
+    NEXT.fetch_add(1, Ordering::Relaxed)
 }
 
 /// VoxCPM2 voice-cloning engine on runtime `R`.
 pub struct VoxCpm2Engine<R: Runtime<DType = DType>> {
     pub(super) inner: Arc<EngineInner<R>>,
     /// Queue into the owner thread. `None` only while [`Drop`] closes it.
-    pub(super) jobs: Option<Sender<Job>>,
+    pub(super) jobs: Option<Sender<Work<R>>>,
     /// The owner thread. `None` only while [`Drop`] joins it.
     pub(super) worker: Option<JoinHandle<()>>,
 }

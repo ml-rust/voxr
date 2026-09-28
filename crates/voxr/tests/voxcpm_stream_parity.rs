@@ -12,71 +12,29 @@
 
 #![cfg(feature = "voxcpm")]
 
-use std::path::{Path, PathBuf};
+mod common;
+
+use std::path::Path;
 use std::sync::Arc;
 
-use boostr::model::audio::voxcpm::VoxCpm2Weights;
+use common::voxcpm::{gguf_fixture, voices_fixture};
 use voxr::TtsEngine;
-use voxr::voxcpm::{VoxCpm2Engine, VoxCpm2LoadOptions, VoxCpm2SynthOptions, ZERO_SHOT_VOICE_ID};
+use voxr::voxcpm::{VoxCpm2SynthOptions, ZERO_SHOT_VOICE_ID};
 
 const PROMPTS: [&str; 2] = [
     "Selamat pagi, today we test streaming synthesis.",
     "The quick brown fox jumps over the lazy dog, dan kemudian ia tidur di bawah pokok.",
 ];
 
-fn gguf_fixture() -> Option<PathBuf> {
-    let path = PathBuf::from(std::env::var("VOXCPM2_GGUF").ok()?);
-    path.is_file().then_some(path)
-}
-
-fn voices_fixture() -> Option<PathBuf> {
-    let path = PathBuf::from(std::env::var("VOXCPM2_VOICES_DIR").ok()?);
-    path.is_dir().then_some(path)
-}
-
 fn load_engine(gguf: &Path, voices: Option<&Path>, chunk: usize) -> Arc<dyn TtsEngine> {
-    let weights = VoxCpm2Weights::Gguf {
-        path: gguf.to_path_buf(),
-        config: None,
-    };
-    let synth = VoxCpm2SynthOptions {
-        stream_chunk_patches: chunk,
-        ..VoxCpm2SynthOptions::default()
-    };
-    #[cfg(feature = "cuda")]
-    {
-        use boostr::runtime::cuda::{CudaDevice, CudaRuntime};
-        use numr::runtime::Runtime;
-        let device = CudaDevice::new(0);
-        let client = Arc::new(CudaRuntime::default_client(&device));
-        let options = VoxCpm2LoadOptions {
-            dtype: None,
-            vae_decoder_dtype: Some(numr::dtype::DType::F16),
-            synth,
-            adapter: None,
-        };
-        Arc::new(
-            VoxCpm2Engine::<CudaRuntime>::load(&weights, None, voices, &device, client, options)
-                .expect("load VoxCPM2 on CUDA"),
-        )
-    }
-    #[cfg(not(feature = "cuda"))]
-    {
-        use numr::runtime::Runtime;
-        use numr::runtime::cpu::{CpuDevice, CpuRuntime};
-        let device = CpuDevice::new();
-        let client = Arc::new(CpuRuntime::default_client(&device));
-        let options = VoxCpm2LoadOptions {
-            dtype: None,
-            vae_decoder_dtype: None,
-            synth,
-            adapter: None,
-        };
-        Arc::new(
-            VoxCpm2Engine::<CpuRuntime>::load(&weights, None, voices, &device, client, options)
-                .expect("load VoxCPM2 on CPU"),
-        )
-    }
+    Arc::new(common::voxcpm::load_engine(
+        gguf,
+        voices,
+        VoxCpm2SynthOptions {
+            stream_chunk_patches: chunk,
+            ..VoxCpm2SynthOptions::default()
+        },
+    ))
 }
 
 /// Render `text` both ways and return `(buffered, streamed chunks)`.

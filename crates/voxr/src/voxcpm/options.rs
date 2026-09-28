@@ -14,8 +14,8 @@ pub struct VoxCpm2SynthOptions {
     pub cfg_value: f32,
     /// Patches during which the stop token is ignored.
     pub min_len: usize,
-    /// Base seed; every request draws from it, so equal requests render
-    /// equal audio on one backend.
+    /// Base seed for a request that names none. Equal requests at equal
+    /// seeds render equal audio on one backend.
     pub seed: u64,
     /// Patches generated between two chunks handed to a streaming sink. Each
     /// chunk costs one suffix decode, which re-decodes the containing

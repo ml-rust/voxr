@@ -1,22 +1,24 @@
 //! The queue between the callers and the engine's owner thread: what a
-//! request hands over, how the thread groups queued requests into one batch,
-//! and how a row's output flows back.
+//! request hands over, the per-row options a batch runs with, and the owner
+//! thread itself. `super::queue` takes work off the queue.
 //!
-//! A caller resolves its own request (voice, tokens, budget), sends the
-//! result as a [`Job`] and blocks on its reply channel. The owner thread
+//! A caller resolves its own request (voice, seed, tokens, budget), sends
+//! the result as a [`Job`] and blocks on its reply channel. The owner thread
 //! blocks on the queue, takes the first job, keeps draining until
 //! [`VoxCpm2SynthOptions::batch_window`] expires or the batch is full, and
 //! runs the whole group through one batched generation (`super::run`).
 //!
-//! A job carries a voice ID, never a borrowed tensor: the reference tensors
-//! live in [`EngineInner`] and the owner thread looks them up when it builds
-//! the batch, so a queued job borrows nothing.
+//! A job owns everything it reads and borrows nothing. A voice from the
+//! engine's table travels as its id, and the owner thread looks the tensor
+//! up in [`EngineInner`] when it builds the batch. A reference the caller
+//! encoded travels as an [`Arc`] of its tensor, so the tensor lives until
+//! the last job holding it is done.
+//!
+//! [`VoxCpm2SynthOptions::batch_window`]: crate::voxcpm::VoxCpm2SynthOptions::batch_window
 
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::mpsc::{Receiver, RecvTimeoutError, Sender, channel};
+use std::sync::mpsc::{Receiver, Sender, channel};
 use std::thread::JoinHandle;
-use std::time::{Duration, Instant};
 
 use numr::dtype::DType;
 use numr::runtime::Runtime;
@@ -24,7 +26,9 @@ use numr::tensor::Tensor;
 
 use boostr::model::audio::voxcpm::model::{RowOptions, VoxCpm2Model};
 
-use crate::error::{Error, Result};
+use crate::error::Result;
+use crate::voxcpm::engine::queue::{collect_batch, recv_job};
+use crate::voxcpm::engine::reply::Reply;
 use crate::voxcpm::engine::types::{EngineInner, VoxCpm2RenderClient};
 
 // The allowed row counts and the two roundings over them live in boostr,
@@ -33,11 +37,31 @@ use crate::voxcpm::engine::types::{EngineInner, VoxCpm2RenderClient};
 // so the engine imports the one definition.
 pub(super) use boostr::model::audio::voxcpm::model::{batch_width, clamp_max_batch};
 
+/// Options for a slot that holds no request. It counts no patch, and its
+/// noise draw reaches no row's output, so its seed is arbitrary.
+pub(super) const FREE_ROW: RowOptions = RowOptions {
+    max_len: 1,
+    seed: 0,
+};
+
+/// The voice one queued job renders with.
+pub(super) enum JobVoice<R: Runtime> {
+    /// An id in the engine's voice table, looked up on the owner thread.
+    Named(String),
+    /// A reference the caller encoded for this request. The job owns an
+    /// [`Arc`] of the tensor.
+    Reference(Arc<Tensor<R>>),
+    /// No reference: `ref_feat = None` straight through to `prefill`.
+    ZeroShot,
+}
+
 /// One queued request. Holds no borrow, so it can sit in the queue while the
 /// caller blocks elsewhere.
-pub(super) struct Job {
-    /// Voice ID to look up on the owner thread; `None` is zero-shot.
-    pub(super) voice: Option<String>,
+pub(super) struct Job<R: Runtime> {
+    /// The voice this row renders with.
+    pub(super) voice: JobVoice<R>,
+    /// This row's base seed. Patch `i` draws with `seed + i`.
+    pub(super) seed: u64,
     /// Text tokens with `AUDIO_START_ID` already appended.
     pub(super) text_token_ids: Vec<u32>,
     /// This row's patch cap.
@@ -48,121 +72,63 @@ pub(super) struct Job {
     pub(super) reply: Reply,
 }
 
-/// Where one job's output goes.
-pub(super) enum Reply {
-    /// A whole-utterance caller: one message, the samples or the error.
-    Buffered(Sender<Result<Vec<f32>>>),
-    /// A streaming caller: one message per decoded chunk, then the sender
-    /// drops, which is how the caller sees the end of the row. The caller's
-    /// sink is not `Send`, so it stays on the caller's thread and the chunks
-    /// cross the channel instead.
-    Streaming {
-        chunks: Sender<Result<Vec<f32>>>,
-        /// Set by the caller when its sink failed. The owner thread stops
-        /// decoding for this row and retires it.
-        cancelled: Arc<AtomicBool>,
-    },
+impl<R: Runtime> Job<R> {
+    /// This row's cap and seed, as the generation loop reads them.
+    pub(super) fn row_options(&self) -> RowOptions {
+        RowOptions {
+            max_len: self.max_len,
+            seed: self.seed,
+        }
+    }
 }
 
-impl Reply {
-    /// The streaming channel and its cancel flag, or `None` for a buffered
-    /// reply.
-    pub(super) fn stream(&self) -> Option<(&Sender<Result<Vec<f32>>>, &AtomicBool)> {
-        match self {
-            Self::Buffered(_) => None,
-            Self::Streaming { chunks, cancelled } => Some((chunks, cancelled)),
-        }
-    }
+/// A request to encode one reference recording on the owner thread.
+pub(super) struct EncodeJob<R: Runtime> {
+    /// Mono PCM at the reference encoder's rate.
+    pub(super) samples: Vec<f32>,
+    /// Where the encoded `[T_ref, patch_size, feat_dim]` tensor goes.
+    pub(super) reply: Sender<Result<Tensor<R>>>,
+}
 
-    /// Hand one decoded chunk to a streaming caller. `false` once the caller
-    /// has cancelled or dropped its receiver, after which the row is dead
-    /// and gets no further chunks.
-    pub(super) fn send_chunk(&self, samples: Vec<f32>) -> bool {
-        let Some((chunks, cancelled)) = self.stream() else {
-            return false;
-        };
-        !cancelled.load(Ordering::Relaxed) && chunks.send(Ok(samples)).is_ok()
-    }
-
-    /// Hand the whole waveform to a buffered caller.
-    pub(super) fn send_samples(&self, samples: Vec<f32>) {
-        if let Self::Buffered(done) = self {
-            let _ = done.send(Ok(samples));
-        }
-    }
-
-    /// Report a failure on this row. A caller that already went away is not
-    /// an error in turn, so the send result is dropped.
-    pub(super) fn fail(&self, err: Error) {
-        let sender = match self {
-            Self::Buffered(done) => done,
-            Self::Streaming { chunks, .. } => chunks,
-        };
-        let _ = sender.send(Err(err));
-    }
+/// One message on the owner thread's queue.
+pub(super) enum Work<R: Runtime> {
+    /// A render, batched with whatever else is queued.
+    Render(Job<R>),
+    /// A reference encode, run at once between two steps or batches.
+    Encode(EncodeJob<R>),
 }
 
 /// Per-row caps and seeds for a batch of `width` rows whose first
-/// `real_max_lens.len()` rows are real.
+/// `real.len()` rows are real, in queue order.
 ///
-/// Every real row draws from the SAME engine seed. Row `b` of a step draws
+/// Every real row draws from its OWN request's seed. Row `b` of a step draws
 /// `randn_seeded(seed + i)` over its own `[1, feat_dim, patch_size]` and the
 /// rows are stacked, so a row's noise depends on neither the batch width nor
 /// its neighbours. A seed derived from arrival order or slot index breaks
 /// that.
 ///
-/// A slot past the last request gets a placeholder entry. The loop needs one
-/// entry per slot, and a free slot counts no patch.
-pub(super) fn row_options(real_max_lens: &[usize], width: usize, seed: u64) -> Vec<RowOptions> {
+/// A slot past the last request gets [`FREE_ROW`]. The loop needs one entry
+/// per slot, and a free slot counts no patch.
+pub(super) fn row_options(real: &[RowOptions], width: usize) -> Vec<RowOptions> {
     (0..width)
-        .map(|b| RowOptions {
-            max_len: real_max_lens.get(b).copied().unwrap_or(1),
-            seed,
-        })
+        .map(|b| real.get(b).copied().unwrap_or(FREE_ROW))
         .collect()
-}
-
-/// Take `first`, then keep taking queued jobs until the batch is full, the
-/// window expires, or the queue closes.
-///
-/// The owner thread already blocked on an empty queue to get `first`, so this
-/// is the only wait a request pays beyond its own generation. It ends early
-/// on a full batch and on a closed queue, so a lone request on an engine
-/// being dropped is not held for the window.
-pub(super) fn collect_batch(
-    jobs: &Receiver<Job>,
-    first: Job,
-    window: Duration,
-    max_batch: usize,
-) -> Vec<Job> {
-    let mut batch = Vec::with_capacity(max_batch.max(1));
-    batch.push(first);
-    let deadline = Instant::now() + window;
-    while batch.len() < max_batch {
-        let now = Instant::now();
-        if now >= deadline {
-            break;
-        }
-        match jobs.recv_timeout(deadline - now) {
-            Ok(job) => batch.push(job),
-            Err(RecvTimeoutError::Timeout | RecvTimeoutError::Disconnected) => break,
-        }
-    }
-    batch
 }
 
 /// Start the owner thread and return the queue into it.
 ///
 /// The thread holds an [`Arc`] of the shared state and nothing else, so it
 /// ends exactly when the returned [`Sender`] drops.
-pub(super) fn spawn_worker<R>(inner: Arc<EngineInner<R>>) -> Result<(Sender<Job>, JoinHandle<()>)>
+pub(super) fn spawn_worker<R>(
+    inner: Arc<EngineInner<R>>,
+) -> Result<(Sender<Work<R>>, JoinHandle<()>)>
 where
     R: Runtime<DType = DType> + 'static,
     R::Client: VoxCpm2RenderClient<R>,
     VoxCpm2Model<R>: Send + Sync,
     Tensor<R>: Send + Sync,
 {
-    let (sender, receiver) = channel::<Job>();
+    let (sender, receiver) = channel::<Work<R>>();
     let handle = std::thread::Builder::new()
         .name("voxcpm2-render".to_string())
         .spawn(move || worker_loop(&inner, &receiver))?;
@@ -176,7 +142,7 @@ where
 /// [`VoxCpm2SynthOptions::continuous_batching`](crate::voxcpm::VoxCpm2SynthOptions::continuous_batching)
 /// the thread runs `super::continuous` instead: one batch stays open and
 /// queued requests join its free slots between steps.
-fn worker_loop<R>(inner: &Arc<EngineInner<R>>, jobs: &Receiver<Job>)
+fn worker_loop<R>(inner: &Arc<EngineInner<R>>, jobs: &Receiver<Work<R>>)
 where
     R: Runtime<DType = DType> + 'static,
     R::Client: VoxCpm2RenderClient<R>,
@@ -189,8 +155,9 @@ where
     }
     let window = inner.options.batch_window;
     let max_batch = clamp_max_batch(inner.options.max_batch);
-    while let Ok(first) = jobs.recv() {
-        let batch = collect_batch(jobs, first, window, max_batch);
+    let mut serve = |encode: EncodeJob<R>| inner.serve_encode(encode);
+    while let Some(first) = recv_job(jobs, &mut serve) {
+        let batch = collect_batch(jobs, first, window, max_batch, &mut serve);
         inner.run_batch(batch);
     }
 }
@@ -198,38 +165,9 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use numr::runtime::cpu::CpuRuntime;
 
-    fn job(reply: Reply) -> Job {
-        Job {
-            voice: None,
-            text_token_ids: vec![1, 2],
-            max_len: 22,
-            seq_len: 2,
-            reply,
-        }
-    }
-
-    fn buffered() -> (Job, std::sync::mpsc::Receiver<Result<Vec<f32>>>) {
-        let (tx, rx) = channel();
-        (job(Reply::Buffered(tx)), rx)
-    }
-
-    fn streaming() -> (
-        Job,
-        std::sync::mpsc::Receiver<Result<Vec<f32>>>,
-        Arc<AtomicBool>,
-    ) {
-        let (tx, rx) = channel();
-        let cancelled = Arc::new(AtomicBool::new(false));
-        (
-            job(Reply::Streaming {
-                chunks: tx,
-                cancelled: Arc::clone(&cancelled),
-            }),
-            rx,
-            cancelled,
-        )
-    }
+    type TestJob = Job<CpuRuntime>;
 
     /// The persistent batch is the default route: the owner thread keeps one
     /// batch open and admits arrivals into its free slots. Opting out builds
@@ -257,176 +195,57 @@ mod tests {
         }
     }
 
+    /// Each real row keeps its own request's seed; a free slot caps at one
+    /// patch.
     #[test]
-    fn row_options_pad_rows_cap_at_one_patch_and_share_the_seed() {
-        let opts = row_options(&[30, 12], 4, 7);
-        assert_eq!(opts.len(), 4);
-        assert_eq!(
-            opts[0],
+    fn row_options_carry_each_rows_own_seed_and_pad_free_slots() {
+        let real = [
             RowOptions {
                 max_len: 30,
-                seed: 7
-            }
-        );
-        assert_eq!(
-            opts[1],
+                seed: 7,
+            },
             RowOptions {
                 max_len: 12,
-                seed: 7
-            }
-        );
-        assert_eq!(
-            opts[2],
-            RowOptions {
-                max_len: 1,
-                seed: 7
-            }
-        );
-        assert_eq!(
-            opts[3],
-            RowOptions {
-                max_len: 1,
-                seed: 7
-            }
-        );
+                seed: 1007,
+            },
+        ];
+        let opts = row_options(&real, 4);
+        assert_eq!(opts, [real[0], real[1], FREE_ROW, FREE_ROW]);
+        assert_eq!(FREE_ROW.max_len, 1);
     }
 
     /// Row `b` of the options is job `b` of the batch, in queue order.
     #[test]
     fn row_options_keep_job_order() {
-        let opts = row_options(&[5, 6, 7], 4, 0);
+        let real: Vec<RowOptions> = [(5, 3), (6, 1), (7, 2)]
+            .into_iter()
+            .map(|(max_len, seed)| RowOptions { max_len, seed })
+            .collect();
+        let opts = row_options(&real, 4);
         let caps: Vec<usize> = opts.iter().map(|r| r.max_len).collect();
+        let seeds: Vec<u64> = opts.iter().take(3).map(|r| r.seed).collect();
         assert_eq!(caps, [5, 6, 7, 1]);
+        assert_eq!(seeds, [3, 1, 2]);
     }
 
-    /// Everything queued inside the window rides in one batch. An empty queue
-    /// does not end the drain early, because the window exists so a request
-    /// arriving a moment later still joins.
+    /// A job reports its own cap and seed to the loop.
     #[test]
-    fn queued_jobs_batch_together() {
-        let (tx, rx) = channel();
-        for _ in 0..3 {
-            tx.send(buffered().0).expect("queue");
-        }
-        let first = rx.recv().expect("first");
-        let window = Duration::from_millis(50);
-        let started = Instant::now();
-        let batch = collect_batch(&rx, first, window, 8);
-        assert_eq!(batch.len(), 3);
-        assert!(started.elapsed() >= window, "ended the window early");
-    }
-
-    /// A full batch starts at once, whatever is left in the window.
-    #[test]
-    fn a_full_batch_starts_without_waiting() {
-        let (tx, rx) = channel();
-        for _ in 0..4 {
-            tx.send(buffered().0).expect("queue");
-        }
-        let first = rx.recv().expect("first");
-        let started = Instant::now();
-        let batch = collect_batch(&rx, first, Duration::from_secs(30), 2);
-        assert_eq!(batch.len(), 2, "the cap holds");
-        assert!(
-            started.elapsed() < Duration::from_secs(5),
-            "waited the window out"
+    fn a_job_hands_the_loop_its_own_cap_and_seed() {
+        let (tx, _rx) = channel();
+        let job = TestJob {
+            voice: JobVoice::ZeroShot,
+            seed: 42,
+            text_token_ids: vec![1, 2],
+            max_len: 22,
+            seq_len: 2,
+            reply: Reply::Buffered(tx),
+        };
+        assert_eq!(
+            job.row_options(),
+            RowOptions {
+                max_len: 22,
+                seed: 42
+            }
         );
-    }
-
-    /// Nothing else can arrive on a closed queue, so a lone job does not
-    /// wait the window out.
-    #[test]
-    fn a_lone_job_on_a_closed_queue_starts_at_once() {
-        let (tx, rx) = channel();
-        tx.send(buffered().0).expect("queue");
-        drop(tx);
-        let first = rx.recv().expect("first");
-        let started = Instant::now();
-        let batch = collect_batch(&rx, first, Duration::from_secs(30), 8);
-        assert_eq!(batch.len(), 1);
-        assert!(
-            started.elapsed() < Duration::from_secs(5),
-            "waited the window out"
-        );
-    }
-
-    /// A cap of one turns batching off and skips the window with it.
-    #[test]
-    fn a_cap_of_one_never_waits() {
-        let (tx, rx) = channel();
-        for _ in 0..2 {
-            tx.send(buffered().0).expect("queue");
-        }
-        let first = rx.recv().expect("first");
-        let started = Instant::now();
-        let batch = collect_batch(&rx, first, Duration::from_secs(30), 1);
-        assert_eq!(batch.len(), 1);
-        assert!(
-            started.elapsed() < Duration::from_secs(5),
-            "waited with batching off"
-        );
-    }
-
-    /// A lone job on an open queue costs the window and no more.
-    #[test]
-    fn a_lone_job_costs_the_window_and_no_more() {
-        let (tx, rx) = channel();
-        tx.send(buffered().0).expect("queue");
-        let first = rx.recv().expect("first");
-        let window = Duration::from_millis(20);
-        let started = Instant::now();
-        let batch = collect_batch(&rx, first, window, 8);
-        let waited = started.elapsed();
-        assert_eq!(batch.len(), 1);
-        assert!(waited >= window, "returned before the window: {waited:?}");
-        assert!(
-            waited < Duration::from_secs(5),
-            "waited far past the window"
-        );
-    }
-
-    #[test]
-    fn a_cancelled_streaming_row_receives_no_further_chunks() {
-        let (job, rx, cancelled) = streaming();
-        assert!(job.reply.send_chunk(vec![0.5, 0.25]));
-        cancelled.store(true, Ordering::Relaxed);
-        assert!(!job.reply.send_chunk(vec![1.0]));
-        let first = rx.recv().expect("first chunk").expect("ok");
-        assert_eq!(first, [0.5, 0.25]);
-        drop(job);
-        assert!(rx.recv().is_err(), "a cancelled row sent a second chunk");
-    }
-
-    #[test]
-    fn a_disconnected_streaming_row_stops_receiving_chunks() {
-        let (job, rx, _cancelled) = streaming();
-        drop(rx);
-        assert!(!job.reply.send_chunk(vec![1.0]));
-    }
-
-    #[test]
-    fn a_buffered_reply_takes_samples_not_chunks() {
-        let (job, rx) = buffered();
-        assert!(!job.reply.send_chunk(vec![1.0]));
-        job.reply.send_samples(vec![0.5]);
-        let got = rx.recv().expect("reply").expect("ok");
-        assert_eq!(got, [0.5]);
-    }
-
-    #[test]
-    fn a_failure_reaches_either_kind_of_caller() {
-        let (job, rx) = buffered();
-        job.reply.fail(Error::ModelError {
-            reason: "boom".into(),
-        });
-        let err = rx.recv().expect("reply").expect_err("error");
-        assert!(err.to_string().contains("boom"), "{err}");
-
-        let (job, rx, _cancelled) = streaming();
-        job.reply.fail(Error::ModelError {
-            reason: "bang".into(),
-        });
-        let err = rx.recv().expect("reply").expect_err("error");
-        assert!(err.to_string().contains("bang"), "{err}");
     }
 }

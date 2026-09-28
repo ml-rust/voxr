@@ -3,9 +3,10 @@
 //! step rather than the batch it missed.
 //!
 //! [`owner`] holds the loop and the batch it drives, [`slots`] the slot
-//! table and the non-blocking queue drain.
+//! table and the non-blocking queue drain, [`refuse`] the refusal paths.
 
 mod owner;
+mod refuse;
 mod slots;
 
 pub(super) use owner::run_continuous;
