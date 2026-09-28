@@ -1,10 +1,10 @@
-//! Signals the polish oracle runs the voice polish over, as
-//! `tests/tools/narration_oracle/polish_cases.mjs` lists them, in the same
-//! order.
+//! Signals the polish oracle runs the voice polish and the reference
+//! preparation over, as `tests/tools/narration_oracle/polish_cases.mjs`
+//! lists them, in the same order.
 
 use voxr_narrate::CompressorOptions;
 
-use super::signals::{Op, dc, noise, tone};
+use super::signals::{Op, dc, hiss, noise, tone};
 
 /// A signal of `n` samples at `rate` Hz and what is read on it.
 #[derive(Debug, Clone)]
@@ -174,5 +174,98 @@ pub fn pcm16_values() -> Vec<f32> {
         0.25,
         -0.75,
         0.0,
+    ]
+}
+
+/// A 48 kHz signal of `n` samples the reference preparation runs over.
+#[derive(Debug, Clone)]
+pub struct ReferenceCase {
+    pub name: &'static str,
+    pub rate: u32,
+    pub n: usize,
+    pub ops: Vec<Op>,
+}
+
+fn reference(name: &'static str, n: usize, ops: Vec<Op>) -> ReferenceCase {
+    ReferenceCase {
+        name,
+        rate: 48000,
+        n,
+        ops,
+    }
+}
+
+/// Every reference case, in the oracle's order.
+pub fn reference_cases() -> Vec<ReferenceCase> {
+    vec![
+        reference(
+            "breathy take: breaths between phrases",
+            72000,
+            vec![
+                floor(72000),
+                tone("200", 0, 14400, 0.3, 480, 480),
+                hiss(15360, 7200, 0.009, 41, 480, 480),
+                tone("200", 23520, 14400, 0.3, 480, 480),
+                tone("200", 38880, 14400, 0.3, 480, 480),
+                hiss(54240, 7200, 0.009, 43, 480, 480),
+                tone("200", 62400, 9600, 0.3, 480, 480),
+            ],
+        ),
+        reference(
+            "clean take: pauses without breath",
+            48000,
+            vec![
+                floor(48000),
+                tone("200", 0, 14400, 0.3, 480, 480),
+                tone("150", 15360, 14400, 0.25, 480, 480),
+                tone("200", 30720, 17280, 0.3, 480, 480),
+            ],
+        ),
+        reference(
+            "breath shorter than 8 frames",
+            38400,
+            vec![
+                floor(38400),
+                tone("200", 0, 14400, 0.3, 480, 480),
+                hiss(15360, 2400, 0.009, 45, 480, 480),
+                tone("200", 18720, 19680, 0.3, 480, 480),
+            ],
+        ),
+        reference(
+            "thin voice lifted in two passes",
+            12000,
+            vec![
+                floor(12000),
+                tone("240", 0, 12000, 0.16, 480, 480),
+                tone("1500", 0, 12000, 0.2, 480, 480),
+            ],
+        ),
+        reference(
+            "balanced voice left as it is",
+            12000,
+            vec![
+                floor(12000),
+                tone("240", 0, 12000, 0.3, 480, 480),
+                tone("1500", 0, 12000, 0.1, 480, 480),
+            ],
+        ),
+        reference(
+            "thin voice held at the +9 dB cap",
+            12000,
+            vec![
+                floor(12000),
+                tone("240", 0, 12000, 0.03, 480, 480),
+                tone("1500", 0, 12000, 0.3, 480, 480),
+            ],
+        ),
+        reference(
+            "thin voice reaching the cap on the second pass",
+            12000,
+            vec![
+                floor(12000),
+                tone("240", 0, 12000, 0.125, 480, 480),
+                tone("1500", 0, 12000, 0.2, 480, 480),
+            ],
+        ),
     ]
 }

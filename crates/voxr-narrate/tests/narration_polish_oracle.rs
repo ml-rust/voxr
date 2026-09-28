@@ -8,6 +8,12 @@
 //! case holds the FNV-1a hash of its input, the hashes of every output's
 //! samples, the hash of the 16-bit data polish writes, and every number as
 //! `String(x)`: all compare exactly.
+//!
+//! The reference cases (`common::polish_cases::reference_cases`) compare the
+//! breath runs, the number of shelves and every output's samples exactly.
+//! The band levels and the shelf run through a filter that normalizes its
+//! coefficients where the JavaScript divides each sum, so a level, a
+//! shortfall or a shelf gain may differ by up to 1e-9 dB.
 
 use std::path::Path;
 
@@ -15,7 +21,9 @@ use serde::Deserialize;
 use voxr_narrate::{self as narration, CompressorOptions, Span};
 
 mod common;
-use common::polish_cases::{PolishCase, pcm16_values, polish_cases};
+use common::polish_cases::{
+    PolishCase, ReferenceCase, pcm16_values, polish_cases, reference_cases,
+};
 use common::signals;
 use common::{assert_oracle_current, check, load_json, num};
 
@@ -32,6 +40,7 @@ const ORACLE: &str = concat!(
 struct Fixture {
     cases: Vec<Case>,
     pcm16: Pcm16,
+    reference: Vec<RefCase>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -80,6 +89,42 @@ struct Pcm16 {
     values: Vec<String>,
     ints: Vec<i16>,
 }
+
+#[derive(Debug, Deserialize)]
+struct RefCase {
+    name: String,
+    rate: u32,
+    n: usize,
+    input: String,
+    breaths: BreathsOut,
+    bass: BassOut,
+    prepare: PrepareOut,
+}
+
+#[derive(Debug, Deserialize)]
+struct BreathsOut {
+    samples: String,
+    runs: Vec<(usize, usize)>,
+    count: usize,
+}
+
+#[derive(Debug, Deserialize)]
+struct BassOut {
+    balance: String,
+    shorts: Vec<String>,
+    steps: Vec<String>,
+    gain: String,
+    samples: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct PrepareOut {
+    samples: String,
+    shelves: usize,
+}
+
+/// The most a level, a shortfall or a shelf gain may differ, in dB.
+const DB_TOLERANCE: f64 = 1e-9;
 
 /// A number as `{:?}`, so the exact doubles compare as text.
 fn exact(v: f64) -> String {
@@ -233,6 +278,142 @@ fn differences(case: &PolishCase, want: &Case) -> Vec<String> {
         exact(num(&p.stats.ess_deepest)),
     );
     diffs
+}
+
+/// Records a level that differs from the fixture's by more than
+/// [`DB_TOLERANCE`], and tracks the largest difference in `worst`.
+fn check_db(diffs: &mut Vec<String>, worst: &mut f64, what: &str, got: f64, want: &str) {
+    let want = num(want);
+    let d = (got - want).abs();
+    *worst = worst.max(d);
+    if d > DB_TOLERANCE || d.is_nan() {
+        diffs.push(format!("{what}: got {got:?}, want {want:?}"));
+    }
+}
+
+/// Every difference between the reference preparation and the fixture on
+/// one case.
+fn reference_differences(case: &ReferenceCase, want: &RefCase, worst: &mut f64) -> Vec<String> {
+    let mut diffs = Vec::new();
+    let x = signals::render(case.n, &case.ops);
+    let input = signals::fnv1a(&x);
+    if input != want.input {
+        return vec![format!(
+            "input signal differs from the oracle's: hash {input}, want {}",
+            want.input
+        )];
+    }
+    let rate = case.rate;
+    let (quiet, breaths) = narration::quiet_breaths(&x, rate);
+    check(
+        &mut diffs,
+        "quietBreaths samples",
+        signals::fnv1a(&quiet),
+        want.breaths.samples.clone(),
+    );
+    let runs: Vec<(usize, usize)> = breaths.runs.iter().map(|r| (r.start, r.end)).collect();
+    check(
+        &mut diffs,
+        "breathRuns",
+        format!("{runs:?}"),
+        format!("{:?}", want.breaths.runs),
+    );
+    check(
+        &mut diffs,
+        "quietBreaths runs",
+        breaths.runs.len().to_string(),
+        want.breaths.count.to_string(),
+    );
+    check_db(
+        &mut diffs,
+        worst,
+        "bassBalance",
+        narration::bass_balance(&x, rate),
+        &want.bass.balance,
+    );
+    let (lifted, bass) = narration::lift_bass(&x, rate);
+    check(
+        &mut diffs,
+        "liftBass shortfalls measured",
+        bass.shorts.len().to_string(),
+        want.bass.shorts.len().to_string(),
+    );
+    check(
+        &mut diffs,
+        "liftBass shelves",
+        bass.steps.len().to_string(),
+        want.bass.steps.len().to_string(),
+    );
+    for (i, (got, w)) in bass.shorts.iter().zip(&want.bass.shorts).enumerate() {
+        check_db(
+            &mut diffs,
+            worst,
+            &format!("liftBass shortfall {i}"),
+            *got,
+            w,
+        );
+    }
+    for (i, (got, w)) in bass.steps.iter().zip(&want.bass.steps).enumerate() {
+        check_db(&mut diffs, worst, &format!("liftBass shelf {i}"), *got, w);
+    }
+    check_db(
+        &mut diffs,
+        worst,
+        "liftBass gain",
+        bass.gain,
+        &want.bass.gain,
+    );
+    check(
+        &mut diffs,
+        "liftBass samples",
+        signals::fnv1a(&lifted),
+        want.bass.samples.clone(),
+    );
+    let (_, shelved) = narration::lift_bass(&quiet, rate);
+    check(
+        &mut diffs,
+        "prepareReference shelves",
+        shelved.steps.len().to_string(),
+        want.prepare.shelves.to_string(),
+    );
+    check(
+        &mut diffs,
+        "prepareReference samples",
+        signals::fnv1a(&narration::prepare_reference(&x, rate)),
+        want.prepare.samples.clone(),
+    );
+    diffs
+}
+
+#[test]
+fn reference_preparation_matches_javascript_on_every_signal() {
+    let fixture: Fixture = load_json(Path::new(FIXTURE));
+    let cases = reference_cases();
+    let ours: Vec<(&str, u32, usize)> = cases.iter().map(|c| (c.name, c.rate, c.n)).collect();
+    let theirs: Vec<(&str, u32, usize)> = fixture
+        .reference
+        .iter()
+        .map(|c| (c.name.as_str(), c.rate, c.n))
+        .collect();
+    assert_eq!(
+        ours, theirs,
+        "common::polish_cases::reference_cases and REFERENCE_CASES list different cases"
+    );
+    let mut worst = 0.0f64;
+    let mut failures = Vec::new();
+    for (case, want) in cases.iter().zip(&fixture.reference) {
+        for d in reference_differences(case, want, &mut worst) {
+            failures.push(format!("{}: {d}", case.name));
+        }
+    }
+    eprintln!("reference preparation: largest level difference {worst:e} dB");
+    assert!(
+        failures.is_empty(),
+        "{} differences over {} signals:\n{}",
+        failures.len(),
+        cases.len(),
+        failures.join("\n")
+    );
 }
 
 #[test]

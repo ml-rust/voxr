@@ -19,6 +19,9 @@ regexr = { version = "0.6", default-features = false }
 unicode-normalization = "0.1"
 serde = { version = "1", features = ["derive"] }
 thiserror = "2"
+# RBJ cookbook biquads: the band levels and the bass shelf of a reference
+# voice's preparation.
+biquad = "0.6"
 
 # `HeardWord: From<&WordTiming>`: a script word placed on a Whisper timing.
 # A workspace-internal path dependency, off by default so a consumer that

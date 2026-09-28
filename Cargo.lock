@@ -1534,6 +1534,7 @@ dependencies = [
 name = "voxr-narrate"
 version = "0.1.0"
 dependencies = [
+ "biquad",
  "regexr",
  "serde",
  "serde_json",

@@ -411,5 +411,195 @@
    -24575,
    0
   ]
- }
+ },
+ "reference": [
+  {
+   "name": "breathy take: breaths between phrases",
+   "rate": 48000,
+   "n": 72000,
+   "input": "725ee20e",
+   "breaths": {
+    "samples": "45307f5f",
+    "runs": [
+     [
+      15360,
+      22560
+     ],
+     [
+      54240,
+      61440
+     ]
+    ],
+    "count": 2
+   },
+   "bass": {
+    "balance": "48.51258871683089",
+    "shorts": [
+     "-48.51258871683089"
+    ],
+    "steps": [],
+    "gain": "0",
+    "samples": "725ee20e"
+   },
+   "prepare": {
+    "samples": "2f543e5b",
+    "shelves": 0
+   }
+  },
+  {
+   "name": "clean take: pauses without breath",
+   "rate": 48000,
+   "n": 48000,
+   "input": "a7911086",
+   "breaths": {
+    "samples": "a7911086",
+    "runs": [],
+    "count": 0
+   },
+   "bass": {
+    "balance": "52.90422908326774",
+    "shorts": [
+     "-52.90422908326774"
+    ],
+    "steps": [],
+    "gain": "0",
+    "samples": "a7911086"
+   },
+   "prepare": {
+    "samples": "05e46e96",
+    "shelves": 0
+   }
+  },
+  {
+   "name": "breath shorter than 8 frames",
+   "rate": 48000,
+   "n": 38400,
+   "input": "56e83d85",
+   "breaths": {
+    "samples": "56e83d85",
+    "runs": [],
+    "count": 0
+   },
+   "bass": {
+    "balance": "50.79289487898343",
+    "shorts": [
+     "-50.79289487898343"
+    ],
+    "steps": [],
+    "gain": "0",
+    "samples": "56e83d85"
+   },
+   "prepare": {
+    "samples": "3feac4d2",
+    "shelves": 0
+   }
+  },
+  {
+   "name": "thin voice lifted in two passes",
+   "rate": 48000,
+   "n": 12000,
+   "input": "b6e41758",
+   "breaths": {
+    "samples": "b6e41758",
+    "runs": [],
+    "count": 0
+   },
+   "bass": {
+    "balance": "-3.8837942492125137",
+    "shorts": [
+     "3.8837942492125137",
+     "0.9490646190755676"
+    ],
+    "steps": [
+     "5.437311948897519",
+     "1.3286904667057946"
+    ],
+    "gain": "6.766002415603314",
+    "samples": "eac61bb1"
+   },
+   "prepare": {
+    "samples": "ca3a0a02",
+    "shelves": 2
+   }
+  },
+  {
+   "name": "balanced voice left as it is",
+   "rate": 48000,
+   "n": 12000,
+   "input": "fda9477d",
+   "breaths": {
+    "samples": "fda9477d",
+    "runs": [],
+    "count": 0
+   },
+   "bass": {
+    "balance": "7.595944270209689",
+    "shorts": [
+     "-7.595944270209689"
+    ],
+    "steps": [],
+    "gain": "0",
+    "samples": "fda9477d"
+   },
+   "prepare": {
+    "samples": "46e304cf",
+    "shelves": 0
+   }
+  },
+  {
+   "name": "thin voice held at the +9 dB cap",
+   "rate": 48000,
+   "n": 12000,
+   "input": "b56901a0",
+   "breaths": {
+    "samples": "b56901a0",
+    "runs": [],
+    "count": 0
+   },
+   "bass": {
+    "balance": "-21.944924957410713",
+    "shorts": [
+     "21.944924957410713",
+     "17.10570321547059"
+    ],
+    "steps": [
+     "9"
+    ],
+    "gain": "9",
+    "samples": "03684988"
+   },
+   "prepare": {
+    "samples": "70cf1a58",
+    "shelves": 1
+   }
+  },
+  {
+   "name": "thin voice reaching the cap on the second pass",
+   "rate": 48000,
+   "n": 12000,
+   "input": "62ba8922",
+   "breaths": {
+    "samples": "62ba8922",
+    "runs": [],
+    "count": 0
+   },
+   "bass": {
+    "balance": "-6.027974285718191",
+    "shorts": [
+     "6.027974285718191",
+     "1.486683263821135"
+    ],
+    "steps": [
+     "8.439164000005466",
+     "0.5608359999945343"
+    ],
+    "gain": "9",
+    "samples": "8828064b"
+   },
+   "prepare": {
+    "samples": "6f4fa4d5",
+    "shelves": 2
+   }
+  }
+ ]
 }

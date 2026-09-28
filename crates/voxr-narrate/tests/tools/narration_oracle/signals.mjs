@@ -15,8 +15,10 @@ const TONE = {
   180: [1.9994448604360011, 0.023559764833610154],
   200: [1.9993146499511145, 0.026176948307873153],
   220: [1.9991707363874793, 0.02879395236826347],
+  240: [1.9990131207314632, 0.03141075907812829],
   260: [1.9988418040633458, 0.034027350502167444],
   300: [1.9984580724814458, 0.03925981575906861],
+  1500: [1.9615705608064609, 0.19509032201612825],
   '70_44': [1.999900533911886, 0.009973144676492593],
   '200_44': [1.9991880801438362, 0.028491315390844964],
 };
@@ -26,6 +28,18 @@ const TONE = {
 export const tone = (hz, start, len, amp, attack, release) => ({ kind: 'tone', hz: String(hz), start, len, amp, attack, release });
 // Uniform noise in [-amp, amp) over `len` samples from `start`, from xorshift32 seeded with `seed` (not 0).
 export const noise = (start, len, amp, seed) => ({ kind: 'noise', start, len, amp, seed });
+// Noise as `noise` makes it, rising linearly over `attack` samples and falling over `release` (both at least 1), as
+// `tone` shapes a tone: a breath.
+export const hiss = (start, len, amp, seed, attack, release) => ({ kind: 'hiss', start, len, amp, seed, attack, release });
+// The gain at sample `i` of `len`: rising linearly over `attack` samples, falling over `release`, the lower of the
+// two.
+const envelope = (i, len, attack, release) => {
+  let g = i / attack;
+  if (g > 1) g = 1;
+  const r = (len - 1 - i) / release;
+  if (r < g) g = r;
+  return g;
+};
 // One sample of `value` added at `at`.
 export const spike = (at, value) => ({ kind: 'spike', at, value });
 // `value` added to each of `len` samples from `start`: a DC offset.
@@ -43,11 +57,7 @@ export function render(n, ops) {
         const y = i === 0 ? 0 : i === 1 ? s1 : c * b - a;
         a = b;
         b = y;
-        let g = i / op.attack;
-        if (g > 1) g = 1;
-        const r = (op.len - 1 - i) / op.release;
-        if (r < g) g = r;
-        x[op.start + i] = Math.fround(x[op.start + i] + op.amp * g * y);
+        x[op.start + i] = Math.fround(x[op.start + i] + op.amp * envelope(i, op.len, op.attack, op.release) * y);
       }
     } else if (op.kind === 'noise') {
       let s = op.seed >>> 0;
@@ -56,6 +66,14 @@ export function render(n, ops) {
         s = (s ^ (s >>> 17)) >>> 0;
         s = (s ^ (s << 5)) >>> 0;
         x[op.start + i] = Math.fround(x[op.start + i] + op.amp * (s / 2147483648 - 1));
+      }
+    } else if (op.kind === 'hiss') {
+      let s = op.seed >>> 0;
+      for (let i = 0; i < op.len; i++) {
+        s = (s ^ (s << 13)) >>> 0;
+        s = (s ^ (s >>> 17)) >>> 0;
+        s = (s ^ (s << 5)) >>> 0;
+        x[op.start + i] = Math.fround(x[op.start + i] + op.amp * envelope(i, op.len, op.attack, op.release) * (s / 2147483648 - 1));
       }
     } else if (op.kind === 'spike') {
       x[op.at] = Math.fround(x[op.at] + op.value);

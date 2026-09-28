@@ -10,7 +10,7 @@
 
 /// `2cos(w)` and `sin(w)` for a tone of the named frequency at 48 kHz, or at
 /// 44.1 kHz for the `_44` names.
-const TONES: [(&str, f64, f64); 13] = [
+const TONES: [(&str, f64, f64); 15] = [
     ("60", 1.9999383152895793, 0.007853900888711332),
     ("120", 1.9997532649633212, 0.015707317311820672),
     ("125", 1.9997322758191236, 0.01636173162648678),
@@ -20,8 +20,10 @@ const TONES: [(&str, f64, f64); 13] = [
     ("180", 1.9994448604360011, 0.023559764833610154),
     ("200", 1.9993146499511145, 0.026176948307873153),
     ("220", 1.9991707363874793, 0.02879395236826347),
+    ("240", 1.9990131207314632, 0.03141075907812829),
     ("260", 1.9988418040633458, 0.034027350502167444),
     ("300", 1.9984580724814458, 0.03925981575906861),
+    ("1500", 1.9615705608064609, 0.19509032201612825),
     ("70_44", 1.999900533911886, 0.009973144676492593),
     ("200_44", 1.9991880801438362, 0.028491315390844964),
 ];
@@ -45,6 +47,16 @@ pub enum Op {
         len: usize,
         amp: f64,
         seed: u32,
+    },
+    /// Noise as [`Op::Noise`] makes it, rising linearly over `attack`
+    /// samples and falling over `release`, as a tone is shaped: a breath.
+    Hiss {
+        start: usize,
+        len: usize,
+        amp: f64,
+        seed: u32,
+        attack: usize,
+        release: usize,
     },
     /// One sample of `value` added at `at`.
     Spike { at: usize, value: f64 },
@@ -83,12 +95,37 @@ pub fn noise(start: usize, len: usize, amp: f64, seed: u32) -> Op {
     }
 }
 
+pub fn hiss(start: usize, len: usize, amp: f64, seed: u32, attack: usize, release: usize) -> Op {
+    Op::Hiss {
+        start,
+        len,
+        amp,
+        seed,
+        attack,
+        release,
+    }
+}
+
 pub fn spike(at: usize, value: f64) -> Op {
     Op::Spike { at, value }
 }
 
 pub fn dc(start: usize, len: usize, value: f64) -> Op {
     Op::Dc { start, len, value }
+}
+
+/// The gain at sample `i` of `len`: rising linearly over `attack` samples,
+/// falling over `release`, the lower of the two.
+fn envelope(i: usize, len: usize, attack: usize, release: usize) -> f64 {
+    let mut g = i as f64 / attack as f64;
+    if g > 1.0 {
+        g = 1.0;
+    }
+    let r = (len - 1 - i) as f64 / release as f64;
+    if r < g {
+        g = r;
+    }
+    g
 }
 
 /// Adds each op into `n` zero samples, in order.
@@ -117,16 +154,8 @@ pub fn render(n: usize, ops: &[Op]) -> Vec<f32> {
                     };
                     a = b;
                     b = y;
-                    let mut g = i as f64 / attack as f64;
-                    if g > 1.0 {
-                        g = 1.0;
-                    }
-                    let r = (len - 1 - i) as f64 / release as f64;
-                    if r < g {
-                        g = r;
-                    }
                     let s = &mut x[start + i];
-                    *s = (f64::from(*s) + amp * g * y) as f32;
+                    *s = (f64::from(*s) + amp * envelope(i, len, attack, release) * y) as f32;
                 }
             }
             Op::Noise {
@@ -142,6 +171,24 @@ pub fn render(n: usize, ops: &[Op]) -> Vec<f32> {
                     s ^= s << 5;
                     let v = &mut x[start + i];
                     *v = (f64::from(*v) + amp * (f64::from(s) / 2147483648.0 - 1.0)) as f32;
+                }
+            }
+            Op::Hiss {
+                start,
+                len,
+                amp,
+                seed,
+                attack,
+                release,
+            } => {
+                let mut s = seed;
+                for i in 0..len {
+                    s ^= s << 13;
+                    s ^= s >> 17;
+                    s ^= s << 5;
+                    let g = envelope(i, len, attack, release);
+                    let v = &mut x[start + i];
+                    *v = (f64::from(*v) + amp * g * (f64::from(s) / 2147483648.0 - 1.0)) as f32;
                 }
             }
             Op::Spike { at, value } => x[at] = (f64::from(x[at]) + value) as f32,
