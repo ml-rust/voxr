@@ -47,6 +47,9 @@ whisper = ["dep:voxr", "voxr/whisper", "dep:numr"]
 name = "narration_oracle"
 
 [[test]]
+name = "narration_pace_oracle"
+
+[[test]]
 name = "narration_polish_oracle"
 
 [[test]]

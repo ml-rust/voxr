@@ -1,6 +1,6 @@
 //! Shared fixtures for the narration oracle tests: JSON fixture loading, the
 //! fixture freshness check, the deterministic test signals, the polish
-//! cases and the transcript fixture.
+//! cases, the pace cases and the transcript fixture.
 
 // Each file in `tests/` compiles as its own crate and includes this module
 // whole, so a helper one test crate does not call reads as dead code there.
@@ -12,6 +12,7 @@ use std::process::Command;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 
+pub mod pace_cases;
 pub mod polish_cases;
 pub mod signals;
 pub mod transcript_cases;

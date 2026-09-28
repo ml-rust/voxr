@@ -1,10 +1,12 @@
 //! The take loop's files, seeds and cache keys: the seed a part's own text
 //! draws, the VoxCPM2 cache key builders and the file names they carry,
 //! and the `.takes.json`/`.phrases.json`/script text files a take reads
-//! and writes.
+//! and writes. Also a take's speaking pace: syllables per second and the
+//! verdict against a target.
 
 pub mod cache;
 pub mod files;
+pub mod pace;
 pub mod seed;
 
 pub use cache::{
@@ -15,5 +17,9 @@ pub use cache::{
 pub use files::{
     DEFAULT_SEED, PhrasesFile, ReadTakes, ResolvedSeed, TakesFile, chosen_takes, output_text_file,
     phrases_file, read_takes_file, resolve_seed, script_text_file, takes_file,
+};
+pub use pace::{
+    DEFAULT_TARGET_PACE, PaceComparison, PaceSpan, PaceVerdict, REF_PACE, pace, pace_verdict,
+    sounding, syllables,
 };
 pub use seed::text_seed;
