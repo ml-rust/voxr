@@ -379,7 +379,7 @@ fn reference_differences(case: &ReferenceCase, want: &RefCase, worst: &mut f64) 
     check(
         &mut diffs,
         "prepareReference samples",
-        signals::fnv1a(&narration::prepare_reference(&x, rate)),
+        signals::fnv1a(&narration::prepare_reference(&x, rate).0),
         want.prepare.samples.clone(),
     );
     diffs

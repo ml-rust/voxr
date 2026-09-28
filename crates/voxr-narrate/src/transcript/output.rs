@@ -9,7 +9,7 @@ use serde_json::ser::{Formatter, PrettyFormatter};
 
 use super::transcriber::Transcribed;
 use crate::check::HeardWord;
-use crate::error::{Error, Result};
+use crate::error::{Error, Result, file_error};
 use crate::js::{js_max, js_string, js_to_fixed};
 
 /// Seconds between a scene's start and its narration's start.
@@ -186,13 +186,12 @@ pub fn write_timeline(out_dir: &Path, words: &TimelineWords) -> Result<PathBuf> 
 }
 
 fn write_text(path: &Path, text: &str) -> Result<()> {
-    let io_error = |e: io::Error| Error::DataError {
-        reason: format!("writing {}: {e}", path.display()),
-    };
+    let next = "Check the directory is writable and has free space";
     if let Some(dir) = path.parent() {
-        std::fs::create_dir_all(dir).map_err(io_error)?;
+        std::fs::create_dir_all(dir)
+            .map_err(|e| file_error("creating the directory for", path, &e, next))?;
     }
-    std::fs::write(path, text).map_err(io_error)
+    std::fs::write(path, text).map_err(|e| file_error("writing", path, &e, next))
 }
 
 /// A voiceover: one narration over the whole video.
@@ -301,12 +300,11 @@ pub fn spoken_words(m: &NarrationManifest) -> Result<Spoken> {
             missing.push(n);
             continue;
         }
-        let read_error = |reason: String| Error::DataError {
-            reason: format!("reading {}: {reason}", f.display()),
-        };
-        let bytes = std::fs::read(&f).map_err(|e| read_error(e.to_string()))?;
-        let file: WordsOnly =
-            serde_json::from_slice(&bytes).map_err(|e| read_error(e.to_string()))?;
+        let bytes = std::fs::read(&f)
+            .map_err(|e| file_error("reading", &f, &e, "Check the words file is readable"))?;
+        let file: WordsOnly = serde_json::from_slice(&bytes).map_err(|e| Error::DataError {
+            reason: format!("reading {}: {e}. Regenerate the words file", f.display()),
+        })?;
         for w in file.words {
             if n.at + w.end > 0.0 {
                 words.push(HeardWord {

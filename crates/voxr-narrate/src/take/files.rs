@@ -187,6 +187,13 @@ pub fn takes_file(out: &Path) -> PathBuf {
     with_suffix(&without_extension(out), ".takes.json")
 }
 
+/// `out.replace(/\.[^./]+$/, '') + '.voice.wav'`: the designed voice a
+/// run copies beside its audio, to listen to or to pass back as a
+/// reference.
+pub fn voice_output_file(out: &Path) -> PathBuf {
+    with_suffix(&without_extension(out), ".voice.wav")
+}
+
 /// `out.replace(/\.[^./]+$/, '.txt')`: the plain script text a take writes
 /// beside its audio.
 pub fn script_text_file(out: &Path) -> PathBuf {
@@ -308,6 +315,10 @@ mod tests {
         assert_eq!(
             script_text_file(Path::new("out/voiceover.wav")),
             Path::new("out/voiceover.txt")
+        );
+        assert_eq!(
+            voice_output_file(Path::new("out/voiceover.wav")),
+            Path::new("out/voiceover.voice.wav")
         );
     }
 

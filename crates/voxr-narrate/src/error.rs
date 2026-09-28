@@ -1,8 +1,9 @@
 //! voxr-narrate error types.
 //!
 //! Argument checks on scripts and takes, data that does not fit the
-//! pipeline, the built-in patterns failing to compile, and a speech
-//! recognizer failing to load or read.
+//! pipeline, the built-in patterns failing to compile, a speech recognizer
+//! failing to load or read, and a cache or output file failing to read or
+//! write.
 
 /// voxr-narrate result type.
 pub type Result<T> = std::result::Result<T, Error>;
@@ -39,4 +40,23 @@ pub enum Error {
         /// Description of what went wrong.
         reason: String,
     },
+
+    /// A cache or output file failed to read or write.
+    #[error("file error: {reason}")]
+    File {
+        /// The file, what failed, and the next action.
+        reason: String,
+    },
+}
+
+/// An [`Error::File`] naming what failed on `path`, and the next action.
+pub(crate) fn file_error(
+    what: &str,
+    path: &std::path::Path,
+    e: &std::io::Error,
+    next: &str,
+) -> Error {
+    Error::File {
+        reason: format!("{what} {}: {e}. {next}", path.display()),
+    }
 }

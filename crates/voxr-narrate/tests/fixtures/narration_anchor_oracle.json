@@ -1,0 +1,548 @@
+{
+ "checkpoint": "openbmb/VoxCPM2",
+ "refId": "ref.wav:144044:1700000000000",
+ "cases": [
+  {
+   "name": "fresh design, the first slow retry is slow enough",
+   "script": "Hello there, friend. The river runs north today.",
+   "voice": "(young woman, warm, low)",
+   "seed": 7,
+   "style": null,
+   "hifi": false,
+   "reference": false,
+   "held": {
+    "anchor": false,
+    "transcript": null,
+    "marker": false,
+    "prepared": false
+   },
+   "takes": [
+    {
+     "len": 96000,
+     "breath": false
+    },
+    {
+     "len": 168000,
+     "breath": true
+    }
+   ],
+   "anchorKey": "4950a42f73b0831cd4c4",
+   "calls": [
+    {
+     "text": "Hello there, friend. The river runs north today.",
+     "prefix": null,
+     "seed": 7,
+     "voice": "own",
+     "design": "(young woman, warm, low)",
+     "transcript": null,
+     "reference": null
+    },
+    {
+     "text": "Hello there, friend. The river runs north today.",
+     "prefix": "(calm, natural tone, speaking slowly)",
+     "seed": 8,
+     "voice": "samples",
+     "design": null,
+     "transcript": null,
+     "reference": "d69e5a16"
+    }
+   ],
+   "paces": [
+    "6",
+    "3.252032520325203"
+   ],
+   "messages": [
+    "speak: designing the voice from --voice, speaking the script's opening: \"Hello there, friend. The river runs north today.\"",
+    "speak: speaking the designed voice's reference again, calm, natural tone, speaking slowly (it spoke at 6.0 syllables per second): clones follow a reference's pace and manner.",
+    "speak: turned down 1 breath(s) in the designed voice's reference."
+   ],
+   "hifiText": null,
+   "files": [
+    {
+     "path": "cache/60a58484baba765f5902.wav",
+     "bytes": "f9391a01"
+    },
+    {
+     "path": "cache/prepared/a104d18f239b2db800fd1661d5fdf60232d42719",
+     "bytes": "811c9dc5"
+    },
+    {
+     "path": "cache/voice-4950a42f73b0831cd4c4.design.wav",
+     "bytes": "e5c2c371"
+    },
+    {
+     "path": "cache/voice-4950a42f73b0831cd4c4.txt",
+     "bytes": "4ccaadaa"
+    },
+    {
+     "path": "cache/voice-4950a42f73b0831cd4c4.wav",
+     "bytes": "996fda0e"
+    },
+    {
+     "path": "out.voice.wav",
+     "bytes": "996fda0e"
+    }
+   ]
+  },
+  {
+   "name": "fresh design on a long script, retried twice",
+   "script": "The river runs north today, past the old mill and the quiet farms. Each spring the water rises over the low meadow and the reeds. By summer the ground dries out again. Then the herds come back to graze.",
+   "voice": "(older man, deep, calm)",
+   "seed": 11,
+   "style": "(relaxed, explaining)",
+   "hifi": false,
+   "reference": false,
+   "held": {
+    "anchor": false,
+    "transcript": null,
+    "marker": false,
+    "prepared": false
+   },
+   "takes": [
+    {
+     "len": 240000,
+     "breath": false
+    },
+    {
+     "len": 264000,
+     "breath": false
+    },
+    {
+     "len": 360000,
+     "breath": false
+    }
+   ],
+   "anchorKey": "46e3aad10a453bdd0da1",
+   "calls": [
+    {
+     "text": "The river runs north today, past the old mill and the quiet farms. Each spring the water rises over the low meadow and the reeds.",
+     "prefix": null,
+     "seed": 11,
+     "voice": "own",
+     "design": "(older man, deep, calm)",
+     "transcript": null,
+     "reference": null
+    },
+    {
+     "text": "The river runs north today, past the old mill and the quiet farms. Each spring the water rises over the low meadow and the reeds.",
+     "prefix": "(calm, natural tone, speaking slowly)",
+     "seed": 12,
+     "voice": "samples",
+     "design": null,
+     "transcript": null,
+     "reference": "05aed277"
+    },
+    {
+     "text": "The river runs north today, past the old mill and the quiet farms. Each spring the water rises over the low meadow and the reeds.",
+     "prefix": "(calm, natural tone, speaking very slowly)",
+     "seed": 13,
+     "voice": "samples",
+     "design": null,
+     "transcript": null,
+     "reference": "ba321804"
+    }
+   ],
+   "paces": [
+    "6.2",
+    "5.636363636363637"
+   ],
+   "messages": [
+    "speak: designing the voice from --voice, speaking the script's opening: \"The river runs north today, past the old mill and the quiet farms. Each spring the water rises over the low meadow and the reeds.\"",
+    "speak: speaking the designed voice's reference again, calm, natural tone, speaking slowly (it spoke at 6.2 syllables per second): clones follow a reference's pace and manner.",
+    "speak: speaking the designed voice's reference again, calm, natural tone, speaking very slowly (it spoke at 5.6 syllables per second): clones follow a reference's pace and manner."
+   ],
+   "hifiText": null,
+   "files": [
+    {
+     "path": "cache/0b84216c343567d7e30f.wav",
+     "bytes": "40e560ad"
+    },
+    {
+     "path": "cache/9030cf9aaee61bcfdda7.wav",
+     "bytes": "c119232a"
+    },
+    {
+     "path": "cache/prepared/3ddee2b9b2af9d8e0e38fe915476fb7836ff4e36",
+     "bytes": "811c9dc5"
+    },
+    {
+     "path": "cache/voice-46e3aad10a453bdd0da1.design.wav",
+     "bytes": "fb4b499f"
+    },
+    {
+     "path": "cache/voice-46e3aad10a453bdd0da1.txt",
+     "bytes": "fc3d01e0"
+    },
+    {
+     "path": "cache/voice-46e3aad10a453bdd0da1.wav",
+     "bytes": "afe8092d"
+    },
+    {
+     "path": "out.voice.wav",
+     "bytes": "afe8092d"
+    }
+   ]
+  },
+  {
+   "name": "fresh design with hifi",
+   "script": "Hello there, friend. The river runs north today.",
+   "voice": "(young woman, warm, low)",
+   "seed": 7,
+   "style": null,
+   "hifi": true,
+   "reference": false,
+   "held": {
+    "anchor": false,
+    "transcript": null,
+    "marker": false,
+    "prepared": false
+   },
+   "takes": [
+    {
+     "len": 96000,
+     "breath": true
+    },
+    {
+     "len": 168000,
+     "breath": false
+    }
+   ],
+   "anchorKey": "4950a42f73b0831cd4c4",
+   "calls": [
+    {
+     "text": "Hello there, friend. The river runs north today.",
+     "prefix": null,
+     "seed": 7,
+     "voice": "own",
+     "design": "(young woman, warm, low)",
+     "transcript": null,
+     "reference": null
+    },
+    {
+     "text": "Hello there, friend. The river runs north today.",
+     "prefix": "(calm, natural tone, speaking slowly)",
+     "seed": 8,
+     "voice": "samples",
+     "design": null,
+     "transcript": null,
+     "reference": "048ac287"
+    }
+   ],
+   "paces": [
+    "5.47945205479452",
+    "3.4285714285714284"
+   ],
+   "messages": [
+    "speak: designing the voice from --voice, speaking the script's opening: \"Hello there, friend. The river runs north today.\"",
+    "speak: speaking the designed voice's reference again, calm, natural tone, speaking slowly (it spoke at 5.5 syllables per second): clones follow a reference's pace and manner."
+   ],
+   "hifiText": "Hello there, friend. The river runs north today.",
+   "files": [
+    {
+     "path": "cache/62019cfddf78efda9868.wav",
+     "bytes": "d89c7d4c"
+    },
+    {
+     "path": "cache/prepared/121f7d164503f4c9f571f4b17ae8d7f85a25e510",
+     "bytes": "811c9dc5"
+    },
+    {
+     "path": "cache/voice-4950a42f73b0831cd4c4.design.wav",
+     "bytes": "eba40164"
+    },
+    {
+     "path": "cache/voice-4950a42f73b0831cd4c4.txt",
+     "bytes": "4ccaadaa"
+    },
+    {
+     "path": "cache/voice-4950a42f73b0831cd4c4.wav",
+     "bytes": "852d5bfa"
+    },
+    {
+     "path": "out.voice.wav",
+     "bytes": "852d5bfa"
+    }
+   ]
+  },
+  {
+   "name": "fresh design with a transcript left from an older design",
+   "script": "Hello there, friend. The river runs north today.",
+   "voice": "(young woman, warm, low)",
+   "seed": 7,
+   "style": "(relaxed, explaining)",
+   "hifi": true,
+   "reference": false,
+   "held": {
+    "anchor": false,
+    "transcript": "An older opening.\n",
+    "marker": false,
+    "prepared": false
+   },
+   "takes": [
+    {
+     "len": 96000,
+     "breath": false
+    },
+    {
+     "len": 168000,
+     "breath": false
+    }
+   ],
+   "anchorKey": "4950a42f73b0831cd4c4",
+   "calls": [
+    {
+     "text": "Hello there, friend. The river runs north today.",
+     "prefix": null,
+     "seed": 7,
+     "voice": "own",
+     "design": "(young woman, warm, low)",
+     "transcript": null,
+     "reference": null
+    },
+    {
+     "text": "Hello there, friend. The river runs north today.",
+     "prefix": "(calm, natural tone, speaking slowly)",
+     "seed": 8,
+     "voice": "samples",
+     "design": null,
+     "transcript": "An older opening.",
+     "reference": "d69e5a16"
+    }
+   ],
+   "paces": [
+    "6",
+    "3.4285714285714284"
+   ],
+   "messages": [
+    "speak --hifi: VoxCPM2 ignores --style in Hi-Fi cloning. Delivery notes on a line still apply to that line.",
+    "speak: designing the voice from --voice, speaking the script's opening: \"Hello there, friend. The river runs north today.\"",
+    "speak: speaking the designed voice's reference again, calm, natural tone, speaking slowly (it spoke at 6.0 syllables per second): clones follow a reference's pace and manner."
+   ],
+   "hifiText": "Hello there, friend. The river runs north today.",
+   "files": [
+    {
+     "path": "cache/62019cfddf78efda9868.wav",
+     "bytes": "d89c7d4c"
+    },
+    {
+     "path": "cache/prepared/121f7d164503f4c9f571f4b17ae8d7f85a25e510",
+     "bytes": "811c9dc5"
+    },
+    {
+     "path": "cache/voice-4950a42f73b0831cd4c4.design.wav",
+     "bytes": "e5c2c371"
+    },
+    {
+     "path": "cache/voice-4950a42f73b0831cd4c4.txt",
+     "bytes": "4ccaadaa"
+    },
+    {
+     "path": "cache/voice-4950a42f73b0831cd4c4.wav",
+     "bytes": "852d5bfa"
+    },
+    {
+     "path": "out.voice.wav",
+     "bytes": "852d5bfa"
+    }
+   ]
+  },
+  {
+   "name": "cached anchor reused",
+   "script": "Hello there, friend. The river runs north today.",
+   "voice": "(young woman, warm, low)",
+   "seed": 7,
+   "style": null,
+   "hifi": false,
+   "reference": false,
+   "held": {
+    "anchor": true,
+    "transcript": null,
+    "marker": false,
+    "prepared": false
+   },
+   "takes": [],
+   "anchorKey": "4950a42f73b0831cd4c4",
+   "calls": [],
+   "paces": [],
+   "messages": [],
+   "hifiText": null,
+   "files": [
+    {
+     "path": "cache/voice-4950a42f73b0831cd4c4.wav",
+     "bytes": "aca2e5ac"
+    },
+    {
+     "path": "out.voice.wav",
+     "bytes": "aca2e5ac"
+    }
+   ]
+  },
+  {
+   "name": "cached anchor reused with its transcript, hifi and a style",
+   "script": "Hello there, friend. The river runs north today.",
+   "voice": "(young woman, warm, low)",
+   "seed": 7,
+   "style": "(relaxed, explaining)",
+   "hifi": true,
+   "reference": false,
+   "held": {
+    "anchor": true,
+    "transcript": "  Hello there, friend. The river runs north today.\n",
+    "marker": false,
+    "prepared": false
+   },
+   "takes": [],
+   "anchorKey": "4950a42f73b0831cd4c4",
+   "calls": [],
+   "paces": [],
+   "messages": [
+    "speak --hifi: VoxCPM2 ignores --style in Hi-Fi cloning. Delivery notes on a line still apply to that line."
+   ],
+   "hifiText": "Hello there, friend. The river runs north today.",
+   "files": [
+    {
+     "path": "cache/voice-4950a42f73b0831cd4c4.txt",
+     "bytes": "4aeb3248"
+    },
+    {
+     "path": "cache/voice-4950a42f73b0831cd4c4.wav",
+     "bytes": "aca2e5ac"
+    },
+    {
+     "path": "out.voice.wav",
+     "bytes": "aca2e5ac"
+    }
+   ]
+  },
+  {
+   "name": "cached anchor with no transcript, hifi",
+   "script": "Hello there, friend. The river runs north today.",
+   "voice": "(young woman, warm, low)",
+   "seed": 7,
+   "style": null,
+   "hifi": true,
+   "reference": false,
+   "held": {
+    "anchor": true,
+    "transcript": null,
+    "marker": false,
+    "prepared": false
+   },
+   "takes": [],
+   "anchorKey": "4950a42f73b0831cd4c4",
+   "calls": [],
+   "paces": [],
+   "messages": [
+    "speak --hifi: this designed voice has no saved transcript (it was made before --hifi existed). Pass a new --seed to design it again with one, or drop --hifi."
+   ],
+   "hifiText": null,
+   "files": [
+    {
+     "path": "cache/voice-4950a42f73b0831cd4c4.wav",
+     "bytes": "aca2e5ac"
+    },
+    {
+     "path": "out.voice.wav",
+     "bytes": "aca2e5ac"
+    }
+   ]
+  },
+  {
+   "name": "user reference prepared fresh",
+   "script": "Hello there, friend. The river runs north today.",
+   "voice": null,
+   "seed": 7,
+   "style": null,
+   "hifi": false,
+   "reference": true,
+   "held": {
+    "anchor": false,
+    "transcript": null,
+    "marker": false,
+    "prepared": false
+   },
+   "takes": [],
+   "anchorKey": "1a5b9c32ae4103106178",
+   "calls": [],
+   "paces": [],
+   "messages": [],
+   "hifiText": null,
+   "files": [
+    {
+     "path": "cache/ref-59b200411c59c7b9ebc0.wav",
+     "bytes": "a047ef19"
+    },
+    {
+     "path": "ref.wav",
+     "bytes": "6e154227"
+    }
+   ]
+  },
+  {
+   "name": "user reference already prepared",
+   "script": "Hello there, friend. The river runs north today.",
+   "voice": null,
+   "seed": 7,
+   "style": null,
+   "hifi": false,
+   "reference": true,
+   "held": {
+    "anchor": false,
+    "transcript": null,
+    "marker": true,
+    "prepared": false
+   },
+   "takes": [],
+   "anchorKey": "1a5b9c32ae4103106178",
+   "calls": [],
+   "paces": [],
+   "messages": [],
+   "hifiText": null,
+   "files": [
+    {
+     "path": "cache/prepared/974312fa3d73099008a410bb09591a7ce38eb0b4",
+     "bytes": "811c9dc5"
+    },
+    {
+     "path": "cache/ref-59b200411c59c7b9ebc0.wav",
+     "bytes": "6e154227"
+    },
+    {
+     "path": "ref.wav",
+     "bytes": "6e154227"
+    }
+   ]
+  },
+  {
+   "name": "user reference with its prepared copy held",
+   "script": "Hello there, friend. The river runs north today.",
+   "voice": null,
+   "seed": 7,
+   "style": null,
+   "hifi": false,
+   "reference": true,
+   "held": {
+    "anchor": false,
+    "transcript": null,
+    "marker": false,
+    "prepared": true
+   },
+   "takes": [],
+   "anchorKey": "1a5b9c32ae4103106178",
+   "calls": [],
+   "paces": [],
+   "messages": [],
+   "hifiText": null,
+   "files": [
+    {
+     "path": "cache/ref-59b200411c59c7b9ebc0.wav",
+     "bytes": "aca2e5ac"
+    },
+    {
+     "path": "ref.wav",
+     "bytes": "6e154227"
+    }
+   ]
+  }
+ ]
+}

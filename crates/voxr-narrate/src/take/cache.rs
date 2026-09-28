@@ -190,6 +190,18 @@ pub fn voice_file(cache_dir: &Path, key: &str) -> PathBuf {
     cache_dir.join(format!("voice-{key}.wav"))
 }
 
+/// `voice-${key}.txt`: the words a designed voice's reference says, for
+/// Hi-Fi cloning.
+pub fn voice_transcript_file(cache_dir: &Path, key: &str) -> PathBuf {
+    cache_dir.join(format!("voice-{key}.txt"))
+}
+
+/// `voice-${key}.design.wav`: a designed voice as first spoken, before it
+/// is spoken again slower and prepared.
+pub fn voice_design_file(cache_dir: &Path, key: &str) -> PathBuf {
+    cache_dir.join(format!("voice-{key}.design.wav"))
+}
+
 /// `join(cache, 'ref-${key}.wav')`: a user's recording, cloned from its
 /// prepared copy.
 pub fn reference_file(cache_dir: &Path, key: &str) -> PathBuf {
@@ -322,6 +334,14 @@ mod tests {
         let dir = Path::new("/cache");
         assert_eq!(voice_file(dir, "abc"), Path::new("/cache/voice-abc.wav"));
         assert_eq!(reference_file(dir, "abc"), Path::new("/cache/ref-abc.wav"));
+        assert_eq!(
+            voice_transcript_file(dir, "abc"),
+            Path::new("/cache/voice-abc.txt")
+        );
+        assert_eq!(
+            voice_design_file(dir, "abc"),
+            Path::new("/cache/voice-abc.design.wav")
+        );
         assert_eq!(take_file(dir, "abc"), Path::new("/cache/abc.wav"));
         assert_eq!(
             prepared_marker(dir, "deadbeef"),

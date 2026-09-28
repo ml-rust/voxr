@@ -8,7 +8,7 @@ use std::path::Path;
 
 use serde::Serialize;
 
-use crate::error::{Error, Result};
+use crate::error::{Error, Result, file_error};
 use crate::pattern::{Patterns, collapse, group, number, replace_all_with, split, trim};
 
 /// A subtitle cue.
@@ -207,13 +207,8 @@ pub fn script_source(file: &str, raw: &str) -> Result<ScriptSource> {
 /// [`script_source`] for a file on disk. Bytes that are not UTF-8 read as
 /// U+FFFD.
 pub fn read_script(file: &Path) -> Result<ScriptSource> {
-    let bytes = std::fs::read(file).map_err(|e| Error::InvalidArgument {
-        arg: "file",
-        reason: format!(
-            "reading script {}: {e}. Pass a readable script file.",
-            file.display()
-        ),
-    })?;
+    let bytes = std::fs::read(file)
+        .map_err(|e| file_error("reading script", file, &e, "Pass a readable script file"))?;
     script_source(&file.to_string_lossy(), &String::from_utf8_lossy(&bytes))
 }
 
@@ -307,10 +302,7 @@ mod tests {
         assert_eq!(got.phrases, None);
         assert_eq!(got.targets.map(|t| t.len()), Some(2));
         let missing = read_script(&dir.path().join("missing.srt"));
-        assert!(matches!(
-            missing,
-            Err(Error::InvalidArgument { arg: "file", .. })
-        ));
+        assert!(matches!(missing, Err(Error::File { .. })));
         Ok(())
     }
 }
