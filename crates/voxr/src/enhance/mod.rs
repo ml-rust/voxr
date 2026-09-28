@@ -9,13 +9,11 @@
 //! loudness and the peak ceiling last. Every earlier stage changes the level,
 //! so measuring loudness before them measures something that no longer exists.
 
-pub mod biquad;
 pub mod denoise;
 pub mod limiter;
 pub mod loudness;
 pub mod pipeline;
 
-pub use biquad::Biquad;
 pub use denoise::{DenoiseOptions, denoise, denoise_with_profile, noise_floor_dbfs};
 pub use limiter::{LimiterOptions, LimiterReport, limit};
 pub use loudness::{integrated_lufs, normalize_to_lufs, peak_dbfs};

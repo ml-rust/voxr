@@ -1,6 +1,7 @@
 //! The full raw-recording-to-reference chain.
 
-use super::biquad::Biquad;
+use biquad::{Biquad, Coefficients, DirectForm2Transposed, Q_BUTTERWORTH_F64, Type};
+
 use super::denoise::{DenoiseOptions, denoise, denoise_with_profile, noise_floor_dbfs};
 use super::limiter::{LimiterOptions, LimiterReport, limit};
 use super::loudness::{integrated_lufs, peak_dbfs};
@@ -22,7 +23,8 @@ pub struct EnhanceOptions {
     pub bass_boost_db: f64,
     pub bass_corner_hz: f64,
     /// High-shelf gain in dB and corner in Hz. A small lift here restores the
-    /// air a spectral gate always takes off the top.
+    /// air a spectral gate always takes off the top. Skipped when the corner
+    /// is at or above the Nyquist limit: the audio has no band there to lift.
     pub presence_db: f64,
     pub presence_corner_hz: f64,
     /// Target integrated loudness.
@@ -147,13 +149,12 @@ pub fn enhance_with_noise_profile(
 
     let mut noise = noise_clip.map(|c| c.to_vec());
     if opts.highpass_hz > 0.0 {
-        let hp = Biquad::highpass(rate_f, opts.highpass_hz, std::f64::consts::FRAC_1_SQRT_2);
-        hp.clone().process_buffer(&mut work);
-        // A fresh copy of the filter, not the one above: carrying its state
-        // across two independent buffers puts a transient at the start of the
-        // second.
+        let hp = design(Type::HighPass, rate_f, opts.highpass_hz, "highpass_hz")?;
+        filter(hp, &mut work);
+        // A fresh section per buffer: carrying filter state across two
+        // independent buffers puts a transient at the start of the second.
         if let Some(n) = noise.as_mut() {
-            hp.clone().process_buffer(n);
+            filter(hp, n);
         }
     }
 
@@ -165,23 +166,23 @@ pub fn enhance_with_noise_profile(
     }
 
     if opts.bass_boost_db != 0.0 {
-        Biquad::low_shelf(
+        let shelf = design(
+            Type::LowShelf(opts.bass_boost_db),
             rate_f,
             opts.bass_corner_hz,
-            std::f64::consts::FRAC_1_SQRT_2,
-            opts.bass_boost_db,
-        )
-        .process_buffer(&mut work);
+            "bass_corner_hz",
+        )?;
+        filter(shelf, &mut work);
     }
 
-    if opts.presence_db != 0.0 {
-        Biquad::high_shelf(
+    if opts.presence_db != 0.0 && opts.presence_corner_hz < rate_f / 2.0 {
+        let shelf = design(
+            Type::HighShelf(opts.presence_db),
             rate_f,
             opts.presence_corner_hz,
-            std::f64::consts::FRAC_1_SQRT_2,
-            opts.presence_db,
-        )
-        .process_buffer(&mut work);
+            "presence_corner_hz",
+        )?;
+        filter(shelf, &mut work);
     }
 
     let before_gain = integrated_lufs(&work, rate)?;
@@ -208,6 +209,39 @@ pub fn enhance_with_noise_profile(
         reached_target: (output_lufs - opts.target_lufs).abs() < 0.5,
     };
     Ok((work, report))
+}
+
+/// RBJ cookbook coefficients for `kind` with its corner at `corner_hz` and a
+/// Butterworth Q: maximally flat for the high-pass, no overshoot for the
+/// shelves.
+///
+/// Returns [`Error::InvalidArgument`] naming `option` when the corner is
+/// negative or at or above the Nyquist limit of `rate`.
+fn design(
+    kind: Type<f64>,
+    rate: f64,
+    corner_hz: f64,
+    option: &'static str,
+) -> Result<Coefficients<f64>> {
+    let nyquist = rate / 2.0;
+    Coefficients::from_normalized_params(kind, corner_hz / nyquist, Q_BUTTERWORTH_F64).map_err(
+        |err| Error::InvalidArgument {
+            arg: option,
+            reason: format!(
+                "corner {corner_hz} Hz is outside 0..{nyquist} Hz, the band of {rate} Hz \
+                 audio ({err:?}); set it below {nyquist} Hz or disable the stage"
+            ),
+        },
+    )
+}
+
+/// Filter `samples` in place through a fresh Direct Form II transposed
+/// section, keeping the state in f64.
+fn filter(coeffs: Coefficients<f64>, samples: &mut [f32]) {
+    let mut section = DirectForm2Transposed::<f64>::new(coeffs);
+    for s in samples.iter_mut() {
+        *s = section.run(*s as f64) as f32;
+    }
 }
 
 /// Gain to the loudness target, holding the ceiling with the limiter.
@@ -335,4 +369,121 @@ fn gain_capped_by_peak(samples: &[f32], wanted_db: f64, opts: &EnhanceOptions) -
 
 fn apply_gain(samples: &[f32], gain: f64) -> Vec<f32> {
     samples.iter().map(|&s| (s as f64 * gain) as f32).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const RATE: f64 = 48_000.0;
+
+    /// Magnitude response `|H(e^{jw})|` at `freq`, as a linear gain, evaluated
+    /// from the coefficients so a test can check a filter shape without
+    /// running a signal through it.
+    fn magnitude_at(c: &Coefficients<f64>, rate: f64, freq: f64) -> f64 {
+        let w = std::f64::consts::TAU * freq / rate;
+        let (s1, c1) = w.sin_cos();
+        let (s2, c2) = (2.0 * w).sin_cos();
+        let num_re = c.b0 + c.b1 * c1 + c.b2 * c2;
+        let num_im = -(c.b1 * s1 + c.b2 * s2);
+        let den_re = 1.0 + c.a1 * c1 + c.a2 * c2;
+        let den_im = -(c.a1 * s1 + c.a2 * s2);
+        ((num_re * num_re + num_im * num_im) / (den_re * den_re + den_im * den_im)).sqrt()
+    }
+
+    #[test]
+    fn a_highpass_cuts_below_its_corner_and_passes_above() {
+        let hp = design(Type::HighPass, RATE, 80.0, "highpass_hz").unwrap();
+        // Butterworth is -3 dB at the corner: 10^(-3/20) = 0.708.
+        let at_corner = magnitude_at(&hp, RATE, 80.0);
+        assert!(
+            (at_corner - 0.7079).abs() < 0.01,
+            "corner gain {at_corner:.4} should be -3 dB"
+        );
+        assert!(
+            magnitude_at(&hp, RATE, 20.0) < 0.1,
+            "20 Hz must be well down"
+        );
+        assert!(
+            magnitude_at(&hp, RATE, 1000.0) > 0.99,
+            "passband must be flat"
+        );
+    }
+
+    #[test]
+    fn shelves_apply_their_gain_on_the_correct_side() {
+        let low = design(Type::LowShelf(6.0), RATE, 200.0, "bass_corner_hz").unwrap();
+        // +6 dB is a linear gain of 2.
+        assert!(
+            (magnitude_at(&low, RATE, 20.0) - 2.0).abs() < 0.05,
+            "low shelf lifts lows"
+        );
+        assert!(
+            (magnitude_at(&low, RATE, 8000.0) - 1.0).abs() < 0.05,
+            "and leaves highs"
+        );
+
+        let high = design(Type::HighShelf(6.0), RATE, 2000.0, "presence_corner_hz").unwrap();
+        assert!(
+            (magnitude_at(&high, RATE, 16000.0) - 2.0).abs() < 0.05,
+            "high shelf lifts highs"
+        );
+        assert!(
+            (magnitude_at(&high, RATE, 100.0) - 1.0).abs() < 0.05,
+            "and leaves lows"
+        );
+    }
+
+    #[test]
+    fn a_shelf_at_zero_gain_is_a_pass_through() {
+        let flat = design(Type::LowShelf(0.0), RATE, 200.0, "bass_corner_hz").unwrap();
+        for f in [20.0, 100.0, 1000.0, 10000.0] {
+            let g = magnitude_at(&flat, RATE, f);
+            assert!((g - 1.0).abs() < 1e-9, "{f} Hz gain {g}");
+        }
+    }
+
+    #[test]
+    fn filtering_a_tone_matches_the_computed_magnitude() {
+        // The response function and the actual filter must agree, or tests that
+        // use `magnitude_at` prove nothing about what `filter` does.
+        let freq = 1000.0;
+        let hp = design(Type::HighPass, RATE, 300.0, "highpass_hz").unwrap();
+        let n = 48_000;
+        let mut buf: Vec<f32> = (0..n)
+            .map(|i| (std::f64::consts::TAU * freq * i as f64 / RATE).sin() as f32)
+            .collect();
+        filter(hp, &mut buf);
+
+        // Skip the transient; measure amplitude over the steady-state tail.
+        let tail = &buf[n / 2..];
+        let peak = tail.iter().fold(0.0f32, |a, &b| a.max(b.abs())) as f64;
+        let expected = magnitude_at(&hp, RATE, freq);
+        assert!(
+            (peak - expected).abs() < 0.02,
+            "measured {peak:.4} vs computed {expected:.4}"
+        );
+    }
+
+    #[test]
+    fn default_options_skip_a_presence_shelf_above_nyquist() {
+        // 8 kHz audio has a 4 kHz Nyquist limit, below the default 7 kHz
+        // presence corner; the stage has nothing to lift and is skipped.
+        let rate = 8_000u32;
+        let tone: Vec<f32> = (0..rate as usize * 2)
+            .map(|i| 0.3 * (std::f64::consts::TAU * 440.0 * i as f64 / rate as f64).sin() as f32)
+            .collect();
+        let (out, _) = enhance(&tone, rate, EnhanceOptions::default())
+            .unwrap_or_else(|e| panic!("default options on 8 kHz audio: {e}"));
+        assert_eq!(out.len(), tone.len());
+    }
+
+    #[test]
+    fn a_corner_at_or_above_nyquist_is_rejected() {
+        let err = design(Type::HighShelf(1.5), 8_000.0, 7_000.0, "presence_corner_hz")
+            .expect_err("7 kHz is above the 4 kHz Nyquist limit of 8 kHz audio");
+        let msg = err.to_string();
+        assert!(msg.contains("presence_corner_hz"), "{msg}");
+        assert!(msg.contains("4000"), "{msg}");
+    }
 }

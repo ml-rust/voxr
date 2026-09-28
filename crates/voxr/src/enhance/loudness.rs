@@ -11,7 +11,8 @@
 //! is 1.0, so mono is the degenerate case and nothing here would need to change
 //! beyond the sum.
 
-use super::biquad::Biquad;
+use biquad::{Biquad, Coefficients, DirectForm2Transposed};
+
 use crate::error::{Error, Result};
 
 /// BS.1770 block length. The standard fixes this at 400 ms.
@@ -29,45 +30,108 @@ const LOUDNESS_OFFSET: f64 = -0.691;
 /// The two K-weighting stages, as BS.1770 defines them for 48 kHz.
 ///
 /// The standard publishes literal coefficients rather than a parametric shape.
-/// They are reproduced verbatim at 48 kHz; other rates rebuild the equivalent
-/// shelf and high-pass, which is what every other implementation does and is
-/// accurate to well under 0.1 LU across normal speech rates.
-fn k_weighting(rate: f64) -> (Biquad, Biquad) {
+/// They are reproduced verbatim at 48 kHz. Other rates use [`k_weighting_at`],
+/// the bilinear design those literals come from.
+///
+/// Returns [`Error::InvalidArgument`] when the 1681.97 Hz shelf corner is at
+/// or above the Nyquist limit of `rate`.
+fn k_weighting(rate: f64) -> Result<(Coefficients<f64>, Coefficients<f64>)> {
     if (rate - 48_000.0).abs() < 1.0 {
         // Stage 1: high shelf, +4 dB above ~1.68 kHz (head/torso model).
-        let stage1 = Biquad::from_normalized(
-            1.53512485958697,
-            -2.69169618940638,
-            1.19839281085285,
-            -1.69065929318241,
-            0.73248077421585,
-        );
+        let stage1 = Coefficients {
+            b0: 1.53512485958697,
+            b1: -2.69169618940638,
+            b2: 1.19839281085285,
+            a1: -1.69065929318241,
+            a2: 0.73248077421585,
+        };
         // Stage 2: high-pass at ~38 Hz (RLB curve).
-        let stage2 = Biquad::from_normalized(1.0, -2.0, 1.0, -1.99004745483398, 0.99007225036621);
-        (stage1, stage2)
-    } else {
-        (
-            Biquad::high_shelf(rate, 1681.97, 0.7071752, 3.999844),
-            Biquad::highpass(rate, 38.1354, 0.5003271),
-        )
+        let stage2 = Coefficients {
+            b0: 1.0,
+            b1: -2.0,
+            b2: 1.0,
+            a1: -1.99004745483398,
+            a2: 0.99007225036621,
+        };
+        return Ok((stage1, stage2));
     }
+    k_weighting_at(rate)
+}
+
+/// Shelf corner of K-weighting stage 1, in Hz.
+const SHELF_HZ: f64 = 1681.974450955533;
+/// Shelf gain of stage 1, in dB.
+const SHELF_GAIN_DB: f64 = 3.999843853973347;
+/// Shelf Q of stage 1.
+const SHELF_Q: f64 = 0.7071752369554196;
+/// Exponent placing the shelf's mid-band gain `Vb = Vh^x`.
+const SHELF_MID_EXP: f64 = 0.4996667741545416;
+/// Corner of K-weighting stage 2 (the RLB high-pass), in Hz.
+const HIGHPASS_HZ: f64 = 38.13547087602444;
+/// Q of stage 2.
+const HIGHPASS_Q: f64 = 0.5003270373238773;
+
+/// K-weighting designed for `rate` by the bilinear transform, with the shelf
+/// and high-pass parameters fitted to the BS.1770 48 kHz literals (the
+/// libebur128 design).
+///
+/// The shelf is NOT the RBJ cookbook high shelf: its mid-band gain `Vb` sits at
+/// `Vh^0.4997`, which the cookbook's `sqrt(A)` form cannot express at this Q.
+fn k_weighting_at(rate: f64) -> Result<(Coefficients<f64>, Coefficients<f64>)> {
+    let nyquist = rate / 2.0;
+    if SHELF_HZ >= nyquist {
+        return Err(Error::InvalidArgument {
+            arg: "rate",
+            reason: format!(
+                "K-weighting needs its {SHELF_HZ:.2} Hz shelf corner below the {nyquist} Hz \
+                 Nyquist limit of {rate} Hz audio; resample to at least 8 kHz before \
+                 measuring loudness"
+            ),
+        });
+    }
+
+    let k = (std::f64::consts::PI * SHELF_HZ / rate).tan();
+    let vh = 10f64.powf(SHELF_GAIN_DB / 20.0);
+    let vb = vh.powf(SHELF_MID_EXP);
+    let a0 = 1.0 + k / SHELF_Q + k * k;
+    let shelf = Coefficients {
+        b0: (vh + vb * k / SHELF_Q + k * k) / a0,
+        b1: 2.0 * (k * k - vh) / a0,
+        b2: (vh - vb * k / SHELF_Q + k * k) / a0,
+        a1: 2.0 * (k * k - 1.0) / a0,
+        a2: (1.0 - k / SHELF_Q + k * k) / a0,
+    };
+
+    let k = (std::f64::consts::PI * HIGHPASS_HZ / rate).tan();
+    let a0 = 1.0 + k / HIGHPASS_Q + k * k;
+    let highpass = Coefficients {
+        b0: 1.0,
+        b1: -2.0,
+        b2: 1.0,
+        a1: 2.0 * (k * k - 1.0) / a0,
+        a2: (1.0 - k / HIGHPASS_Q + k * k) / a0,
+    };
+    Ok((shelf, highpass))
 }
 
 /// Mean square of each gating block after K-weighting.
-fn block_powers(samples: &[f32], rate: u32) -> Vec<f64> {
+fn block_powers(samples: &[f32], rate: u32) -> Result<Vec<f64>> {
     let rate_f = rate as f64;
-    let (mut s1, mut s2) = k_weighting(rate_f);
+    let (c1, c2) = k_weighting(rate_f)?;
+    let mut s1 = DirectForm2Transposed::<f64>::new(c1);
+    let mut s2 = DirectForm2Transposed::<f64>::new(c2);
 
-    let mut weighted: Vec<f32> = samples.to_vec();
-    s1.process_buffer(&mut weighted);
-    s2.process_buffer(&mut weighted);
+    let weighted: Vec<f32> = samples
+        .iter()
+        .map(|&x| s2.run(s1.run(x as f64)) as f32)
+        .collect();
 
     let block_len = ((BLOCK_MS / 1000.0) * rate_f).round() as usize;
     let step = ((block_len as f64) * (1.0 - BLOCK_OVERLAP))
         .round()
         .max(1.0) as usize;
     if block_len == 0 || weighted.len() < block_len {
-        return Vec::new();
+        return Ok(Vec::new());
     }
 
     let mut powers = Vec::new();
@@ -80,7 +144,7 @@ fn block_powers(samples: &[f32], rate: u32) -> Vec<f64> {
         powers.push(sum_sq / block_len as f64);
         start += step;
     }
-    powers
+    Ok(powers)
 }
 
 /// Loudness in LUFS from a mean-square power.
@@ -96,6 +160,9 @@ fn power_to_lufs(power: f64) -> f64 {
 /// Returns [`f64::NEG_INFINITY`] for silence, and for input shorter than one
 /// 400 ms block — there is nothing to integrate, and reporting a number there
 /// would invite normalizing against a measurement that does not exist.
+///
+/// Returns [`Error::InvalidArgument`] when `rate` is 0, or too low for the
+/// K-weighting shelf (3364 Hz and below).
 pub fn integrated_lufs(samples: &[f32], rate: u32) -> Result<f64> {
     if rate == 0 {
         return Err(Error::InvalidArgument {
@@ -103,7 +170,7 @@ pub fn integrated_lufs(samples: &[f32], rate: u32) -> Result<f64> {
             reason: "sample rate is 0".to_string(),
         });
     }
-    let powers = block_powers(samples, rate);
+    let powers = block_powers(samples, rate)?;
     if powers.is_empty() {
         return Ok(f64::NEG_INFINITY);
     }
@@ -268,8 +335,63 @@ mod tests {
         );
     }
 
+    /// BS.1770-4 calibrates the meter so a 0 dBFS 1 kHz sine in one channel
+    /// reads -3.01 LUFS: the -0.691 offset cancels K-weighting's gain at 1 kHz,
+    /// leaving the sine's mean square of 1/2 (-3.01 dB). A sine at -20 dBFS
+    /// (peak 0.1) has a mean square 20 dB lower, so it reads -23.01 LUFS.
+    /// 997 Hz is the test-tone convention: prime, so no sample pattern repeats
+    /// at 48 kHz, and within 3 Hz of 1 kHz, where K-weighting differs by far
+    /// less than the tolerance.
+    #[test]
+    fn a_minus_20_dbfs_997_hz_sine_reads_minus_23_01_lufs() {
+        let amp = 10f64.powf(-20.0 / 20.0);
+        let n = RATE as usize * 10;
+        let sine: Vec<f32> = (0..n)
+            .map(|i| (amp * (std::f64::consts::TAU * 997.0 * i as f64 / RATE as f64).sin()) as f32)
+            .collect();
+        let lufs = integrated_lufs(&sine, RATE).unwrap();
+        assert!((lufs - -23.01).abs() < 0.1, "got {lufs:.3} LUFS");
+    }
+
+    /// The bilinear design must reproduce the literal 48 kHz coefficients, or
+    /// every other rate measures a different filter.
+    #[test]
+    fn the_k_weighting_design_reproduces_the_48k_literals() {
+        let (lit1, lit2) = k_weighting(48_000.0).unwrap();
+        let (d1, d2) = k_weighting_at(48_000.0).unwrap();
+        for (a, b) in [(lit1, d1), (lit2, d2)] {
+            for (x, y) in [
+                (a.b0, b.b0),
+                (a.b1, b.b1),
+                (a.b2, b.b2),
+                (a.a1, b.a1),
+                (a.a2, b.a2),
+            ] {
+                assert!((x - y).abs() < 1e-8, "{x} vs {y}");
+            }
+        }
+    }
+
+    /// The rebuilt K-weighting at 44.1 kHz must agree with the literal 48 kHz
+    /// coefficients on the same tone.
+    #[test]
+    fn the_rebuilt_k_weighting_matches_the_literal_one() {
+        let tone_at = |rate: u32| -> Vec<f32> {
+            (0..rate as usize * 5)
+                .map(|i| {
+                    (0.1 * (std::f64::consts::TAU * 997.0 * i as f64 / rate as f64).sin()) as f32
+                })
+                .collect()
+        };
+        let at_48k = integrated_lufs(&tone_at(48_000), 48_000).unwrap();
+        let at_44k = integrated_lufs(&tone_at(44_100), 44_100).unwrap();
+        assert!((at_48k - at_44k).abs() < 0.05, "{at_48k:.3} vs {at_44k:.3}");
+    }
+
     #[test]
     fn a_zero_sample_rate_is_rejected() {
         assert!(integrated_lufs(&tone(0.5, 1.0), 0).is_err());
+        // The 1681.97 Hz shelf has no room below a 1500 Hz Nyquist limit.
+        assert!(integrated_lufs(&tone(0.5, 1.0), 3_000).is_err());
     }
 }
