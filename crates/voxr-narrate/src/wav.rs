@@ -67,6 +67,48 @@ pub fn pcm16_wav(x: &[f32], rate: u32) -> Result<Vec<u8>> {
     Ok(out)
 }
 
+/// A mono 32-bit float WAV of `x` at `rate` Hz, behind a 44-byte header.
+/// It reads back ([`read_wav`]) as `x` exactly.
+///
+/// More than 2^30 samples overflow the header's 32-bit sizes.
+pub fn f32_wav(x: &[f32], rate: u32) -> Result<Vec<u8>> {
+    let too_long = || Error::InvalidArgument {
+        arg: "x",
+        reason: format!(
+            "{} samples do not fit a WAV header's 32-bit sizes. Split the audio into shorter files",
+            x.len()
+        ),
+    };
+    let data = u32::try_from(x.len())
+        .ok()
+        .and_then(|n| n.checked_mul(4))
+        .ok_or_else(too_long)?;
+    let riff = data.checked_add(36).ok_or_else(too_long)?;
+    let byte_rate = rate.checked_mul(4).ok_or_else(|| Error::InvalidArgument {
+        arg: "rate",
+        reason: format!(
+            "a rate of {rate} Hz overflows the WAV header's byte rate. Pass a rate under 2^30 Hz"
+        ),
+    })?;
+    let mut out = Vec::with_capacity(HEADER + x.len() * 4);
+    out.extend_from_slice(b"RIFF");
+    out.extend_from_slice(&riff.to_le_bytes());
+    out.extend_from_slice(b"WAVEfmt ");
+    out.extend_from_slice(&16u32.to_le_bytes());
+    out.extend_from_slice(&FORMAT_FLOAT.to_le_bytes());
+    out.extend_from_slice(&1u16.to_le_bytes());
+    out.extend_from_slice(&rate.to_le_bytes());
+    out.extend_from_slice(&byte_rate.to_le_bytes());
+    out.extend_from_slice(&4u16.to_le_bytes());
+    out.extend_from_slice(&32u16.to_le_bytes());
+    out.extend_from_slice(b"data");
+    out.extend_from_slice(&data.to_le_bytes());
+    for v in x {
+        out.extend_from_slice(&v.to_le_bytes());
+    }
+    Ok(out)
+}
+
 /// `x` as [`pcm16_wav`] writes it and ffmpeg reads it back: each sample
 /// rounded to 16 bits, then divided by 32768.
 pub fn pcm16_round_trip(x: &[f32]) -> Vec<f32> {
@@ -216,6 +258,18 @@ mod tests {
         bytes.extend_from_slice(&0.125f32.to_le_bytes());
         bytes.extend_from_slice(&(-2.0f32).to_le_bytes());
         assert_eq!(read_wav(&bytes)?.samples, [0.125, -2.0]);
+        Ok(())
+    }
+
+    #[test]
+    fn a_float_file_reads_back_exactly() -> Result<()> {
+        let x = [0.1f32, -0.7, 1.5, f32::MIN_POSITIVE];
+        let bytes = f32_wav(&x, 24000)?;
+        assert_eq!(bytes.len(), HEADER + 16);
+        assert_eq!(u16_at(&bytes, 20), Some(FORMAT_FLOAT));
+        assert_eq!(u32_at(&bytes, 28), Some(96000));
+        let take = read_wav(&bytes)?;
+        assert_eq!((take.samples.as_slice(), take.rate), (&x[..], 24000));
         Ok(())
     }
 

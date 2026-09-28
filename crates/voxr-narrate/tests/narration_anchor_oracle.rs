@@ -14,17 +14,18 @@
 //! printed, the Hi-Fi transcript, and every file left with the hash of its
 //! bytes.
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use serde::Deserialize;
 use voxr_narrate::{
-    AnchorSetup, CloneReference, Error, Result, SpeakRequest, SpeechEngine, Take, TakeKeyInput,
-    TakeSpec, TakeStore, VoiceSource, anchor_key, clone_file, copy_voice_beside, designed_anchor,
-    pcm16_wav, prepared_marker, prepared_reference_key, read_wav_file, take_file, take_key,
+    AnchorSetup, Error, Result, SpeakRequest, SpeechEngine, Take, TakeKeyInput, TakeSpec,
+    TakeStore, anchor_key, clone_file, copy_voice_beside, designed_anchor, f32_wav, pcm16_wav,
+    prepared_marker, prepared_reference_key, read_wav_file, take_file, take_key,
 };
 
 mod common;
-use common::signals::{self, Op, hiss, noise, tone};
+use common::signals::{self, hiss, noise, tone};
+use common::take_files::{Call, Listed, io, listing, take_signal};
 use common::{assert_oracle_current, load_json, num};
 
 const FIXTURE: &str = concat!(
@@ -80,44 +81,6 @@ struct TakeShape {
     breath: bool,
 }
 
-/// One model call: the text as spoken, the prefix, the seed, the voice
-/// kind, the design description, the Hi-Fi transcript, and the hash of the
-/// samples a clone reads from its reference.
-#[derive(Debug, Clone, PartialEq, Deserialize)]
-struct Call {
-    text: String,
-    prefix: Option<String>,
-    seed: f64,
-    voice: String,
-    design: Option<String>,
-    transcript: Option<String>,
-    reference: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Deserialize)]
-struct Listed {
-    path: String,
-    bytes: String,
-}
-
-/// `takeSignal` in take_anchor.mjs: 0.1 s of floor noise, a 200 Hz tone of
-/// `len` samples, split by a breath when asked, then 0.1 s of floor noise.
-fn take_signal(len: usize, breath: bool, noise_seed: u32) -> Vec<f32> {
-    let lead = 4800;
-    let gap = if breath { 960 + 7200 + 960 } else { 0 };
-    let n = lead + len + gap + lead;
-    let mut ops: Vec<Op> = vec![noise(0, n, 0.00002, noise_seed)];
-    if breath {
-        let half = len / 2;
-        ops.push(tone("200", lead, half, 0.3, 480, 480));
-        ops.push(hiss(lead + half + 960, 7200, 0.009, 41, 480, 480));
-        ops.push(tone("200", lead + half + gap, len - half, 0.3, 480, 480));
-    } else {
-        ops.push(tone("200", lead, len, 0.3, 480, 480));
-    }
-    signals::render(n, &ops)
-}
-
 /// `HELD_ANCHOR` in take_anchor.mjs: a designed voice already in the cache.
 fn held_anchor() -> Vec<f32> {
     signals::render(
@@ -142,35 +105,6 @@ fn recording() -> Vec<f32> {
     )
 }
 
-/// A 32-bit float WAV of `x`, as the oracle's stub model writes its takes.
-fn wav_f32(x: &[f32], rate: u32) -> Vec<u8> {
-    let data = (x.len() * 4) as u32;
-    let mut out = Vec::with_capacity(44 + x.len() * 4);
-    out.extend_from_slice(b"RIFF");
-    out.extend_from_slice(&(36 + data).to_le_bytes());
-    out.extend_from_slice(b"WAVEfmt ");
-    out.extend_from_slice(&16u32.to_le_bytes());
-    out.extend_from_slice(&3u16.to_le_bytes());
-    out.extend_from_slice(&1u16.to_le_bytes());
-    out.extend_from_slice(&rate.to_le_bytes());
-    out.extend_from_slice(&(rate * 4).to_le_bytes());
-    out.extend_from_slice(&4u16.to_le_bytes());
-    out.extend_from_slice(&32u16.to_le_bytes());
-    out.extend_from_slice(b"data");
-    out.extend_from_slice(&data.to_le_bytes());
-    for v in x {
-        out.extend_from_slice(&v.to_le_bytes());
-    }
-    out
-}
-
-fn io(what: &str, path: &Path) -> impl FnOnce(std::io::Error) -> Error {
-    let reason = format!("{what} {}", path.display());
-    move |e| Error::File {
-        reason: format!("{reason}: {e}"),
-    }
-}
-
 /// Speaks the case's synthetic take for each seed, and records each call.
 struct Engine<'a> {
     case: &'a Case,
@@ -181,27 +115,7 @@ impl SpeechEngine for Engine<'_> {
     type Reference = ();
 
     fn speak(&mut self, request: &SpeakRequest<'_, ()>) -> Result<Take> {
-        let (design, transcript, reference) = match request.voice {
-            VoiceSource::Own { design } => (design, None, None),
-            VoiceSource::Clone {
-                reference: CloneReference::Samples { samples, .. },
-                transcript,
-            } => (None, transcript, Some(signals::fnv1a(samples))),
-            VoiceSource::Clone { .. } => {
-                return Err(Error::DataError {
-                    reason: "the anchor clones from samples, never a handle".to_string(),
-                });
-            }
-        };
-        self.calls.push(Call {
-            text: request.text.to_string(),
-            prefix: request.prefix().map(str::to_string),
-            seed: request.seed,
-            voice: request.voice.kind().to_string(),
-            design: design.map(str::to_string),
-            transcript: transcript.map(str::to_string),
-            reference,
-        });
+        self.calls.push(Call::of(request)?);
         let k = request.seed - self.case.seed;
         let shape = self
             .case
@@ -258,38 +172,8 @@ impl TakeStore for Store<'_> {
             },
         );
         let file = take_file(self.cache, &key);
-        std::fs::write(&file, wav_f32(&take.samples, take.rate)).map_err(io("writing", &file))
+        std::fs::write(&file, f32_wav(&take.samples, take.rate)?).map_err(io("writing", &file))
     }
-}
-
-/// Every file under `root`, by its `/`-joined path from `root`, with the
-/// FNV-1a hash of its bytes, sorted by path.
-fn listing(root: &Path) -> Result<Vec<Listed>> {
-    let mut out = Vec::new();
-    let mut dirs: Vec<PathBuf> = vec![root.to_path_buf()];
-    while let Some(dir) = dirs.pop() {
-        for entry in std::fs::read_dir(&dir).map_err(io("listing", &dir))? {
-            let path = entry.map_err(io("listing", &dir))?.path();
-            if path.is_dir() {
-                dirs.push(path);
-                continue;
-            }
-            let rel = path.strip_prefix(root).map_err(|e| Error::DataError {
-                reason: format!("{} is outside {}: {e}", path.display(), root.display()),
-            })?;
-            let parts: Vec<String> = rel
-                .components()
-                .map(|c| c.as_os_str().to_string_lossy().into_owned())
-                .collect();
-            let bytes = std::fs::read(&path).map_err(io("reading", &path))?;
-            out.push(Listed {
-                path: parts.join("/"),
-                bytes: signals::fnv1a_bytes(&bytes),
-            });
-        }
-    }
-    out.sort_by(|a, b| a.path.cmp(&b.path));
-    Ok(out)
 }
 
 /// Places the files the case holds before its run.

@@ -86,6 +86,24 @@ export function render(n, ops) {
   return x;
 }
 
+// A synthetic take: 0.1 s of floor noise, `len` samples of a 200 Hz tone, then 0.1 s of floor noise. With `breath`,
+// a breath of 7200 samples sits between the tone's two halves, 960 samples from each.
+export function takeSignal(len, breath, noiseSeed) {
+  const lead = 4800;
+  const gap = breath ? 960 + 7200 + 960 : 0;
+  const n = lead + len + gap + lead;
+  const ops = [noise(0, n, 0.00002, noiseSeed)];
+  if (breath) {
+    const half = Math.floor(len / 2);
+    ops.push(tone(200, lead, half, 0.3, 480, 480));
+    ops.push(hiss(lead + half + 960, 7200, 0.009, 41, 480, 480));
+    ops.push(tone(200, lead + half + gap, len - half, 0.3, 480, 480));
+  } else {
+    ops.push(tone(200, lead, len, 0.3, 480, 480));
+  }
+  return render(n, ops);
+}
+
 // FNV-1a (32-bit) over each sample's f32 bit pattern, low byte first, as 8 hex digits.
 export function fnv1a(x) {
   const words = new Uint32Array(x.buffer, x.byteOffset, x.length);

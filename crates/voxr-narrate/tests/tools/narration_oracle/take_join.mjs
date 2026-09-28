@@ -21,6 +21,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { wavSamples } from './oracle_files.mjs';
 import { fnv1a, fnv1aBytes, noise, render, tone } from './signals.mjs';
 
 const jsDir = process.env.NARRATION_JS_DIR;
@@ -265,8 +266,7 @@ try {
     }
     const takes = [...judged.values()].map((t) => {
       const file = join(caseDir, `take-${Object.keys(c.takes).indexOf(t.text)}.wav`);
-      const buf = readFileSync(file);
-      const read = Float32Array.from({ length: (buf.length - 44) / 2 }, (_, k) => buf.readInt16LE(44 + 2 * k) / 32768);
+      const read = wavSamples(readFileSync(file));
       return { ...t, input: fnv1a(read) };
     });
     cases.push({

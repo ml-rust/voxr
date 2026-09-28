@@ -16,11 +16,12 @@
 // Usage: NARRATION_JS_DIR=<directory holding speak.mjs, paths.mjs, voice.mjs> \
 //          node take_anchor.mjs > ../../fixtures/narration_anchor_oracle.json
 import { createHash } from 'node:crypto';
-import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, relative } from 'node:path';
+import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { fnv1a, fnv1aBytes, hiss, noise, render, tone } from './signals.mjs';
+import { listing, wavF32, wavSamples } from './oracle_files.mjs';
+import { fnv1a, hiss, noise, render, takeSignal, tone } from './signals.mjs';
 
 const jsDir = process.env.NARRATION_JS_DIR;
 if (!jsDir) {
@@ -65,24 +66,6 @@ const RATE = 48000;
 const CHECKPOINT = 'openbmb/VoxCPM2';
 // A reference recording's cache id: its path, size and modified time as the skill joins them.
 const REF_ID = 'ref.wav:144044:1700000000000';
-
-// A synthetic take: 0.1 s of floor noise, `len` samples of a 200 Hz tone, then 0.1 s of floor noise. With `breath`,
-// a breath of 7200 samples sits between the tone's two halves, 960 samples from each.
-export function takeSignal(len, breath, noiseSeed) {
-  const lead = 4800;
-  const gap = breath ? 960 + 7200 + 960 : 0;
-  const n = lead + len + gap + lead;
-  const ops = [noise(0, n, 0.00002, noiseSeed)];
-  if (breath) {
-    const half = Math.floor(len / 2);
-    ops.push(tone(200, lead, half, 0.3, 480, 480));
-    ops.push(hiss(lead + half + 960, 7200, 0.009, 41, 480, 480));
-    ops.push(tone(200, lead + half + gap, len - half, 0.3, 480, 480));
-  } else {
-    ops.push(tone(200, lead, len, 0.3, 480, 480));
-  }
-  return render(n, ops);
-}
 
 // A designed voice already in the cache: half a second of tone.
 const HELD_ANCHOR = () => render(24000, [noise(0, 24000, 0.00002, 5), tone(150, 0, 24000, 0.3, 480, 480)]);
@@ -155,47 +138,6 @@ const CASES = [
   { name: 'user reference already prepared', script: SHORT, reference: true, held: { marker: true } },
   { name: 'user reference with its prepared copy held', script: SHORT, reference: true, held: { prepared: true } },
 ];
-
-// A 32-bit float WAV of `x`, as the stub model writes its takes.
-function wavF32(x, rate) {
-  const buf = Buffer.alloc(44 + x.length * 4);
-  buf.write('RIFF', 0);
-  buf.writeUInt32LE(36 + x.length * 4, 4);
-  buf.write('WAVEfmt ', 8);
-  buf.writeUInt32LE(16, 16);
-  buf.writeUInt16LE(3, 20);
-  buf.writeUInt16LE(1, 22);
-  buf.writeUInt32LE(rate, 24);
-  buf.writeUInt32LE(rate * 4, 28);
-  buf.writeUInt16LE(4, 32);
-  buf.writeUInt16LE(32, 34);
-  buf.write('data', 36);
-  buf.writeUInt32LE(x.length * 4, 40);
-  Buffer.from(x.buffer, x.byteOffset, x.byteLength).copy(buf, 44);
-  return buf;
-}
-
-// The samples a 16-bit or 32-bit float WAV holds, as ffmpeg decodes them: a 16-bit value v reads as v / 32768.
-function wavSamples(buf) {
-  const format = buf.readUInt16LE(20);
-  const data = buf.subarray(44);
-  if (format === 3) return new Float32Array(data.buffer.slice(data.byteOffset, data.byteOffset + data.length));
-  return Float32Array.from({ length: data.length / 2 }, (_, k) => data.readInt16LE(2 * k) / 32768);
-}
-
-// Every file under `root`, by its path from `root`, with the FNV-1a hash of its bytes.
-function listing(root) {
-  const out = [];
-  const walk = (d) => {
-    for (const name of readdirSync(d).sort()) {
-      const p = join(d, name);
-      if (statSync(p).isDirectory()) walk(p);
-      else out.push({ path: relative(root, p), bytes: fnv1aBytes(readFileSync(p)) });
-    }
-  };
-  walk(root);
-  return out.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
-}
 
 const dir = mkdtempSync(join(tmpdir(), 'anchor-oracle-'));
 const realError = console.error;

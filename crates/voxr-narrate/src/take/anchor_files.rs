@@ -55,18 +55,27 @@ pub struct Anchor {
     pub designed: Option<DesignedVoice>,
 }
 
+/// Writes `bytes` to the cache file `path` whole: [`write_whole_with`],
+/// with the cache directory's next action.
+pub(crate) fn write_whole(path: &Path, bytes: &[u8]) -> Result<()> {
+    write_whole_with(
+        path,
+        bytes,
+        "Check the cache directory is writable and has free space",
+    )
+}
+
 /// Writes `bytes` to `path` whole: through a `.part` file beside it,
-/// renamed over `path` once written.
-fn write_whole(path: &Path, bytes: &[u8]) -> Result<()> {
+/// renamed over `path` once written. `next` is the action an error names.
+pub(crate) fn write_whole_with(path: &Path, bytes: &[u8], next: &str) -> Result<()> {
     let mut part = path.as_os_str().to_owned();
     part.push(".part");
     let part = PathBuf::from(part);
-    let next = "Check the cache directory is writable and has free space";
     std::fs::write(&part, bytes).map_err(|e| file_error("writing", &part, &e, next))?;
     std::fs::rename(&part, path).map_err(|e| file_error("renaming onto", path, &e, next))
 }
 
-fn create_dir(dir: &Path) -> Result<()> {
+pub(crate) fn create_dir(dir: &Path) -> Result<()> {
     std::fs::create_dir_all(dir).map_err(|e| {
         file_error(
             "creating",

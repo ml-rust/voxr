@@ -7,7 +7,8 @@
 //! part that fails whole. Also the voice every take clones: designed from
 //! a description or prepared from a user's recording, and kept in the cache.
 //! Also the kept takes shaped and joined into the voiceover, with each
-//! phrase's span and each part's check, heat and marks.
+//! phrase's span and each part's check, heat and marks. Also the take
+//! cache on disk, and a whole VoxCPM2 run from script to voiceover.
 
 pub mod anchor;
 pub mod anchor_files;
@@ -23,8 +24,12 @@ pub mod judge;
 pub mod pace;
 pub mod pick;
 pub mod seed;
+pub mod speak;
+pub mod speak_setup;
+pub mod speak_step;
 pub mod split;
 pub mod step;
+pub mod store;
 
 pub use anchor::{
     ANCHOR_RATE, AnchorStep, DesignSetup, DesignedVoice, OPENING_WORDS, SLOWER, design_voice,
@@ -50,12 +55,16 @@ pub use hear::{HeardCheck, Hearing, Recognizer, TranscriberHearing, asr_model, h
 pub use join::{JOIN_RATE, JoinPart, JoinedTrack, ShapedTake, join_takes, shape_take};
 pub use join_checks::PartCheck;
 pub use join_heat::{PartHeat, part_heat};
-pub use judge::{HeardJudge, JudgedTake};
+pub use judge::{HeardJudge, JudgedTake, ReferenceHearing};
 pub use pace::{
     DEFAULT_TARGET_PACE, PaceComparison, PaceSpan, PaceVerdict, REF_PACE, pace, pace_verdict,
     sounding, syllables,
 };
 pub use pick::{ATTEMPTS, PickSetup, RETRY_STEP, TakeLoop};
 pub use seed::text_seed;
+pub use speak::{WHOLE_MAX, speak_voxcpm};
+pub use speak_setup::{VoiceReference, VoxcpmRun, VoxcpmSetup};
+pub use speak_step::SpeakStep;
 pub use split::{BestTakes, SPLIT_ROUNDS, break_up};
 pub use step::{PartTake, TakeStep};
+pub use store::{FileStore, TakeKeys};

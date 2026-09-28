@@ -34,7 +34,7 @@ pub const SLOWER: [&str; 2] = [
 ];
 
 /// Pieces `text.split(/\s+/)` gives: one more than its runs of whitespace.
-fn js_word_count(text: &str) -> usize {
+pub(crate) fn js_word_count(text: &str) -> usize {
     let mut count = 1;
     let mut in_space = false;
     for c in text.chars() {

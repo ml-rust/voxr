@@ -55,7 +55,9 @@ impl Serialize for TakesMap<'_> {
 /// but a seed is never anything else once it reaches the take loop.
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct ReadTakes {
-    /// The run's seed, when the file holds the current format.
+    /// The file holds the current format: a `takes` object.
+    pub current: bool,
+    /// The run's seed, when the file holds the current format and names one.
     pub seed: Option<f64>,
     /// Each part's kept seed, by its text.
     pub takes: HashMap<String, f64>,
@@ -80,10 +82,12 @@ pub fn read_takes_file(text: &str) -> ReadTakes {
     };
     match value.get("takes").filter(|t| t.is_object()) {
         Some(takes) => ReadTakes {
+            current: true,
             seed: value.get("seed").and_then(Value::as_f64),
             takes: number_map(takes),
         },
         None => ReadTakes {
+            current: false,
             seed: None,
             takes: number_map(&value),
         },
@@ -101,23 +105,22 @@ pub struct ResolvedSeed {
 }
 
 /// `asked ?? before ?? configSeed ?? 7`, where `before` is `read.seed` when
-/// the file held the current format, else `configSeed ?? 7`; and whether a
-/// new asked seed resets the chosen takes.
+/// the file held the current format (none when it names no seed), else
+/// `configSeed ?? 7`; and whether an asked seed other than `before` resets
+/// the chosen takes.
 pub fn resolve_seed(
     asked: Option<f64>,
     read: &ReadTakes,
     config_seed: Option<f64>,
 ) -> ResolvedSeed {
-    let before = read.seed.or(config_seed).unwrap_or(DEFAULT_SEED);
-    match asked {
-        Some(a) => ResolvedSeed {
-            seed: a,
-            reset: a != before,
-        },
-        None => ResolvedSeed {
-            seed: before,
-            reset: false,
-        },
+    let before = if read.current {
+        read.seed
+    } else {
+        Some(config_seed.unwrap_or(DEFAULT_SEED))
+    };
+    ResolvedSeed {
+        seed: asked.or(before).or(config_seed).unwrap_or(DEFAULT_SEED),
+        reset: asked.is_some_and(|a| Some(a) != before),
     }
 }
 
@@ -220,6 +223,28 @@ mod tests {
     use super::*;
 
     #[test]
+    fn a_current_file_with_no_seed_resets_on_any_asked_seed() {
+        let read = read_takes_file(r#"{"takes":{"Hi.":4}}"#);
+        assert!(read.current);
+        let r = resolve_seed(Some(3.0), &read, Some(3.0));
+        assert_eq!(
+            r,
+            ResolvedSeed {
+                seed: 3.0,
+                reset: true
+            }
+        );
+        let r = resolve_seed(None, &read, Some(3.0));
+        assert_eq!(
+            r,
+            ResolvedSeed {
+                seed: 3.0,
+                reset: false
+            }
+        );
+    }
+
+    #[test]
     fn takes_file_serializes_in_insertion_order() -> Result<()> {
         let takes = TakesFile {
             seed: 7.0,
@@ -273,6 +298,7 @@ mod tests {
             }
         );
         let current = ReadTakes {
+            current: true,
             seed: Some(11.0),
             takes: HashMap::new(),
         };

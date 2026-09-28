@@ -24,7 +24,8 @@ use voxr_narrate::{
 };
 
 mod common;
-use common::signals::{self, Op, noise, tone};
+use common::signals;
+use common::take_files::{OpJson, render_json};
 use common::{assert_oracle_current, load_json, num};
 
 const FIXTURE: &str = concat!(
@@ -36,66 +37,10 @@ const ORACLE: &str = concat!(
     "/tests/tools/narration_oracle/take_join.mjs"
 );
 
-/// The tone names the cases use.
-const TONES: [&str; 4] = ["150", "180", "260", "300"];
-
 #[derive(Debug, Deserialize)]
 struct Fixture {
     anchor: Vec<OpJson>,
     cases: Vec<Case>,
-}
-
-/// One signal op, as signals.mjs writes it.
-#[derive(Debug, Deserialize)]
-#[serde(tag = "kind", rename_all = "lowercase")]
-enum OpJson {
-    Tone {
-        hz: String,
-        start: usize,
-        len: usize,
-        amp: f64,
-        attack: usize,
-        release: usize,
-    },
-    Noise {
-        start: usize,
-        len: usize,
-        amp: f64,
-        seed: u32,
-    },
-}
-
-impl OpJson {
-    fn op(&self) -> Op {
-        match self {
-            Self::Tone {
-                hz,
-                start,
-                len,
-                amp,
-                attack,
-                release,
-            } => {
-                let name = TONES
-                    .iter()
-                    .copied()
-                    .find(|t| *t == hz.as_str())
-                    .unwrap_or_else(|| panic!("no tone {hz} in TONES"));
-                tone(name, *start, *len, *amp, *attack, *release)
-            }
-            Self::Noise {
-                start,
-                len,
-                amp,
-                seed,
-            } => noise(*start, *len, *amp, *seed),
-        }
-    }
-}
-
-fn render(n: usize, ops: &[OpJson]) -> Vec<f32> {
-    let ops: Vec<Op> = ops.iter().map(OpJson::op).collect();
-    signals::render(n, &ops)
 }
 
 #[derive(Debug, Deserialize)]
@@ -202,7 +147,7 @@ impl TakeJudge for Judge<'_> {
                 heard: t.heard.clone(),
             },
             take: Take {
-                samples: pcm16_round_trip(&render(t.n, &t.ops)),
+                samples: pcm16_round_trip(&render_json(t.n, &t.ops)),
                 rate: JOIN_RATE,
             },
             seed: spec.seed,
@@ -256,7 +201,7 @@ fn run(case: &Case, voice_median: f64) -> Result<()> {
         "voice median, case {name}"
     );
     for t in &case.takes {
-        let input = signals::fnv1a(&pcm16_round_trip(&render(t.n, &t.ops)));
+        let input = signals::fnv1a(&pcm16_round_trip(&render_json(t.n, &t.ops)));
         assert_eq!(input, t.input, "input of take {:?}, case {name}", t.text);
     }
     let units: Vec<Chunk> = chunks(
@@ -353,7 +298,7 @@ fn run(case: &Case, voice_median: f64) -> Result<()> {
 fn matches_javascript_on_every_case() -> Result<()> {
     let fixture: Fixture = load_json(Path::new(FIXTURE));
     assert!(!fixture.cases.is_empty(), "fixture must not be empty");
-    let anchor = render(JOIN_RATE as usize, &fixture.anchor);
+    let anchor = render_json(JOIN_RATE as usize, &fixture.anchor);
     let voice_median = median_pitch(&pcm16_round_trip(&anchor));
     for case in &fixture.cases {
         run(case, voice_median)?;

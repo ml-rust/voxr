@@ -67,6 +67,9 @@ name = "narration_anchor_oracle"
 [[test]]
 name = "narration_join_oracle"
 
+[[test]]
+name = "narration_speak_oracle"
+
 [[example]]
 name = "transcribe_take"
 required-features = ["whisper"]

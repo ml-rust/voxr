@@ -1,6 +1,7 @@
 //! Shared fixtures for the narration oracle tests: JSON fixture loading, the
 //! fixture freshness check, the deterministic test signals, the polish
-//! cases, the pace cases and the transcript fixture.
+//! cases, the pace cases, the transcript fixture and the take oracles'
+//! files.
 
 // Each file in `tests/` compiles as its own crate and includes this module
 // whole, so a helper one test crate does not call reads as dead code there.
@@ -15,6 +16,7 @@ use serde_json::Value;
 pub mod pace_cases;
 pub mod polish_cases;
 pub mod signals;
+pub mod take_files;
 pub mod transcript_cases;
 
 /// Read and parse `path` as JSON, panicking with the path on either failure.

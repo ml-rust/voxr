@@ -5,6 +5,7 @@
 use crate::error::Result;
 use crate::glitch::{repair_clicks, tidy};
 use crate::text::sayable;
+use crate::transcript::Transcribed;
 use crate::wav::pcm16_round_trip;
 
 use super::engine::{Graded, Take, TakeJudge, TakeSpec};
@@ -104,6 +105,22 @@ impl<H: Hearing> TakeJudge for HeardJudge<H> {
     }
 }
 
+/// A judge that also hears a user's recording, for the transcript Hi-Fi
+/// cloning clones with.
+pub trait ReferenceHearing {
+    /// The words the run's main recognizer hears in `samples`, at `rate`
+    /// samples per second.
+    fn hear_reference(&mut self, samples: &[f32], rate: u32) -> Result<Transcribed>;
+}
+
+impl<H: Hearing> ReferenceHearing for HeardJudge<H> {
+    /// Hears through [`HeardJudge::main`], in [`HeardJudge::language`].
+    fn hear_reference(&mut self, samples: &[f32], rate: u32) -> Result<Transcribed> {
+        self.hearing
+            .hear(samples, rate, self.main, self.language.as_deref())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::super::hear::tests::hearing;
@@ -135,6 +152,20 @@ mod tests {
         assert_eq!(j.why(), crate::glitch::CUT_OFF);
         assert_eq!(j.badness(), Some(1.0));
         assert_eq!(j.seed, 7.0);
+        Ok(())
+    }
+
+    #[test]
+    fn a_reference_is_heard_by_the_main_recognizer() -> Result<()> {
+        let mut judge = HeardJudge {
+            hearing: hearing(&[], &[("hello there", false)]),
+            main: Recognizer::Small,
+            language: Some("ms".to_string()),
+        };
+        let heard = judge.hear_reference(&[0.0; 8], 48000)?;
+        let words: Vec<&str> = heard.words.iter().map(|w| w.text.as_str()).collect();
+        assert_eq!(words, ["hello", "there"]);
+        assert_eq!(judge.hearing.calls, [Recognizer::Small]);
         Ok(())
     }
 }
