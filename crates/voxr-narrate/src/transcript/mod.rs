@@ -19,7 +19,7 @@ pub use envelope::{Envelope, HOP, TRANSCRIPT_RATE, envelope};
 pub use even::even_out;
 pub use fit::{PhraseGroups, fit_file, fit_to_sound, last_run};
 pub use loops::{Collapsed, collapse_loops};
-pub use onsets::{snap_ends, snap_onsets};
+pub use onsets::{hand_back_tails, snap_ends, snap_onsets};
 pub use output::{
     AUDIO_LEAD, AUDIO_TAIL, Narration, NarrationManifest, SceneNarration, Spoken, TimelineWords,
     Voiceover, WordsFile, js_json, narrations, spoken_words, words_file, write_timeline,

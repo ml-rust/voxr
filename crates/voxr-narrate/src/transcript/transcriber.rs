@@ -4,7 +4,7 @@
 use super::envelope::{RATE, TRANSCRIPT_RATE, envelope};
 use super::fit::fit_to_sound;
 use super::loops::collapse_loops;
-use super::onsets::{snap_ends, snap_onsets};
+use super::onsets::{hand_back_tails, snap_ends, snap_onsets};
 use super::pieces::pieces;
 use crate::check::HeardWord;
 use crate::error::Result;
@@ -17,6 +17,8 @@ pub const DEFAULT_LANGUAGE: &str = "en";
 /// A word whose whole span stays under this level, in dBFS, was never
 /// spoken.
 const NEVER_LOUD_DB: f64 = -50.0;
+/// A word shorter than this, in seconds, has no length.
+const NO_LENGTH: f64 = 0.06;
 /// Decimals of every time a transcript holds.
 const TIME_DECIMALS: usize = 3;
 
@@ -61,11 +63,17 @@ pub struct Transcribed {
 /// end. Words with no text are skipped.
 ///
 /// A recognizer invents words in digital silence (a "you" after the last
-/// line): a word whose whole span stays under -50 dBFS is dropped. Loops
-/// are collapsed ([`collapse_loops`]), then starts after a pause
-/// ([`snap_onsets`]), ends ([`snap_ends`]) and the rest
-/// ([`fit_to_sound`]) settle on the sound. Times and the length are
-/// rounded to milliseconds last.
+/// line): a word whose whole span stays under -50 dBFS is dropped. A word
+/// with no length (under 60 ms) whose next word starts under 60 ms after
+/// it is judged over both, the span [`snap_ends`] shares between them.
+/// Loops are collapsed ([`collapse_loops`]). Then these settle on the
+/// sound, in order:
+/// - a start on the previous word's tail ([`hand_back_tails`]),
+/// - starts after a pause ([`snap_onsets`]),
+/// - ends ([`snap_ends`]),
+/// - the rest ([`fit_to_sound`]).
+///
+/// Times and the length are rounded to milliseconds last.
 pub fn transcribe_narration(
     samples_16k: &[f32],
     transcriber: &mut dyn Transcriber,
@@ -99,9 +107,17 @@ pub fn transcribe_narration(
         }
     }
     let quiet = js_pow(10.0, NEVER_LOUD_DB / 20.0);
-    words.retain(|w| peak(pcm, w) > quiet);
+    let spoken: Vec<bool> = (0..words.len())
+        .map(|i| peak(pcm, &judged_span(&words, i)) > quiet)
+        .collect();
+    let words: Vec<HeardWord> = words
+        .into_iter()
+        .zip(spoken)
+        .filter_map(|(w, spoken)| spoken.then_some(w))
+        .collect();
     let looped = collapse_loops(&words)?;
     let mut words = looped.words;
+    hand_back_tails(&mut words, &env)?;
     snap_onsets(&mut words, &env);
     snap_ends(&mut words, &env, duration);
     fit_to_sound(&mut words, &env, duration)?;
@@ -114,6 +130,21 @@ pub fn transcribe_narration(
         looped: looped.found,
         duration: js_to_fixed(duration, TIME_DECIMALS),
     })
+}
+
+/// The span the level of word `i` is judged over: its own, or with no
+/// length and the next word starting under 60 ms after it, through the
+/// next word's end.
+fn judged_span(words: &[HeardWord], i: usize) -> HeardWord {
+    let w = &words[i];
+    match words.get(i + 1) {
+        Some(n) if w.end - w.start < NO_LENGTH && n.start - w.start < NO_LENGTH => HeardWord {
+            text: String::new(),
+            start: w.start,
+            end: js_max(w.end, n.end),
+        },
+        _ => w.clone(),
+    }
 }
 
 /// The largest magnitude of the samples a word spans, from the sample its
@@ -185,6 +216,24 @@ mod tests {
         assert_eq!(out.words[1].end, 2.0);
         assert_eq!(out.duration, 3.0);
         assert!(!out.looped);
+        Ok(())
+    }
+
+    #[test]
+    fn word_with_no_length_is_judged_with_the_next() -> Result<()> {
+        let mut x = vec![0.0f32; 48000];
+        x[8000..32000].fill(0.3);
+        let mut t = Scripted {
+            pieces: vec![vec![
+                word("He", 0.0, 0.0),
+                word("laments", 0.0, 1.2),
+                word("you", 3.0, 3.0),
+            ]],
+            calls: Vec::new(),
+        };
+        let out = transcribe_narration(&x, &mut t, &TranscribeOptions::default())?;
+        let texts: Vec<&str> = out.words.iter().map(|w| w.text.as_str()).collect();
+        assert_eq!(texts, ["He", "laments"]);
         Ok(())
     }
 

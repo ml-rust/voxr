@@ -4,8 +4,10 @@
 
 use super::envelope::{Envelope, frame_at, frame_ceil, frame_seconds};
 use crate::check::HeardWord;
+use crate::check::speech_match::letters;
+use crate::error::Result;
 use crate::js::{js_max, js_min, js_to_fixed};
-use crate::pattern::utf16_len;
+use crate::pattern::{Patterns, utf16_len};
 
 /// A word that starts this long after the previous word's end, in seconds,
 /// follows a pause.
@@ -22,6 +24,63 @@ const PAIR_SPAN: f64 = 0.12;
 const LOOSE: f64 = 0.05;
 /// Decimals of a shared edge.
 const TIME_DECIMALS: usize = 3;
+/// Seconds per letter a word needs at the least.
+const MIN_LETTER: f64 = 0.05;
+/// Loud frames in a row, 30 ms, that make a word's own sound.
+const MIN_RUN: i64 = 3;
+
+/// Gives the tail of a word's sound back to it when the next word's start
+/// lands on that tail.
+///
+/// A recognizer can start a word on the last frames of the word before it,
+/// then a pause, then the word's own sound ("the | furnishing"). A word is
+/// moved when:
+/// - it starts under 50 ms after the previous word's end,
+/// - the sound runs across its start,
+/// - that sound stops within less time than the word's letters need
+///   (0.05 s per letter), followed by 80 ms of silence,
+/// - and 30 ms of sound follows before the word's end.
+///
+/// The word then starts where that later sound rises, and the previous
+/// word ends where the tail stops, when it ended before that.
+///
+/// # Errors
+///
+/// [`Error::Pattern`](crate::Error::Pattern) when the word pattern fails to
+/// build.
+pub fn hand_back_tails(words: &mut [HeardWord], env: &Envelope) -> Result<()> {
+    let p = Patterns::get()?;
+    for i in 1..words.len() {
+        let (head, tail) = words.split_at_mut(i);
+        let prev = &mut head[i - 1];
+        let w = &mut tail[0];
+        let f = frame_at(w.start);
+        if w.start - prev.end >= LOOSE || !env.loud(f - 1) || !env.loud(f) {
+            continue;
+        }
+        let bound = frame_at(w.end);
+        let mut k = f;
+        while k < bound && env.loud(k) {
+            k += 1;
+        }
+        let tail_end = k;
+        let need = MIN_LETTER * letters(p, &w.text) as f64;
+        if frame_seconds(tail_end - f) >= need {
+            continue;
+        }
+        let mut quiet = 0;
+        while k < bound && !env.loud(k) {
+            quiet += 1;
+            k += 1;
+        }
+        if quiet < EDGE_QUIET as i64 || !(k..k + MIN_RUN).all(|j| j < bound && env.loud(j)) {
+            continue;
+        }
+        prev.end = js_max(prev.end, frame_seconds(tail_end));
+        w.start = frame_seconds(k);
+    }
+    Ok(())
+}
 
 /// Starts a word that follows a pause where its sound rises.
 ///
@@ -63,9 +122,11 @@ pub fn snap_onsets(words: &mut [HeardWord], env: &Envelope) {
 ///
 /// A recognizer's word ends are loose: an end can run a second into the
 /// pause after it, and a word can get no length at all. A word with no
-/// length (under 60 ms) whose next word starts under 60 ms after it shares
-/// the span up to the next word's end (at least 0.12 s) by raw text length,
-/// punctuation included, and the shared edge is rounded to milliseconds.
+/// length (under 60 ms) whose next word starts under 60 ms after it first
+/// starts where the sound rises before the next word's end, when it starts
+/// in silence. It then shares the span up to the next word's end (at least
+/// 0.12 s) by raw text length, punctuation included, and the shared edge
+/// is rounded to milliseconds.
 /// Any other word ends at the last loud frame before 80 ms of silence,
 /// searched from its start up to the next word's start (or `duration`),
 /// when its end runs over 50 ms past that or it has no length. It then
@@ -79,6 +140,10 @@ pub fn snap_ends(words: &mut [HeardWord], env: &Envelope, duration: f64) {
             && let Some(n) = next.as_deref_mut()
             && n.start - w.start < NO_LENGTH
         {
+            let stop = frame_at(n.end);
+            if let Some(k) = (frame_at(w.start)..stop).find(|&k| env.loud(k)) {
+                w.start = js_max(w.start, frame_seconds(k));
+            }
             let own = utf16_len(&w.text) as f64;
             let share = own / (own + utf16_len(&n.text) as f64);
             let edge = js_to_fixed(
@@ -156,6 +221,55 @@ mod tests {
         let mut words = [word("a", 1.0, 2.8)];
         snap_ends(&mut words, &one_second(), 3.0);
         assert_eq!(words[0].end, 2.0);
+    }
+
+    /// "the" loud over frames 100 to 167, silence to 195, "furnishing"
+    /// loud over 196 to 259, the rest silent, 3 s in all.
+    fn tail_then_word() -> Envelope {
+        let mut env = vec![0.0; 300];
+        env[100..168].fill(1.0);
+        env[196..260].fill(1.0);
+        Envelope { env, floor: 0.01 }
+    }
+
+    #[test]
+    fn start_on_the_previous_tail_moves_past_the_pause() -> Result<()> {
+        let mut words = [word("the", 1.0, 1.6), word("furnishing", 1.6, 2.5)];
+        hand_back_tails(&mut words, &tail_then_word())?;
+        assert_eq!(words[0].end, 1.68);
+        assert_eq!(words[1].start, 1.96);
+        Ok(())
+    }
+
+    #[test]
+    fn tail_long_enough_for_the_word_stays_its_own() -> Result<()> {
+        // 80 ms of sound is all "a" needs: it is the word, not a tail.
+        let mut words = [word("the", 1.0, 1.6), word("a", 1.6, 2.5)];
+        hand_back_tails(&mut words, &tail_then_word())?;
+        assert_eq!((words[0].end, words[1].start), (1.6, 1.6));
+        Ok(())
+    }
+
+    #[test]
+    fn tail_without_later_sound_or_after_a_gap_stays() -> Result<()> {
+        // The word ends before the later sound.
+        let mut words = [word("the", 1.0, 1.6), word("furnishing", 1.6, 1.9)];
+        hand_back_tails(&mut words, &tail_then_word())?;
+        assert_eq!((words[0].end, words[1].start), (1.6, 1.6));
+        // The word starts 60 ms after the previous end.
+        let mut words = [word("the", 1.0, 1.54), word("furnishing", 1.6, 2.5)];
+        hand_back_tails(&mut words, &tail_then_word())?;
+        assert_eq!((words[0].end, words[1].start), (1.54, 1.6));
+        Ok(())
+    }
+
+    #[test]
+    fn crushed_pair_in_silence_starts_at_the_sound() {
+        let mut words = [word("The", 0.0, 0.0), word("end.", 0.0, 1.6)];
+        snap_ends(&mut words, &one_second(), 3.0);
+        assert_eq!(words[0].start, 1.0);
+        assert_eq!(words[0].end, 1.257);
+        assert_eq!(words[1].start, 1.257);
     }
 
     #[test]
