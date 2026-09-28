@@ -1,10 +1,12 @@
-//! Deterministic test signals for the narration glitch oracle, built bit for
-//! bit as `tests/tools/narration_oracle/signals.mjs` builds them.
+//! Deterministic test signals for the narration glitch and polish oracles,
+//! built bit for bit as `tests/tools/narration_oracle/signals.mjs` builds
+//! them.
 //!
 //! No transcendental function runs: a tone comes from the recurrence
 //! `y[n] = c*y[n-1] - y[n-2]` with `c = 2cos(w)` and `y[1] = sin(w)` written
 //! as literals, noise from an integer xorshift32 generator, envelopes from
-//! linear ramps. Each op adds into the buffer in `f64` and stores `f32`.
+//! linear ramps, an offset from a literal. Each op adds into the buffer in
+//! `f64` and stores `f32`.
 
 /// `2cos(w)` and `sin(w)` for a tone of the named frequency at 48 kHz, or at
 /// 44.1 kHz for the `_44` names.
@@ -46,9 +48,22 @@ pub enum Op {
     },
     /// One sample of `value` added at `at`.
     Spike { at: usize, value: f64 },
+    /// `value` added to each of `len` samples from `start`: a DC offset.
+    Dc {
+        start: usize,
+        len: usize,
+        value: f64,
+    },
 }
 
-fn tone(hz: &'static str, start: usize, len: usize, amp: f64, attack: usize, release: usize) -> Op {
+pub fn tone(
+    hz: &'static str,
+    start: usize,
+    len: usize,
+    amp: f64,
+    attack: usize,
+    release: usize,
+) -> Op {
     Op::Tone {
         hz,
         start,
@@ -59,7 +74,7 @@ fn tone(hz: &'static str, start: usize, len: usize, amp: f64, attack: usize, rel
     }
 }
 
-fn noise(start: usize, len: usize, amp: f64, seed: u32) -> Op {
+pub fn noise(start: usize, len: usize, amp: f64, seed: u32) -> Op {
     Op::Noise {
         start,
         len,
@@ -68,8 +83,12 @@ fn noise(start: usize, len: usize, amp: f64, seed: u32) -> Op {
     }
 }
 
-fn spike(at: usize, value: f64) -> Op {
+pub fn spike(at: usize, value: f64) -> Op {
     Op::Spike { at, value }
+}
+
+pub fn dc(start: usize, len: usize, value: f64) -> Op {
+    Op::Dc { start, len, value }
 }
 
 /// Adds each op into `n` zero samples, in order.
@@ -126,6 +145,11 @@ pub fn render(n: usize, ops: &[Op]) -> Vec<f32> {
                 }
             }
             Op::Spike { at, value } => x[at] = (f64::from(x[at]) + value) as f32,
+            Op::Dc { start, len, value } => {
+                for v in &mut x[start..start + len] {
+                    *v = (f64::from(*v) + value) as f32;
+                }
+            }
         }
     }
     x
@@ -134,12 +158,16 @@ pub fn render(n: usize, ops: &[Op]) -> Vec<f32> {
 /// FNV-1a (32-bit) over each sample's `f32` bit pattern, low byte first, as
 /// 8 hex digits.
 pub fn fnv1a(x: &[f32]) -> String {
+    let bytes: Vec<u8> = x.iter().flat_map(|s| s.to_bits().to_le_bytes()).collect();
+    fnv1a_bytes(&bytes)
+}
+
+/// FNV-1a (32-bit) over bytes, as 8 hex digits.
+pub fn fnv1a_bytes(bytes: &[u8]) -> String {
     let mut h: u32 = 0x811c9dc5;
-    for s in x {
-        for byte in s.to_bits().to_le_bytes() {
-            h ^= u32::from(byte);
-            h = h.wrapping_mul(0x01000193);
-        }
+    for &byte in bytes {
+        h ^= u32::from(byte);
+        h = h.wrapping_mul(0x01000193);
     }
     format!("{h:08x}")
 }

@@ -6,6 +6,7 @@
 //! rounded to `f32`, so the result matches the JavaScript tidy bit for bit.
 
 use crate::js::{js_round, js_to_fixed_text};
+use crate::js_math::js_log10;
 
 /// A frame is loud within this many dB of the take's loudest frame.
 const LOUD_DB: f64 = -40.0;
@@ -85,7 +86,7 @@ pub fn tidy(x: &[f32], rate: u32) -> TidyReport {
                 }
             }
             env.push((e / hop as f64).sqrt());
-            bright.push(10.0 * (d / (e + 1e-12) + 1e-12).log10());
+            bright.push(10.0 * js_log10(d / (e + 1e-12) + 1e-12));
             i += hop;
         }
     }

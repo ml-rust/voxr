@@ -15,15 +15,14 @@
 //! repaired samples, and every number as `String(x)`: all compare exactly.
 
 use std::path::Path;
-use std::process::Command;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use voxr_narrate::{self as narration, ChunkOptions, Error, HeardWord, PAUSES, STRAY_PAUSE};
 
 mod common;
-use common::load_json;
 use common::signals::{self, Run, VoiceMedian};
+use common::{assert_oracle_current, check, load_json, num};
 
 const FIXTURE: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
@@ -228,37 +227,6 @@ fn matches_javascript_on_every_case() {
     }
 }
 
-/// Reruns `oracle` and checks the committed `fixture` is what it prints.
-/// Needs `NARRATION_JS_DIR` (the directory holding the JavaScript modules)
-/// and `node` on PATH.
-fn assert_oracle_current(oracle: &str, fixture: &str) {
-    let Some(js_dir) = std::env::var_os("NARRATION_JS_DIR").filter(|d| !d.is_empty()) else {
-        eprintln!("skipping: narration oracle rerun unavailable; set NARRATION_JS_DIR");
-        return;
-    };
-    let Ok(output) = Command::new("node")
-        .arg(oracle)
-        .env("NARRATION_JS_DIR", &js_dir)
-        .output()
-    else {
-        eprintln!("skipping: narration oracle rerun unavailable; put node on PATH");
-        return;
-    };
-    assert!(
-        output.status.success(),
-        "{oracle} failed ({}): {}",
-        output.status,
-        String::from_utf8_lossy(&output.stderr)
-    );
-    let fresh: Value = serde_json::from_slice(&output.stdout)
-        .unwrap_or_else(|e| panic!("parsing {oracle} output: {e}"));
-    let committed: Value = load_json(Path::new(fixture));
-    assert!(
-        fresh == committed,
-        "{fixture} is stale: regenerate it with `NARRATION_JS_DIR=<dir> node {oracle} > {fixture}`"
-    );
-}
-
 #[test]
 fn oracle_fixture_is_current() {
     assert_oracle_current(ORACLE, FIXTURE);
@@ -311,12 +279,6 @@ struct HeatOut {
     heat: String,
 }
 
-/// `String(x)` read back: the exact double.
-fn num(text: &str) -> f64 {
-    text.parse()
-        .unwrap_or_else(|e| panic!("fixture number {text:?}: {e}"))
-}
-
 fn nums(texts: &[String]) -> Vec<f64> {
     texts.iter().map(|t| num(t)).collect()
 }
@@ -324,11 +286,6 @@ fn nums(texts: &[String]) -> Vec<f64> {
 /// Every difference between the port and the fixture on one case.
 fn glitch_differences(case: &signals::Case, want: &GlitchCase) -> Vec<String> {
     let mut diffs = Vec::new();
-    let mut check = |what: &str, got: String, expected: String| {
-        if got != expected {
-            diffs.push(format!("{what}: got {got}, want {expected}"));
-        }
-    };
     let x = signals::render(case.n, &case.ops);
     let input = signals::fnv1a(&x);
     if input != want.input {
@@ -345,34 +302,45 @@ fn glitch_differences(case: &signals::Case, want: &GlitchCase) -> Vec<String> {
             };
             let got = narration::tidy(&x, case.rate);
             check(
+                &mut diffs,
                 "tidy samples",
                 signals::fnv1a(&got.samples),
                 t.samples.clone(),
             );
             check(
+                &mut diffs,
                 "tidy faults",
                 format!("{:?}", got.faults),
                 format!("{:?}", t.faults),
             );
             check(
+                &mut diffs,
                 "tidy repairs",
                 format!("{:?}", got.repairs),
                 format!("{:?}", t.repairs),
             );
             let found = narration::clicks(&x, case.rate);
-            check("clicks", format!("{found:?}"), format!("{:?}", nums(c)));
+            check(
+                &mut diffs,
+                "clicks",
+                format!("{found:?}"),
+                format!("{:?}", nums(c)),
+            );
             let got = narration::repair_clicks(&x, case.rate);
             check(
+                &mut diffs,
                 "repairClicks samples",
                 signals::fnv1a(&got.samples),
                 r.samples.clone(),
             );
             check(
+                &mut diffs,
                 "repairClicks fixed",
                 format!("{:?}", got.fixed),
                 format!("{:?}", nums(&r.fixed)),
             );
             check(
+                &mut diffs,
                 "repairClicks left",
                 format!("{:?}", got.left),
                 format!("{:?}", nums(&r.left)),
@@ -384,12 +352,18 @@ fn glitch_differences(case: &signals::Case, want: &GlitchCase) -> Vec<String> {
                 return vec!["fixture lacks pitches, medianPitch or heat".to_string()];
             };
             check(
+                &mut diffs,
                 "pitches",
                 format!("{:?}", narration::pitches(&x)),
                 format!("{:?}", nums(p)),
             );
             let own = narration::median_pitch(&x);
-            check("medianPitch", format!("{own:?}"), format!("{:?}", num(m)));
+            check(
+                &mut diffs,
+                "medianPitch",
+                format!("{own:?}"),
+                format!("{:?}", num(m)),
+            );
             if medians.len() != h.len() {
                 return vec![format!(
                     "{} heat readings, fixture has {}",
@@ -411,11 +385,13 @@ fn glitch_differences(case: &signals::Case, want: &GlitchCase) -> Vec<String> {
                     .as_deref()
                     .map(|v| format!("{:?}", num(v)));
                 check(
+                    &mut diffs,
                     "heat voice median",
                     format!("{given:?}"),
                     format!("{fixture:?}"),
                 );
                 check(
+                    &mut diffs,
                     format!("heat at {given:?}").as_str(),
                     format!("{:?}", narration::heat(&x, voice)),
                     format!("{:?}", num(&want.heat)),

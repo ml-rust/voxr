@@ -1,6 +1,6 @@
 //! JavaScript number semantics the narration checks reproduce: `toFixed` as
-//! text and read back as a number, `Math.round`, and
-//! `Number.prototype.toString`.
+//! text and read back as a number, `Math.round`, `Math.min` and `Math.max`,
+//! and `Number.prototype.toString`.
 
 /// `+x.toFixed(digits)`: `x` rounded to `digits` decimals, read back as a
 /// number.
@@ -72,6 +72,34 @@ pub(crate) fn js_round(x: f64) -> f64 {
     let floor = x.floor();
     // `x - floor` is exact for every double.
     if x - floor >= 0.5 { floor + 1.0 } else { floor }
+}
+
+/// `Math.min(a, b)`: NaN when either is NaN, and -0 under +0. Rust's `min`
+/// drops a NaN operand.
+pub(crate) fn js_min(a: f64, b: f64) -> f64 {
+    if a.is_nan() || b.is_nan() {
+        f64::NAN
+    } else if a == b {
+        if a.is_sign_negative() { a } else { b }
+    } else if a < b {
+        a
+    } else {
+        b
+    }
+}
+
+/// `Math.max(a, b)`: NaN when either is NaN, and +0 over -0. Rust's `max`
+/// drops a NaN operand.
+pub(crate) fn js_max(a: f64, b: f64) -> f64 {
+    if a.is_nan() || b.is_nan() {
+        f64::NAN
+    } else if a == b {
+        if a.is_sign_positive() { a } else { b }
+    } else if a > b {
+        a
+    } else {
+        b
+    }
 }
 
 /// `String(x)`: the shortest digits that read back as `x`, in JavaScript's
@@ -185,6 +213,19 @@ mod tests {
         assert_eq!(js_round(0.49999999999999994), 0.0);
         assert_eq!(js_round(480.00000000000006), 480.0);
         assert_eq!(js_round(-0.4), 0.0);
+    }
+
+    #[test]
+    fn min_and_max_keep_nan_and_signed_zeros() {
+        assert!(js_min(1.0, f64::NAN).is_nan());
+        assert!(js_max(f64::NAN, 1.0).is_nan());
+        assert_eq!(js_min(2.0, -3.0), -3.0);
+        assert_eq!(js_max(2.0, -3.0), 2.0);
+        assert!(js_min(0.0, -0.0).is_sign_negative());
+        assert!(js_min(-0.0, 0.0).is_sign_negative());
+        assert!(js_max(-0.0, 0.0).is_sign_positive());
+        assert!(js_max(0.0, -0.0).is_sign_positive());
+        assert_eq!(js_min(f64::NEG_INFINITY, 1.0), f64::NEG_INFINITY);
     }
 
     #[test]

@@ -1,6 +1,7 @@
-// Deterministic test signals for the narration glitch oracle. No transcendental function runs here: a tone comes from
-// the recurrence y[n] = c*y[n-1] - y[n-2] with c = 2cos(w) and y[1] = sin(w) written as literals, noise from an
-// integer xorshift32 generator, envelopes from linear ramps. Every sample is stored through Math.fround.
+// Deterministic test signals for the narration glitch and polish oracles. No transcendental function runs here: a
+// tone comes from the recurrence y[n] = c*y[n-1] - y[n-2] with c = 2cos(w) and y[1] = sin(w) written as literals, noise
+// from an integer xorshift32 generator, envelopes from linear ramps, an offset from a literal. Every sample is stored
+// through Math.fround.
 // tests/common/signals.rs builds the same buffers bit for bit; each case's input hash checks that.
 
 // 2cos(w) and sin(w) for a tone of the named frequency at 48 kHz, or at 44.1 kHz for the `_44` names.
@@ -27,6 +28,8 @@ export const tone = (hz, start, len, amp, attack, release) => ({ kind: 'tone', h
 export const noise = (start, len, amp, seed) => ({ kind: 'noise', start, len, amp, seed });
 // One sample of `value` added at `at`.
 export const spike = (at, value) => ({ kind: 'spike', at, value });
+// `value` added to each of `len` samples from `start`: a DC offset.
+export const dc = (start, len, value) => ({ kind: 'dc', start, len, value });
 
 // Adds each op into `n` zero samples, in order: x[i] = fround(x[i] + v).
 export function render(n, ops) {
@@ -56,6 +59,8 @@ export function render(n, ops) {
       }
     } else if (op.kind === 'spike') {
       x[op.at] = Math.fround(x[op.at] + op.value);
+    } else if (op.kind === 'dc') {
+      for (let i = 0; i < op.len; i++) x[op.start + i] = Math.fround(x[op.start + i] + op.value);
     } else {
       throw new Error(`signals: unknown op ${op.kind}`);
     }
@@ -72,6 +77,16 @@ export function fnv1a(x) {
       h ^= (w >>> b) & 0xff;
       h = Math.imul(h, 0x01000193) >>> 0;
     }
+  }
+  return h.toString(16).padStart(8, '0');
+}
+
+// FNV-1a (32-bit) over bytes, as 8 hex digits.
+export function fnv1aBytes(bytes) {
+  let h = 0x811c9dc5;
+  for (const b of bytes) {
+    h ^= b;
+    h = Math.imul(h, 0x01000193) >>> 0;
   }
   return h.toString(16).padStart(8, '0');
 }

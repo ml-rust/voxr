@@ -1,0 +1,415 @@
+{
+ "cases": [
+  {
+   "name": "sentences within, beyond and under the level limits",
+   "rate": 48000,
+   "n": 96000,
+   "input": "26493186",
+   "compress": "ded98fe3",
+   "deEss": {
+    "samples": "6a9f6266",
+    "share": "0",
+    "deepest": "0"
+   },
+   "normalize": "8621d26c",
+   "normalizeMinus6": "afb3f00b",
+   "levels": [
+    "-13.586014707724894",
+    "-19.606596092110394",
+    "-19.046032649009028",
+    "-31.087225224272625"
+   ],
+   "polish": {
+    "leveled": "9804a973",
+    "samples": "d1390953",
+    "pcm16": "c1ef47ba",
+    "stats": {
+     "leveled": 2,
+     "maxGain": "6",
+     "essShare": "0",
+     "essDeepest": "0"
+    }
+   }
+  },
+  {
+   "name": "one sentence with speech",
+   "rate": 48000,
+   "n": 48000,
+   "input": "6364c842",
+   "compress": "33ce6794",
+   "deEss": {
+    "samples": "76f2f435",
+    "share": "0",
+    "deepest": "0"
+   },
+   "normalize": "87f7d4bd",
+   "normalizeMinus6": "a56eb93c",
+   "levels": [
+    "-13.586014707724894",
+    null,
+    null
+   ],
+   "polish": {
+    "leveled": "6364c842",
+    "samples": "8d24a928",
+    "pcm16": "ea6232b5",
+    "stats": {
+     "leveled": 0,
+     "maxGain": "0",
+     "essShare": "0",
+     "essDeepest": "0"
+    }
+   }
+  },
+  {
+   "name": "sentences past both ends of the take",
+   "rate": 48000,
+   "n": 48000,
+   "input": "c1dc8553",
+   "compress": "ae24f490",
+   "deEss": {
+    "samples": "d0689e42",
+    "share": "0",
+    "deepest": "0"
+   },
+   "normalize": "c13f4413",
+   "normalizeMinus6": "f91564ac",
+   "levels": [
+    "-13.61605639100658",
+    "-25.047077356150453"
+   ],
+   "polish": {
+    "leveled": "e46d0b76",
+    "samples": "2463811b",
+    "pcm16": "2d0e1ab4",
+    "stats": {
+     "leveled": 1,
+     "maxGain": "6",
+     "essShare": "0",
+     "essDeepest": "0"
+    }
+   }
+  },
+  {
+   "name": "quiet voice under the knee",
+   "rate": 48000,
+   "n": 24000,
+   "input": "69756d40",
+   "compress": "497984e4",
+   "deEss": {
+    "samples": "2e9eda44",
+    "share": "0",
+    "deepest": "0"
+   },
+   "normalize": "f940f0f3",
+   "normalizeMinus6": "6985f28c",
+   "levels": [],
+   "polish": {
+    "leveled": "69756d40",
+    "samples": "e1e31cdf",
+    "pcm16": "15c6656e",
+    "stats": {
+     "leveled": 0,
+     "maxGain": "0",
+     "essShare": "0",
+     "essDeepest": "0"
+    }
+   }
+  },
+  {
+   "name": "voice at the knee",
+   "rate": 48000,
+   "n": 24000,
+   "input": "a20984e6",
+   "compress": "b27e085f",
+   "deEss": {
+    "samples": "499ebd0f",
+    "share": "0",
+    "deepest": "0"
+   },
+   "normalize": "68018930",
+   "normalizeMinus6": "f878d01a",
+   "levels": [],
+   "polish": {
+    "leveled": "a20984e6",
+    "samples": "6ebf69e8",
+    "pcm16": "f897a1a3",
+    "stats": {
+     "leveled": 0,
+     "maxGain": "0",
+     "essShare": "0",
+     "essDeepest": "0"
+    }
+   }
+  },
+  {
+   "name": "loud voice over the knee",
+   "rate": 48000,
+   "n": 24000,
+   "input": "cafa68be",
+   "compress": "667c09ed",
+   "compressOptions": "575e9bd2",
+   "deEss": {
+    "samples": "61f0a810",
+    "share": "0",
+    "deepest": "0"
+   },
+   "normalize": "34eaa061",
+   "normalizeMinus6": "67b3f09c",
+   "levels": [],
+   "polish": {
+    "leveled": "cafa68be",
+    "samples": "007ecde5",
+    "pcm16": "3b47a5d4",
+    "stats": {
+     "leveled": 0,
+     "maxGain": "0",
+     "essShare": "0",
+     "essDeepest": "0"
+    }
+   }
+  },
+  {
+   "name": "sibilant burst over a voiced tone",
+   "rate": 48000,
+   "n": 48000,
+   "input": "830aef4f",
+   "compress": "afc7db24",
+   "deEss": {
+    "samples": "47016254",
+    "share": "0.11827956989247312",
+    "deepest": "-5.047199682843388"
+   },
+   "normalize": "ed5a6a13",
+   "normalizeMinus6": "ebf5e7e1",
+   "levels": [
+    "-15.534637721266652"
+   ],
+   "polish": {
+    "leveled": "830aef4f",
+    "samples": "3dab8833",
+    "pcm16": "73b7f0af",
+    "stats": {
+     "leveled": 0,
+     "maxGain": "0",
+     "essShare": "0.0967741935483871",
+     "essDeepest": "-2.6921025536968664"
+    }
+   }
+  },
+  {
+   "name": "dull voice",
+   "rate": 48000,
+   "n": 48000,
+   "input": "e27acb19",
+   "compress": "63b77195",
+   "deEss": {
+    "samples": "dc89be29",
+    "share": "0",
+    "deepest": "0"
+   },
+   "normalize": "501760ff",
+   "normalizeMinus6": "d5301648",
+   "levels": [
+    "-13.526539731493191"
+   ],
+   "polish": {
+    "leveled": "e27acb19",
+    "samples": "225f0912",
+    "pcm16": "8a0a4081",
+    "stats": {
+     "leveled": 0,
+     "maxGain": "0",
+     "essShare": "0",
+     "essDeepest": "0"
+    }
+   }
+  },
+  {
+   "name": "no vowel energy",
+   "rate": 48000,
+   "n": 24000,
+   "input": "7e4bc9c5",
+   "compress": "7e4bc9c5",
+   "deEss": {
+    "samples": "7e4bc9c5",
+    "share": null,
+    "deepest": null
+   },
+   "normalize": "7e4bc9c5",
+   "normalizeMinus6": "7e4bc9c5",
+   "levels": [
+    null
+   ],
+   "polish": {
+    "leveled": "7e4bc9c5",
+    "samples": "7e4bc9c5",
+    "pcm16": "9c6a33c5",
+    "stats": {
+     "leveled": 0,
+     "maxGain": "0",
+     "essShare": "0",
+     "essDeepest": "0"
+    }
+   }
+  },
+  {
+   "name": "44.1 kHz sibilant burst",
+   "rate": 44100,
+   "n": 44100,
+   "input": "03bb40cf",
+   "compress": "bb60b815",
+   "deEss": {
+    "samples": "d5e4b8df",
+    "share": "0.12790697674418605",
+    "deepest": "-5.5511077012693"
+   },
+   "normalize": "3fb1569c",
+   "normalizeMinus6": "c9711c57"
+  },
+  {
+   "name": "voice with a DC offset",
+   "rate": 48000,
+   "n": 48000,
+   "input": "946c937d",
+   "compress": "bd42c84d",
+   "deEss": {
+    "samples": "f6f10554",
+    "share": "0",
+    "deepest": "0"
+   },
+   "normalize": "16ffbb91",
+   "normalizeMinus6": "ae183883",
+   "levels": [
+    "-12.644313148266944"
+   ],
+   "polish": {
+    "leveled": "946c937d",
+    "samples": "786ce03f",
+    "pcm16": "b5ab36ee",
+    "stats": {
+     "leveled": 0,
+     "maxGain": "0",
+     "essShare": "0",
+     "essDeepest": "0"
+    }
+   }
+  },
+  {
+   "name": "buffer shorter than a frame",
+   "rate": 48000,
+   "n": 700,
+   "input": "3f60b293",
+   "compress": "dc63cfde",
+   "deEss": {
+    "samples": "ae0501b1",
+    "share": "1",
+    "deepest": "-8.417821241974984"
+   },
+   "normalize": "df5e0e6b",
+   "normalizeMinus6": "3629f76b",
+   "levels": [
+    "-25.06296123421057"
+   ],
+   "polish": {
+    "leveled": "3f60b293",
+    "samples": "fad971bd",
+    "pcm16": "7d8a5cf1",
+    "stats": {
+     "leveled": 0,
+     "maxGain": "0",
+     "essShare": "1",
+     "essDeepest": "-8.433491407078852"
+    }
+   }
+  },
+  {
+   "name": "empty buffer",
+   "rate": 48000,
+   "n": 0,
+   "input": "811c9dc5",
+   "compress": "811c9dc5",
+   "deEss": {
+    "samples": "811c9dc5",
+    "share": null,
+    "deepest": null
+   },
+   "normalize": "811c9dc5",
+   "normalizeMinus6": "811c9dc5",
+   "levels": [],
+   "polish": {
+    "leveled": "811c9dc5",
+    "samples": "811c9dc5",
+    "pcm16": "811c9dc5",
+    "stats": {
+     "leveled": 0,
+     "maxGain": "0",
+     "essShare": "0",
+     "essDeepest": "0"
+    }
+   }
+  },
+  {
+   "name": "whole chain: uneven sentences, a sibilant, an offset",
+   "rate": 48000,
+   "n": 144000,
+   "input": "7355aca1",
+   "compress": "cece7528",
+   "deEss": {
+    "samples": "3c167a24",
+    "share": "0.03202846975088968",
+    "deepest": "-4.6432239930226"
+   },
+   "normalize": "49ee021c",
+   "normalizeMinus6": "f888022c",
+   "levels": [
+    "-12.230813935292025",
+    "-21.31575563224046",
+    "-14.127655838980228"
+   ],
+   "polish": {
+    "leveled": "1bb9a921",
+    "samples": "f6376188",
+    "pcm16": "bf379e13",
+    "stats": {
+     "leveled": 2,
+     "maxGain": "6",
+     "essShare": "0.028469750889679714",
+     "essDeepest": "-3.6926914950817724"
+    }
+   }
+  }
+ ],
+ "pcm16": {
+  "values": [
+   "1",
+   "-1",
+   "1.5",
+   "-1.5",
+   "2",
+   "-2",
+   "0.5",
+   "-0.5",
+   "0.000015259254723787308",
+   "-0.000015259254723787308",
+   "0.25",
+   "-0.75",
+   "0"
+  ],
+  "ints": [
+   32767,
+   -32767,
+   32767,
+   -32768,
+   32767,
+   -32768,
+   16384,
+   -16383,
+   0,
+   0,
+   8192,
+   -24575,
+   0
+  ]
+ }
+}
