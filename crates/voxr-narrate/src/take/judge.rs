@@ -5,6 +5,7 @@
 use crate::error::Result;
 use crate::glitch::{repair_clicks, tidy};
 use crate::text::sayable;
+use crate::wav::pcm16_round_trip;
 
 use super::engine::{Graded, Take, TakeJudge, TakeSpec};
 use super::hear::{HeardCheck, Hearing, Recognizer, heard_check};
@@ -15,7 +16,8 @@ pub struct JudgedTake {
     /// The take heard back and checked. A fault the edge repair cannot fix
     /// fails the check and adds one badness each.
     pub heard: HeardCheck,
-    /// The take as used: edges tidied and clicks repaired.
+    /// The take as used: edges tidied, clicks repaired, and read back from
+    /// the 16-bit file the skill keeps it in.
     pub take: Take,
     /// The seed that made it.
     pub seed: f64,
@@ -61,17 +63,19 @@ impl<H: Hearing> TakeJudge for HeardJudge<H> {
     type Verdict = JudgedTake;
 
     /// The take's edges tidied ([`tidy`]), its clicks repaired
-    /// ([`repair_clicks`]), and the result heard against the part's
-    /// [`sayable`] text ([`heard_check`]). Each tidy fault fails the take,
-    /// joins its reason and adds one badness.
+    /// ([`repair_clicks`]), rounded to 16 bits as its tidied file holds it
+    /// ([`pcm16_round_trip`]), and heard against the part's [`sayable`]
+    /// text ([`heard_check`]). Each tidy fault fails the take, joins its
+    /// reason and adds one badness.
     fn judge(&mut self, spec: &TakeSpec, take: &Take) -> Result<JudgedTake> {
         let t = tidy(&take.samples, take.rate);
         let pops = repair_clicks(&t.samples, take.rate);
+        let used = pcm16_round_trip(&pops.samples);
         let text = sayable(&spec.text)?;
         let mut heard = heard_check(
             &mut self.hearing,
             self.main,
-            &pops.samples,
+            &used,
             take.rate,
             &text,
             self.language.as_deref(),
@@ -89,7 +93,7 @@ impl<H: Hearing> TakeJudge for HeardJudge<H> {
         Ok(JudgedTake {
             heard,
             take: Take {
-                samples: pops.samples,
+                samples: used,
                 rate: take.rate,
             },
             seed: spec.seed,

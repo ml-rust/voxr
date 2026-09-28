@@ -1,0 +1,1124 @@
+{
+ "checkpoint": "openbmb/VoxCPM2",
+ "voice": "(young woman, warm, low)",
+ "seed": 7,
+ "anchor": [
+  {
+   "kind": "noise",
+   "start": 0,
+   "len": 48000,
+   "amp": 0.00002,
+   "seed": 5
+  },
+  {
+   "kind": "tone",
+   "hz": "150",
+   "start": 0,
+   "len": 48000,
+   "amp": 0.3,
+   "attack": 480,
+   "release": 480
+  }
+ ],
+ "cases": [
+  {
+   "name": "a beat pause widened",
+   "script": "The river runs north today.\n\nThe herds come back to graze.",
+   "voiceMedian": "149.53271028037383",
+   "takes": [
+    {
+     "text": "The river runs north today. The herds come back to graze.",
+     "n": 115200,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 115200,
+       "amp": 0.00002,
+       "seed": 11
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 4800,
+       "len": 48000,
+       "amp": 0.3,
+       "attack": 480,
+       "release": 480
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 62400,
+       "len": 48000,
+       "amp": 0.3,
+       "attack": 480,
+       "release": 480
+      }
+     ],
+     "words": [
+      {
+       "text": "The",
+       "start": 0.1,
+       "end": 0.28
+      },
+      {
+       "text": "river",
+       "start": 0.3,
+       "end": 0.48
+      },
+      {
+       "text": "runs",
+       "start": 0.5,
+       "end": 0.68
+      },
+      {
+       "text": "north",
+       "start": 0.7,
+       "end": 0.88
+      },
+      {
+       "text": "today.",
+       "start": 0.9,
+       "end": 1.08
+      },
+      {
+       "text": "The",
+       "start": 1.3,
+       "end": 1.45
+      },
+      {
+       "text": "herds",
+       "start": 1.47,
+       "end": 1.61
+      },
+      {
+       "text": "come",
+       "start": 1.63,
+       "end": 1.78
+      },
+      {
+       "text": "back",
+       "start": 1.8,
+       "end": 1.95
+      },
+      {
+       "text": "to",
+       "start": 1.97,
+       "end": 2.11
+      },
+      {
+       "text": "graze.",
+       "start": 2.13,
+       "end": 2.28
+      }
+     ],
+     "ok": true,
+     "badness": 0,
+     "why": "",
+     "heard": "The river runs north today. The herds come back to graze.",
+     "doubt": [
+      "river"
+     ],
+     "pauses": [],
+     "clicks": [
+      0.42
+     ],
+     "input": "07a7d0f1"
+    }
+   ],
+   "parts": [
+    "The river runs north today. The herds come back to graze."
+   ],
+   "shaped": [
+    {
+     "samples": "c27120f1",
+     "length": 143040,
+     "spans": "[\n {\n  \"text\": \"The river runs north today.\",\n  \"start\": 0.05,\n  \"end\": 1.13\n },\n {\n  \"text\": \"The herds come back to graze.\",\n  \"start\": 1.83,\n  \"end\": 2.91\n }\n]"
+    }
+   ],
+   "joined": "c27120f1",
+   "file": "874f9993",
+   "duration": "2.98",
+   "phrases": "[\n {\n  \"text\": \"The river runs north today.\",\n  \"start\": 0.05,\n  \"end\": 1.13\n },\n {\n  \"text\": \"The herds come back to graze.\",\n  \"start\": 1.83,\n  \"end\": 2.91\n }\n]",
+   "checks": "[\n {\n  \"at\": 0,\n  \"text\": \"The river runs north today. The herds come back to graze.\",\n  \"ok\": true,\n  \"heard\": \"The river runs north today. The herds come back to graze.\",\n  \"why\": \"\",\n  \"seed\": 834,\n  \"doubt\": [\n   \"river\"\n  ],\n  \"heat\": 1.75,\n  \"hotText\": \"The herds come back to graze.\",\n  \"pauses\": [],\n  \"clicks\": [\n   0.42\n  ]\n }\n]",
+   "problems": []
+  },
+  {
+   "name": "a mark pause widened",
+   "script": "Wait for it now. [pause 1.2] Here it comes at last.",
+   "voiceMedian": "149.53271028037383",
+   "takes": [
+    {
+     "text": "Wait for it now. Here it comes at last.",
+     "n": 120000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 120000,
+       "amp": 0.00002,
+       "seed": 11
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 4800,
+       "len": 48000,
+       "amp": 0.3,
+       "attack": 480,
+       "release": 480
+      },
+      {
+       "kind": "tone",
+       "hz": "180",
+       "start": 67200,
+       "len": 48000,
+       "amp": 0.3,
+       "attack": 480,
+       "release": 480
+      }
+     ],
+     "words": [
+      {
+       "text": "Wait",
+       "start": 0.1,
+       "end": 0.33
+      },
+      {
+       "text": "for",
+       "start": 0.35,
+       "end": 0.58
+      },
+      {
+       "text": "it",
+       "start": 0.6,
+       "end": 0.83
+      },
+      {
+       "text": "now.",
+       "start": 0.85,
+       "end": 1.08
+      },
+      {
+       "text": "Here",
+       "start": 1.4,
+       "end": 1.58
+      },
+      {
+       "text": "it",
+       "start": 1.6,
+       "end": 1.78
+      },
+      {
+       "text": "comes",
+       "start": 1.8,
+       "end": 1.98
+      },
+      {
+       "text": "at",
+       "start": 2,
+       "end": 2.18
+      },
+      {
+       "text": "last.",
+       "start": 2.2,
+       "end": 2.38
+      }
+     ],
+     "ok": true,
+     "badness": 0,
+     "why": "",
+     "heard": "Wait for it now. Here it comes at last.",
+     "doubt": [],
+     "pauses": [],
+     "clicks": [],
+     "input": "8d478acb"
+    }
+   ],
+   "parts": [
+    "Wait for it now. Here it comes at last."
+   ],
+   "shaped": [
+    {
+     "samples": "d62c4acb",
+     "length": 162240,
+     "spans": "[\n {\n  \"text\": \"Wait for it now.\",\n  \"start\": 0.05,\n  \"end\": 1.13\n },\n {\n  \"text\": \"Here it comes at last.\",\n  \"start\": 2.23,\n  \"end\": 3.31\n }\n]"
+    }
+   ],
+   "joined": "d62c4acb",
+   "file": "6c53c4df",
+   "duration": "3.38",
+   "phrases": "[\n {\n  \"text\": \"Wait for it now.\",\n  \"start\": 0.05,\n  \"end\": 1.13\n },\n {\n  \"text\": \"Here it comes at last.\",\n  \"start\": 2.23,\n  \"end\": 3.31\n }\n]",
+   "checks": "[\n {\n  \"at\": 0,\n  \"text\": \"Wait for it now. Here it comes at last.\",\n  \"ok\": true,\n  \"heard\": \"Wait for it now. Here it comes at last.\",\n  \"why\": \"\",\n  \"seed\": 783,\n  \"doubt\": [],\n  \"heat\": 1.22,\n  \"hotText\": \"Here it comes at last.\",\n  \"pauses\": [],\n  \"clicks\": []\n }\n]",
+   "problems": []
+  },
+  {
+   "name": "a line pause and a long beat left as they are",
+   "script": "One two three four.\nFive six seven eight.\n\nNine ten eleven twelve.",
+   "voiceMedian": "149.53271028037383",
+   "takes": [
+    {
+     "text": "One two three four. Five six seven eight. Nine ten eleven twelve.",
+     "n": 216000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 216000,
+       "amp": 0.00002,
+       "seed": 11
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 4800,
+       "len": 48000,
+       "amp": 0.3,
+       "attack": 480,
+       "release": 480
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 57600,
+       "len": 48000,
+       "amp": 0.3,
+       "attack": 480,
+       "release": 480
+      },
+      {
+       "kind": "tone",
+       "hz": "180",
+       "start": 163200,
+       "len": 48000,
+       "amp": 0.3,
+       "attack": 480,
+       "release": 480
+      }
+     ],
+     "words": [
+      {
+       "text": "One",
+       "start": 0.1,
+       "end": 0.33
+      },
+      {
+       "text": "two",
+       "start": 0.35,
+       "end": 0.58
+      },
+      {
+       "text": "three",
+       "start": 0.6,
+       "end": 0.83
+      },
+      {
+       "text": "four.",
+       "start": 0.85,
+       "end": 1.08
+      },
+      {
+       "text": "Five",
+       "start": 1.2,
+       "end": 1.43
+      },
+      {
+       "text": "six",
+       "start": 1.45,
+       "end": 1.68
+      },
+      {
+       "text": "seven",
+       "start": 1.7,
+       "end": 1.93
+      },
+      {
+       "text": "eight.",
+       "start": 1.95,
+       "end": 2.18
+      },
+      {
+       "text": "Nine",
+       "start": 3.4,
+       "end": 3.63
+      },
+      {
+       "text": "ten",
+       "start": 3.65,
+       "end": 3.88
+      },
+      {
+       "text": "eleven",
+       "start": 3.9,
+       "end": 4.13
+      },
+      {
+       "text": "twelve.",
+       "start": 4.15,
+       "end": 4.38
+      }
+     ],
+     "ok": true,
+     "badness": 0,
+     "why": "",
+     "heard": "One two three four. Five six seven eight. Nine ten eleven twelve.",
+     "doubt": [],
+     "pauses": [
+      {
+       "after": "six",
+       "before": "seven",
+       "gap": 0.5
+      }
+     ],
+     "clicks": [],
+     "input": "4c144434"
+    }
+   ],
+   "parts": [
+    "One two three four. Five six seven eight. Nine ten eleven twelve."
+   ],
+   "shaped": [
+    {
+     "samples": "4c144434",
+     "length": 216000,
+     "spans": "[\n {\n  \"text\": \"One two three four.\",\n  \"start\": 0.05,\n  \"end\": 1.13\n },\n {\n  \"text\": \"Five six seven eight.\",\n  \"start\": 1.15,\n  \"end\": 2.23\n },\n {\n  \"text\": \"Nine ten eleven twelve.\",\n  \"start\": 3.35,\n  \"end\": 4.43\n }\n]"
+    }
+   ],
+   "joined": "4c144434",
+   "file": "36e5bfa2",
+   "duration": "4.5",
+   "phrases": "[\n {\n  \"text\": \"One two three four.\",\n  \"start\": 0.05,\n  \"end\": 1.13\n },\n {\n  \"text\": \"Five six seven eight.\",\n  \"start\": 1.15,\n  \"end\": 2.23\n },\n {\n  \"text\": \"Nine ten eleven twelve.\",\n  \"start\": 3.35,\n  \"end\": 4.43\n }\n]",
+   "checks": "[\n {\n  \"at\": 0,\n  \"text\": \"One two three four. Five six seven eight. Nine ten eleven twelve.\",\n  \"ok\": true,\n  \"heard\": \"One two three four. Five six seven eight. Nine ten eleven twelve.\",\n  \"why\": \"\",\n  \"seed\": 553,\n  \"doubt\": [],\n  \"heat\": 1.22,\n  \"hotText\": \"Nine ten eleven twelve.\",\n  \"pauses\": [\n   {\n    \"after\": \"six\",\n    \"before\": \"seven\",\n    \"gap\": 0.5\n   }\n  ],\n  \"clicks\": []\n }\n]",
+   "problems": []
+  },
+  {
+   "name": "a question skips heat",
+   "script": "Where does the river go?\n\nIt runs north to the sea.",
+   "voiceMedian": "149.53271028037383",
+   "takes": [
+    {
+     "text": "Where does the river go? It runs north to the sea.",
+     "n": 115200,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 115200,
+       "amp": 0.00002,
+       "seed": 11
+      },
+      {
+       "kind": "tone",
+       "hz": "300",
+       "start": 4800,
+       "len": 48000,
+       "amp": 0.3,
+       "attack": 480,
+       "release": 480
+      },
+      {
+       "kind": "tone",
+       "hz": "180",
+       "start": 62400,
+       "len": 48000,
+       "amp": 0.3,
+       "attack": 480,
+       "release": 480
+      }
+     ],
+     "words": [
+      {
+       "text": "Where",
+       "start": 0.1,
+       "end": 0.28
+      },
+      {
+       "text": "does",
+       "start": 0.3,
+       "end": 0.48
+      },
+      {
+       "text": "the",
+       "start": 0.5,
+       "end": 0.68
+      },
+      {
+       "text": "river",
+       "start": 0.7,
+       "end": 0.88
+      },
+      {
+       "text": "go?",
+       "start": 0.9,
+       "end": 1.08
+      },
+      {
+       "text": "It",
+       "start": 1.3,
+       "end": 1.45
+      },
+      {
+       "text": "runs",
+       "start": 1.47,
+       "end": 1.61
+      },
+      {
+       "text": "north",
+       "start": 1.63,
+       "end": 1.78
+      },
+      {
+       "text": "to",
+       "start": 1.8,
+       "end": 1.95
+      },
+      {
+       "text": "the",
+       "start": 1.97,
+       "end": 2.11
+      },
+      {
+       "text": "sea.",
+       "start": 2.13,
+       "end": 2.28
+      }
+     ],
+     "ok": true,
+     "badness": 0,
+     "why": "",
+     "heard": "Where does the river go? It runs north to the sea.",
+     "doubt": [],
+     "pauses": [],
+     "clicks": [],
+     "input": "2b428d12"
+    }
+   ],
+   "parts": [
+    "Where does the river go? It runs north to the sea."
+   ],
+   "shaped": [
+    {
+     "samples": "4de0f112",
+     "length": 143040,
+     "spans": "[\n {\n  \"text\": \"Where does the river go?\",\n  \"start\": 0.05,\n  \"end\": 1.13\n },\n {\n  \"text\": \"It runs north to the sea.\",\n  \"start\": 1.83,\n  \"end\": 2.91\n }\n]"
+    }
+   ],
+   "joined": "4de0f112",
+   "file": "50e2758a",
+   "duration": "2.98",
+   "phrases": "[\n {\n  \"text\": \"Where does the river go?\",\n  \"start\": 0.05,\n  \"end\": 1.13\n },\n {\n  \"text\": \"It runs north to the sea.\",\n  \"start\": 1.83,\n  \"end\": 2.91\n }\n]",
+   "checks": "[\n {\n  \"at\": 0,\n  \"text\": \"Where does the river go? It runs north to the sea.\",\n  \"ok\": true,\n  \"heard\": \"Where does the river go? It runs north to the sea.\",\n  \"why\": \"\",\n  \"seed\": 267,\n  \"doubt\": [],\n  \"heat\": 1.22,\n  \"hotText\": \"It runs north to the sea.\",\n  \"pauses\": [],\n  \"clicks\": []\n }\n]",
+   "problems": []
+  },
+  {
+   "name": "several chunks",
+   "script": "(calm tone) First line here now.\nSecond line goes here.\n\nThird line ends it.",
+   "voiceMedian": "149.53271028037383",
+   "takes": [
+    {
+     "text": "First line here now.",
+     "n": 57600,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 57600,
+       "amp": 0.00002,
+       "seed": 11
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 4800,
+       "len": 48000,
+       "amp": 0.3,
+       "attack": 480,
+       "release": 480
+      }
+     ],
+     "words": [
+      {
+       "text": "First",
+       "start": 0.1,
+       "end": 0.33
+      },
+      {
+       "text": "line",
+       "start": 0.35,
+       "end": 0.58
+      },
+      {
+       "text": "here",
+       "start": 0.6,
+       "end": 0.83
+      },
+      {
+       "text": "now.",
+       "start": 0.85,
+       "end": 1.08
+      }
+     ],
+     "ok": true,
+     "badness": 0,
+     "why": "",
+     "heard": "First line here now.",
+     "doubt": [],
+     "pauses": [],
+     "clicks": [],
+     "input": "a96c51c4"
+    },
+    {
+     "text": "Second line goes here. Third line ends it.",
+     "n": 110400,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 110400,
+       "amp": 0.00002,
+       "seed": 12
+      },
+      {
+       "kind": "tone",
+       "hz": "180",
+       "start": 4800,
+       "len": 48000,
+       "amp": 0.3,
+       "attack": 480,
+       "release": 480
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 57600,
+       "len": 48000,
+       "amp": 0.3,
+       "attack": 480,
+       "release": 480
+      }
+     ],
+     "words": [
+      {
+       "text": "Second",
+       "start": 0.1,
+       "end": 0.33
+      },
+      {
+       "text": "line",
+       "start": 0.35,
+       "end": 0.58
+      },
+      {
+       "text": "goes",
+       "start": 0.6,
+       "end": 0.83
+      },
+      {
+       "text": "here.",
+       "start": 0.85,
+       "end": 1.08
+      },
+      {
+       "text": "Third",
+       "start": 1.2,
+       "end": 1.43
+      },
+      {
+       "text": "line",
+       "start": 1.45,
+       "end": 1.68
+      },
+      {
+       "text": "ends",
+       "start": 1.7,
+       "end": 1.93
+      },
+      {
+       "text": "it.",
+       "start": 1.95,
+       "end": 2.18
+      }
+     ],
+     "ok": true,
+     "badness": 0,
+     "why": "",
+     "heard": "Second line goes here. Third line ends it.",
+     "doubt": [],
+     "pauses": [],
+     "clicks": [],
+     "input": "fc9c3a0b"
+    }
+   ],
+   "parts": [
+    "First line here now.",
+    "Second line goes here. Third line ends it."
+   ],
+   "shaped": [
+    {
+     "samples": "a96c51c4",
+     "length": 57600,
+     "spans": "[\n {\n  \"text\": \"First line here now.\",\n  \"start\": 0,\n  \"end\": 1.2\n }\n]"
+    },
+    {
+     "samples": "6361e20b",
+     "length": 143040,
+     "spans": "[\n {\n  \"text\": \"Second line goes here.\",\n  \"start\": 0.05,\n  \"end\": 1.13\n },\n {\n  \"text\": \"Third line ends it.\",\n  \"start\": 1.83,\n  \"end\": 2.91\n }\n]"
+    }
+   ],
+   "joined": "b343a55a",
+   "file": "a884b4d5",
+   "duration": "4.63",
+   "phrases": "[\n {\n  \"text\": \"First line here now.\",\n  \"start\": 0,\n  \"end\": 1.2\n },\n {\n  \"text\": \"Second line goes here.\",\n  \"start\": 1.7,\n  \"end\": 2.78\n },\n {\n  \"text\": \"Third line ends it.\",\n  \"start\": 3.48,\n  \"end\": 4.56\n }\n]",
+   "checks": "[\n {\n  \"at\": 0,\n  \"text\": \"First line here now.\",\n  \"ok\": true,\n  \"heard\": \"First line here now.\",\n  \"why\": \"\",\n  \"seed\": 498,\n  \"doubt\": [],\n  \"heat\": 1.01,\n  \"hotText\": \"First line here now.\",\n  \"pauses\": [],\n  \"clicks\": []\n },\n {\n  \"at\": 1.65,\n  \"text\": \"Second line goes here. Third line ends it.\",\n  \"ok\": true,\n  \"heard\": \"Second line goes here. Third line ends it.\",\n  \"why\": \"\",\n  \"seed\": 325,\n  \"doubt\": [],\n  \"heat\": 1.22,\n  \"hotText\": \"Second line goes here.\",\n  \"pauses\": [],\n  \"clicks\": []\n }\n]",
+   "problems": []
+  },
+  {
+   "name": "a part split into sentences",
+   "script": "One two three four.\n\nFive six seven eight. Nine ten eleven twelve.",
+   "voiceMedian": "149.53271028037383",
+   "takes": [
+    {
+     "text": "One two three four. Five six seven eight. Nine ten eleven twelve.",
+     "n": 168000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 168000,
+       "amp": 0.00002,
+       "seed": 11
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 4800,
+       "len": 48000,
+       "amp": 0.3,
+       "attack": 480,
+       "release": 480
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 62400,
+       "len": 48000,
+       "amp": 0.3,
+       "attack": 480,
+       "release": 480
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 115200,
+       "len": 48000,
+       "amp": 0.3,
+       "attack": 480,
+       "release": 480
+      }
+     ],
+     "words": [
+      {
+       "text": "One",
+       "start": 0.1,
+       "end": 0.33
+      },
+      {
+       "text": "two",
+       "start": 0.35,
+       "end": 0.58
+      },
+      {
+       "text": "three",
+       "start": 0.6,
+       "end": 0.83
+      },
+      {
+       "text": "four.",
+       "start": 0.85,
+       "end": 1.08
+      },
+      {
+       "text": "Five",
+       "start": 1.3,
+       "end": 1.53
+      },
+      {
+       "text": "six",
+       "start": 1.55,
+       "end": 1.78
+      },
+      {
+       "text": "seven",
+       "start": 1.8,
+       "end": 2.03
+      },
+      {
+       "text": "eight.",
+       "start": 2.05,
+       "end": 2.28
+      },
+      {
+       "text": "Nine",
+       "start": 2.4,
+       "end": 2.63
+      },
+      {
+       "text": "ten",
+       "start": 2.65,
+       "end": 2.88
+      },
+      {
+       "text": "eleven",
+       "start": 2.9,
+       "end": 3.13
+      },
+      {
+       "text": "twelve.",
+       "start": 3.15,
+       "end": 3.38
+      }
+     ],
+     "ok": false,
+     "badness": 1,
+     "why": "missing: twelve",
+     "heard": "One two three four. Five six seven eight. Nine ten eleven twelve.",
+     "doubt": [],
+     "pauses": [],
+     "clicks": [],
+     "input": "a0c3599d"
+    },
+    {
+     "text": "One two three four.",
+     "n": 57600,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 57600,
+       "amp": 0.00002,
+       "seed": 12
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 4800,
+       "len": 48000,
+       "amp": 0.3,
+       "attack": 480,
+       "release": 480
+      }
+     ],
+     "words": [
+      {
+       "text": "One",
+       "start": 0.1,
+       "end": 0.33
+      },
+      {
+       "text": "two",
+       "start": 0.35,
+       "end": 0.58
+      },
+      {
+       "text": "three",
+       "start": 0.6,
+       "end": 0.83
+      },
+      {
+       "text": "four.",
+       "start": 0.85,
+       "end": 1.08
+      }
+     ],
+     "ok": true,
+     "badness": 0,
+     "why": "",
+     "heard": "One two three four.",
+     "doubt": [],
+     "pauses": [],
+     "clicks": [],
+     "input": "11273262"
+    },
+    {
+     "text": "Five six seven eight. Nine ten eleven twelve.",
+     "n": 110400,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 110400,
+       "amp": 0.00002,
+       "seed": 13
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 4800,
+       "len": 48000,
+       "amp": 0.3,
+       "attack": 480,
+       "release": 480
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 57600,
+       "len": 48000,
+       "amp": 0.3,
+       "attack": 480,
+       "release": 480
+      }
+     ],
+     "words": [
+      {
+       "text": "Five",
+       "start": 0.1,
+       "end": 0.33
+      },
+      {
+       "text": "six",
+       "start": 0.35,
+       "end": 0.58
+      },
+      {
+       "text": "seven",
+       "start": 0.6,
+       "end": 0.83
+      },
+      {
+       "text": "eight.",
+       "start": 0.85,
+       "end": 1.08
+      },
+      {
+       "text": "Nine",
+       "start": 1.2,
+       "end": 1.43
+      },
+      {
+       "text": "ten",
+       "start": 1.45,
+       "end": 1.68
+      },
+      {
+       "text": "eleven",
+       "start": 1.7,
+       "end": 1.93
+      },
+      {
+       "text": "twelve.",
+       "start": 1.95,
+       "end": 2.18
+      }
+     ],
+     "ok": false,
+     "badness": 1,
+     "why": "missing: twelve",
+     "heard": "Five six seven eight. Nine ten eleven twelve.",
+     "doubt": [],
+     "pauses": [],
+     "clicks": [],
+     "input": "db620cef"
+    },
+    {
+     "text": "Five six seven eight.",
+     "n": 57600,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 57600,
+       "amp": 0.00002,
+       "seed": 14
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 4800,
+       "len": 48000,
+       "amp": 0.3,
+       "attack": 480,
+       "release": 480
+      }
+     ],
+     "words": [
+      {
+       "text": "Five",
+       "start": 0.1,
+       "end": 0.33
+      },
+      {
+       "text": "six",
+       "start": 0.35,
+       "end": 0.58
+      },
+      {
+       "text": "seven",
+       "start": 0.6,
+       "end": 0.83
+      },
+      {
+       "text": "eight.",
+       "start": 0.85,
+       "end": 1.08
+      }
+     ],
+     "ok": true,
+     "badness": 0,
+     "why": "",
+     "heard": "Five six seven eight.",
+     "doubt": [],
+     "pauses": [],
+     "clicks": [],
+     "input": "a5c4b3e8"
+    },
+    {
+     "text": "Nine ten eleven twelve.",
+     "n": 57600,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 57600,
+       "amp": 0.00002,
+       "seed": 15
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 4800,
+       "len": 48000,
+       "amp": 0.3,
+       "attack": 480,
+       "release": 480
+      }
+     ],
+     "words": [
+      {
+       "text": "Nine",
+       "start": 0.1,
+       "end": 0.33
+      },
+      {
+       "text": "ten",
+       "start": 0.35,
+       "end": 0.58
+      },
+      {
+       "text": "eleven",
+       "start": 0.6,
+       "end": 0.83
+      },
+      {
+       "text": "twelve.",
+       "start": 0.85,
+       "end": 1.08
+      }
+     ],
+     "ok": false,
+     "badness": 1,
+     "why": "missing: twelve",
+     "heard": "Nine ten eleven twelve.",
+     "doubt": [],
+     "pauses": [],
+     "clicks": [],
+     "input": "1795f7d2"
+    }
+   ],
+   "parts": [
+    "One two three four.",
+    "Five six seven eight.",
+    "Nine ten eleven twelve."
+   ],
+   "shaped": [
+    {
+     "samples": "11273262",
+     "length": 57600,
+     "spans": "[\n {\n  \"text\": \"One two three four.\",\n  \"start\": 0,\n  \"end\": 1.2\n }\n]"
+    },
+    {
+     "samples": "a5c4b3e8",
+     "length": 57600,
+     "spans": "[\n {\n  \"text\": \"Five six seven eight.\",\n  \"start\": 0,\n  \"end\": 1.2\n }\n]"
+    },
+    {
+     "samples": "1795f7d2",
+     "length": 57600,
+     "spans": "[\n {\n  \"text\": \"Nine ten eleven twelve.\",\n  \"start\": 0,\n  \"end\": 1.2\n }\n]"
+    }
+   ],
+   "joined": "754909e4",
+   "file": "6ae8600e",
+   "duration": "4.7",
+   "phrases": "[\n {\n  \"text\": \"One two three four.\",\n  \"start\": 0,\n  \"end\": 1.2\n },\n {\n  \"text\": \"Five six seven eight.\",\n  \"start\": 2,\n  \"end\": 3.2\n },\n {\n  \"text\": \"Nine ten eleven twelve.\",\n  \"start\": 3.5,\n  \"end\": 4.7\n }\n]",
+   "checks": "[\n {\n  \"at\": 0,\n  \"text\": \"One two three four.\",\n  \"ok\": true,\n  \"heard\": \"One two three four.\",\n  \"why\": \"\",\n  \"seed\": 279,\n  \"doubt\": [],\n  \"heat\": 1.01,\n  \"hotText\": \"One two three four.\",\n  \"pauses\": [],\n  \"clicks\": []\n },\n {\n  \"at\": 2,\n  \"text\": \"Five six seven eight.\",\n  \"ok\": true,\n  \"heard\": \"Five six seven eight.\",\n  \"why\": \"\",\n  \"seed\": 318,\n  \"doubt\": [],\n  \"heat\": 1.75,\n  \"hotText\": \"Five six seven eight.\",\n  \"pauses\": [],\n  \"clicks\": []\n },\n {\n  \"at\": 3.5,\n  \"text\": \"Nine ten eleven twelve.\",\n  \"ok\": false,\n  \"heard\": \"Nine ten eleven twelve.\",\n  \"why\": \"missing: twelve\",\n  \"seed\": 669,\n  \"doubt\": [],\n  \"heat\": 1.01,\n  \"hotText\": \"Nine ten eleven twelve.\",\n  \"pauses\": [],\n  \"clicks\": []\n }\n]",
+   "problems": [
+    "part 3 \"Nine ten eleven twelve.\": missing: twelve (heard \"Nine ten eleven twelve.\"). Three takes failed, so reword it first (a longer line, another word order). --reroll 3 draws new takes."
+   ]
+  },
+  {
+   "name": "no heard words keep one span",
+   "script": "Alpha beta gamma delta.\n\nEpsilon zeta eta theta.",
+   "voiceMedian": "149.53271028037383",
+   "takes": [
+    {
+     "text": "Alpha beta gamma delta. Epsilon zeta eta theta.",
+     "n": 115200,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 115200,
+       "amp": 0.00002,
+       "seed": 11
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 4800,
+       "len": 48000,
+       "amp": 0.3,
+       "attack": 480,
+       "release": 480
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 62400,
+       "len": 48000,
+       "amp": 0.3,
+       "attack": 480,
+       "release": 480
+      }
+     ],
+     "words": [],
+     "ok": true,
+     "badness": 0,
+     "why": "",
+     "heard": "",
+     "doubt": [],
+     "pauses": [],
+     "clicks": [],
+     "input": "ef184314"
+    }
+   ],
+   "parts": [
+    "Alpha beta gamma delta. Epsilon zeta eta theta."
+   ],
+   "shaped": [
+    {
+     "samples": "ef184314",
+     "length": 115200,
+     "spans": "[\n {\n  \"text\": \"Alpha beta gamma delta. Epsilon zeta eta theta.\",\n  \"start\": 0,\n  \"end\": 2.4\n }\n]"
+    }
+   ],
+   "joined": "ef184314",
+   "file": "9407e744",
+   "duration": "2.4",
+   "phrases": "[\n {\n  \"text\": \"Alpha beta gamma delta. Epsilon zeta eta theta.\",\n  \"start\": 0,\n  \"end\": 2.4\n }\n]",
+   "checks": "[\n {\n  \"at\": 0,\n  \"text\": \"Alpha beta gamma delta. Epsilon zeta eta theta.\",\n  \"ok\": true,\n  \"heard\": \"\",\n  \"why\": \"\",\n  \"seed\": 906,\n  \"doubt\": [],\n  \"heat\": 1.01,\n  \"hotText\": \"Alpha beta gamma delta. Epsilon zeta eta theta.\",\n  \"pauses\": [],\n  \"clicks\": []\n }\n]",
+   "problems": []
+  }
+ ]
+}

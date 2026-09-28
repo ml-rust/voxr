@@ -6,6 +6,8 @@
 //! judged through, the pick of each part's best take, and the split of a
 //! part that fails whole. Also the voice every take clones: designed from
 //! a description or prepared from a user's recording, and kept in the cache.
+//! Also the kept takes shaped and joined into the voiceover, with each
+//! phrase's span and each part's check, heat and marks.
 
 pub mod anchor;
 pub mod anchor_files;
@@ -14,6 +16,9 @@ pub mod cache;
 pub mod engine;
 pub mod files;
 pub mod hear;
+pub mod join;
+pub mod join_checks;
+pub mod join_heat;
 pub mod judge;
 pub mod pace;
 pub mod pick;
@@ -42,6 +47,9 @@ pub use files::{
     phrases_file, read_takes_file, resolve_seed, script_text_file, takes_file, voice_output_file,
 };
 pub use hear::{HeardCheck, Hearing, Recognizer, TranscriberHearing, asr_model, heard_check};
+pub use join::{JOIN_RATE, JoinPart, JoinedTrack, ShapedTake, join_takes, shape_take};
+pub use join_checks::PartCheck;
+pub use join_heat::{PartHeat, part_heat};
 pub use judge::{HeardJudge, JudgedTake};
 pub use pace::{
     DEFAULT_TARGET_PACE, PaceComparison, PaceSpan, PaceVerdict, REF_PACE, pace, pace_verdict,
