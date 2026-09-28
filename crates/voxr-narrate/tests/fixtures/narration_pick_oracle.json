@@ -1,0 +1,840 @@
+{
+ "cases": [
+  {
+   "name": "first try passes",
+   "script": "Hello there, friend.",
+   "style": null,
+   "record": null,
+   "asked": null,
+   "reroll": [],
+   "random": [],
+   "cached": [],
+   "scores": [],
+   "calls": [
+    {
+     "op": "speak",
+     "text": "Hello there, friend.",
+     "style": null,
+     "seed": 404
+    },
+    {
+     "op": "judge",
+     "text": "Hello there, friend.",
+     "seed": 404
+    }
+   ],
+   "messages": [],
+   "seed": 7,
+   "parts": [
+    "Hello there, friend."
+   ],
+   "best": [
+    {
+     "seed": 404,
+     "ok": true,
+     "badness": 0
+    }
+   ],
+   "takes": "{\n \"seed\": 7,\n \"takes\": {\n  \"Hello there, friend.\": 404\n }\n}"
+  },
+  {
+   "name": "fails then the retry passes",
+   "script": "The river runs north today.",
+   "style": null,
+   "record": null,
+   "asked": null,
+   "reroll": [],
+   "random": [],
+   "cached": [],
+   "scores": [
+    {
+     "text": "The river runs north today.",
+     "seed": 247,
+     "ok": false,
+     "badness": 2
+    },
+    {
+     "text": "The river runs north today.",
+     "seed": 1247,
+     "ok": true,
+     "badness": 0
+    }
+   ],
+   "calls": [
+    {
+     "op": "speak",
+     "text": "The river runs north today.",
+     "style": null,
+     "seed": 247
+    },
+    {
+     "op": "judge",
+     "text": "The river runs north today.",
+     "seed": 247
+    },
+    {
+     "op": "speak",
+     "text": "The river runs north today.",
+     "style": null,
+     "seed": 1247
+    },
+    {
+     "op": "judge",
+     "text": "The river runs north today.",
+     "seed": 1247
+    }
+   ],
+   "messages": [
+    "speak: part 1 (seed 247): bad 2. Heard: \"heard The river runs north today.\". Regenerating."
+   ],
+   "seed": 7,
+   "parts": [
+    "The river runs north today."
+   ],
+   "best": [
+    {
+     "seed": 1247,
+     "ok": true,
+     "badness": 0
+    }
+   ],
+   "takes": "{\n \"seed\": 7,\n \"takes\": {\n  \"The river runs north today.\": 1247\n }\n}"
+  },
+  {
+   "name": "every take fails whole, split by beats",
+   "script": "One two three.\n\nFour five six.",
+   "style": null,
+   "record": null,
+   "asked": null,
+   "reroll": [],
+   "random": [],
+   "cached": [],
+   "scores": [
+    {
+     "text": "One two three. Four five six.",
+     "seed": 940,
+     "ok": false,
+     "badness": 1
+    },
+    {
+     "text": "One two three. Four five six.",
+     "seed": 1940,
+     "ok": false,
+     "badness": 2
+    },
+    {
+     "text": "One two three. Four five six.",
+     "seed": 2940,
+     "ok": false,
+     "badness": 1.5
+    }
+   ],
+   "calls": [
+    {
+     "op": "speak",
+     "text": "One two three. Four five six.",
+     "style": null,
+     "seed": 940
+    },
+    {
+     "op": "judge",
+     "text": "One two three. Four five six.",
+     "seed": 940
+    },
+    {
+     "op": "speak",
+     "text": "One two three. Four five six.",
+     "style": null,
+     "seed": 1940
+    },
+    {
+     "op": "judge",
+     "text": "One two three. Four five six.",
+     "seed": 1940
+    },
+    {
+     "op": "speak",
+     "text": "One two three. Four five six.",
+     "style": null,
+     "seed": 2940
+    },
+    {
+     "op": "judge",
+     "text": "One two three. Four five six.",
+     "seed": 2940
+    },
+    {
+     "op": "speak",
+     "text": "One two three.",
+     "style": null,
+     "seed": 40
+    },
+    {
+     "op": "speak",
+     "text": "Four five six.",
+     "style": null,
+     "seed": 595
+    },
+    {
+     "op": "judge",
+     "text": "One two three.",
+     "seed": 40
+    },
+    {
+     "op": "judge",
+     "text": "Four five six.",
+     "seed": 595
+    }
+   ],
+   "messages": [
+    "speak: part 1 (seed 940): bad 1. Heard: \"heard One two three. Four five six.\". Regenerating.",
+    "speak: part 1 (seed 1940): bad 2. Heard: \"heard One two three. Four five six.\". Regenerating.",
+    "speak: part 1 (seed 2940): bad 1.5. Heard: \"heard One two three. Four five six.\".",
+    "speak: part(s) 1 failed every take whole, so their beats are spoken apart."
+   ],
+   "seed": 7,
+   "parts": [
+    "One two three.",
+    "Four five six."
+   ],
+   "best": [
+    {
+     "seed": 40,
+     "ok": true,
+     "badness": 0
+    },
+    {
+     "seed": 595,
+     "ok": true,
+     "badness": 0
+    }
+   ],
+   "takes": "{\n \"seed\": 7,\n \"takes\": {\n  \"One two three.\": 40,\n  \"Four five six.\": 595\n }\n}"
+  },
+  {
+   "name": "the beat split fails, split by sentences",
+   "script": "One two three.\n\nFour five six. Seven eight nine.",
+   "style": null,
+   "record": null,
+   "asked": null,
+   "reroll": [],
+   "random": [],
+   "cached": [],
+   "scores": [
+    {
+     "text": "One two three. Four five six. Seven eight nine.",
+     "seed": 911,
+     "ok": false,
+     "badness": 1
+    },
+    {
+     "text": "One two three. Four five six. Seven eight nine.",
+     "seed": 1911,
+     "ok": false,
+     "badness": 1
+    },
+    {
+     "text": "One two three. Four five six. Seven eight nine.",
+     "seed": 2911,
+     "ok": false,
+     "badness": 1
+    },
+    {
+     "text": "Four five six. Seven eight nine.",
+     "seed": 163,
+     "ok": false,
+     "badness": 1
+    },
+    {
+     "text": "Four five six. Seven eight nine.",
+     "seed": 1163,
+     "ok": false,
+     "badness": 0.5
+    },
+    {
+     "text": "Four five six. Seven eight nine.",
+     "seed": 2163,
+     "ok": false,
+     "badness": 2
+    },
+    {
+     "text": "One two three.",
+     "seed": 40,
+     "ok": false,
+     "badness": 0.7
+    }
+   ],
+   "calls": [
+    {
+     "op": "speak",
+     "text": "One two three. Four five six. Seven eight nine.",
+     "style": null,
+     "seed": 911
+    },
+    {
+     "op": "judge",
+     "text": "One two three. Four five six. Seven eight nine.",
+     "seed": 911
+    },
+    {
+     "op": "speak",
+     "text": "One two three. Four five six. Seven eight nine.",
+     "style": null,
+     "seed": 1911
+    },
+    {
+     "op": "judge",
+     "text": "One two three. Four five six. Seven eight nine.",
+     "seed": 1911
+    },
+    {
+     "op": "speak",
+     "text": "One two three. Four five six. Seven eight nine.",
+     "style": null,
+     "seed": 2911
+    },
+    {
+     "op": "judge",
+     "text": "One two three. Four five six. Seven eight nine.",
+     "seed": 2911
+    },
+    {
+     "op": "speak",
+     "text": "One two three.",
+     "style": null,
+     "seed": 40
+    },
+    {
+     "op": "speak",
+     "text": "Four five six. Seven eight nine.",
+     "style": null,
+     "seed": 163
+    },
+    {
+     "op": "judge",
+     "text": "One two three.",
+     "seed": 40
+    },
+    {
+     "op": "judge",
+     "text": "Four five six. Seven eight nine.",
+     "seed": 163
+    },
+    {
+     "op": "speak",
+     "text": "One two three.",
+     "style": null,
+     "seed": 1040
+    },
+    {
+     "op": "speak",
+     "text": "Four five six. Seven eight nine.",
+     "style": null,
+     "seed": 1163
+    },
+    {
+     "op": "judge",
+     "text": "One two three.",
+     "seed": 1040
+    },
+    {
+     "op": "judge",
+     "text": "Four five six. Seven eight nine.",
+     "seed": 1163
+    },
+    {
+     "op": "speak",
+     "text": "Four five six. Seven eight nine.",
+     "style": null,
+     "seed": 2163
+    },
+    {
+     "op": "judge",
+     "text": "Four five six. Seven eight nine.",
+     "seed": 2163
+    },
+    {
+     "op": "speak",
+     "text": "Four five six.",
+     "style": null,
+     "seed": 595
+    },
+    {
+     "op": "speak",
+     "text": "Seven eight nine.",
+     "style": null,
+     "seed": 902
+    },
+    {
+     "op": "judge",
+     "text": "One two three.",
+     "seed": 40
+    },
+    {
+     "op": "judge",
+     "text": "Four five six.",
+     "seed": 595
+    },
+    {
+     "op": "judge",
+     "text": "Seven eight nine.",
+     "seed": 902
+    },
+    {
+     "op": "judge",
+     "text": "One two three.",
+     "seed": 1040
+    }
+   ],
+   "messages": [
+    "speak: part 1 (seed 911): bad 1. Heard: \"heard One two three. Four five six. Seven eight nine.\". Regenerating.",
+    "speak: part 1 (seed 1911): bad 1. Heard: \"heard One two three. Four five six. Seven eight nine.\". Regenerating.",
+    "speak: part 1 (seed 2911): bad 1. Heard: \"heard One two three. Four five six. Seven eight nine.\".",
+    "speak: part(s) 1 failed every take whole, so their beats are spoken apart.",
+    "speak: part 1 (seed 40): bad 0.7. Heard: \"heard One two three.\". Regenerating.",
+    "speak: part 2 (seed 163): bad 1. Heard: \"heard Four five six. Seven eight nine.\". Regenerating.",
+    "speak: part 2 (seed 1163): bad 0.5. Heard: \"heard Four five six. Seven eight nine.\". Regenerating.",
+    "speak: part 2 (seed 2163): bad 2. Heard: \"heard Four five six. Seven eight nine.\".",
+    "speak: part(s) 2 failed every take whole, so their sentences are spoken apart."
+   ],
+   "seed": 7,
+   "parts": [
+    "One two three.",
+    "Four five six.",
+    "Seven eight nine."
+   ],
+   "best": [
+    {
+     "seed": 1040,
+     "ok": true,
+     "badness": 0
+    },
+    {
+     "seed": 595,
+     "ok": true,
+     "badness": 0
+    },
+    {
+     "seed": 902,
+     "ok": true,
+     "badness": 0
+    }
+   ],
+   "takes": "{\n \"seed\": 7,\n \"takes\": {\n  \"One two three.\": 1040,\n  \"Four five six.\": 595,\n  \"Seven eight nine.\": 902\n }\n}"
+  },
+  {
+   "name": "a re-roll that ties replaces the recorded take",
+   "script": "Hello there, friend.",
+   "style": null,
+   "record": "{\"seed\":7,\"takes\":{\"Hello there, friend.\":555}}",
+   "asked": null,
+   "reroll": [
+    1
+   ],
+   "random": [
+    0.25
+   ],
+   "cached": [
+    {
+     "text": "Hello there, friend.",
+     "seed": 555,
+     "delivery": null
+    }
+   ],
+   "scores": [
+    {
+     "text": "Hello there, friend.",
+     "seed": 555,
+     "ok": true,
+     "badness": 0.5
+    },
+    {
+     "text": "Hello there, friend.",
+     "seed": 325000,
+     "ok": true,
+     "badness": 0.5
+    }
+   ],
+   "calls": [
+    {
+     "op": "judge",
+     "text": "Hello there, friend.",
+     "seed": 555
+    },
+    {
+     "op": "speak",
+     "text": "Hello there, friend.",
+     "style": null,
+     "seed": 325000
+    },
+    {
+     "op": "judge",
+     "text": "Hello there, friend.",
+     "seed": 325000
+    }
+   ],
+   "messages": [
+    "speak: part 1 re-rolled with seed 325000."
+   ],
+   "seed": 7,
+   "parts": [
+    "Hello there, friend."
+   ],
+   "best": [
+    {
+     "seed": 325000,
+     "ok": true,
+     "badness": 0.5
+    }
+   ],
+   "takes": "{\n \"seed\": 7,\n \"takes\": {\n  \"Hello there, friend.\": 325000\n }\n}"
+  },
+  {
+   "name": "a worse re-roll keeps the recorded take",
+   "script": "Hello there, friend.",
+   "style": null,
+   "record": "{\"seed\":7,\"takes\":{\"Hello there, friend.\":555}}",
+   "asked": null,
+   "reroll": [
+    1
+   ],
+   "random": [
+    0.5
+   ],
+   "cached": [
+    {
+     "text": "Hello there, friend.",
+     "seed": 555,
+     "delivery": null
+    }
+   ],
+   "scores": [
+    {
+     "text": "Hello there, friend.",
+     "seed": 555,
+     "ok": true,
+     "badness": 0.2
+    },
+    {
+     "text": "Hello there, friend.",
+     "seed": 550000,
+     "ok": false,
+     "badness": 1
+    },
+    {
+     "text": "Hello there, friend.",
+     "seed": 551000,
+     "ok": false,
+     "badness": 2
+    },
+    {
+     "text": "Hello there, friend.",
+     "seed": 552000,
+     "ok": false,
+     "badness": 1.5
+    }
+   ],
+   "calls": [
+    {
+     "op": "judge",
+     "text": "Hello there, friend.",
+     "seed": 555
+    },
+    {
+     "op": "speak",
+     "text": "Hello there, friend.",
+     "style": null,
+     "seed": 550000
+    },
+    {
+     "op": "judge",
+     "text": "Hello there, friend.",
+     "seed": 550000
+    },
+    {
+     "op": "speak",
+     "text": "Hello there, friend.",
+     "style": null,
+     "seed": 551000
+    },
+    {
+     "op": "judge",
+     "text": "Hello there, friend.",
+     "seed": 551000
+    },
+    {
+     "op": "speak",
+     "text": "Hello there, friend.",
+     "style": null,
+     "seed": 552000
+    },
+    {
+     "op": "judge",
+     "text": "Hello there, friend.",
+     "seed": 552000
+    }
+   ],
+   "messages": [
+    "speak: part 1 re-rolled with seed 550000.",
+    "speak: part 1 (seed 550000): bad 1. Heard: \"heard Hello there, friend.\". Regenerating.",
+    "speak: part 1 (seed 551000): bad 2. Heard: \"heard Hello there, friend.\". Regenerating.",
+    "speak: part 1 (seed 552000): bad 1.5. Heard: \"heard Hello there, friend.\"."
+   ],
+   "seed": 7,
+   "parts": [
+    "Hello there, friend."
+   ],
+   "best": [
+    {
+     "seed": 555,
+     "ok": true,
+     "badness": 0.2
+    }
+   ],
+   "takes": "{\n \"seed\": 7,\n \"takes\": {\n  \"Hello there, friend.\": 555\n }\n}"
+  },
+  {
+   "name": "a recorded take is reused from chosen",
+   "script": "Hello there, friend.",
+   "style": null,
+   "record": "{\"seed\":7,\"takes\":{\"Hello there, friend.\":555}}",
+   "asked": null,
+   "reroll": [],
+   "random": [],
+   "cached": [
+    {
+     "text": "Hello there, friend.",
+     "seed": 555,
+     "delivery": null
+    }
+   ],
+   "scores": [],
+   "calls": [
+    {
+     "op": "judge",
+     "text": "Hello there, friend.",
+     "seed": 555
+    }
+   ],
+   "messages": [],
+   "seed": 7,
+   "parts": [
+    "Hello there, friend."
+   ],
+   "best": [
+    {
+     "seed": 555,
+     "ok": true,
+     "badness": 0
+    }
+   ],
+   "takes": "{\n \"seed\": 7,\n \"takes\": {\n  \"Hello there, friend.\": 555\n }\n}"
+  },
+  {
+   "name": "a new asked seed resets the chosen takes",
+   "script": "Hello there, friend.",
+   "style": null,
+   "record": "{\"seed\":9,\"takes\":{\"Hello there, friend.\":555}}",
+   "asked": 99,
+   "reroll": [],
+   "random": [],
+   "cached": [
+    {
+     "text": "Hello there, friend.",
+     "seed": 555,
+     "delivery": null
+    }
+   ],
+   "scores": [],
+   "calls": [
+    {
+     "op": "speak",
+     "text": "Hello there, friend.",
+     "style": null,
+     "seed": 496
+    },
+    {
+     "op": "judge",
+     "text": "Hello there, friend.",
+     "seed": 496
+    }
+   ],
+   "messages": [],
+   "seed": 99,
+   "parts": [
+    "Hello there, friend."
+   ],
+   "best": [
+    {
+     "seed": 496,
+     "ok": true,
+     "badness": 0
+    }
+   ],
+   "takes": "{\n \"seed\": 99,\n \"takes\": {\n  \"Hello there, friend.\": 496\n }\n}"
+  },
+  {
+   "name": "a delivery note, a style, a part re-rolled twice and a take with no speech",
+   "script": "(calm tone) First line here.\nSecond line goes here.\n\nThird line ends it.",
+   "style": "(warm)",
+   "record": null,
+   "asked": null,
+   "reroll": [
+    2,
+    2
+   ],
+   "random": [
+    0.1,
+    0.7
+   ],
+   "cached": [],
+   "scores": [
+    {
+     "text": "First line here.",
+     "seed": 905,
+     "ok": false,
+     "badness": 1
+    },
+    {
+     "text": "Second line goes here. Third line ends it.",
+     "seed": 730000,
+     "ok": false,
+     "badness": null
+    },
+    {
+     "text": "Second line goes here. Third line ends it.",
+     "seed": 731000,
+     "ok": false,
+     "badness": 3
+    },
+    {
+     "text": "Second line goes here. Third line ends it.",
+     "seed": 732000,
+     "ok": false,
+     "badness": null
+    }
+   ],
+   "calls": [
+    {
+     "op": "speak",
+     "text": "First line here.",
+     "style": "(calm tone)",
+     "seed": 905
+    },
+    {
+     "op": "speak",
+     "text": "Second line goes here. Third line ends it.",
+     "style": "(warm)",
+     "seed": 730000
+    },
+    {
+     "op": "judge",
+     "text": "First line here.",
+     "seed": 905
+    },
+    {
+     "op": "judge",
+     "text": "Second line goes here. Third line ends it.",
+     "seed": 730000
+    },
+    {
+     "op": "speak",
+     "text": "First line here.",
+     "style": "(calm tone)",
+     "seed": 1905
+    },
+    {
+     "op": "speak",
+     "text": "Second line goes here. Third line ends it.",
+     "style": "(warm)",
+     "seed": 731000
+    },
+    {
+     "op": "judge",
+     "text": "First line here.",
+     "seed": 1905
+    },
+    {
+     "op": "judge",
+     "text": "Second line goes here. Third line ends it.",
+     "seed": 731000
+    },
+    {
+     "op": "speak",
+     "text": "Second line goes here. Third line ends it.",
+     "style": "(warm)",
+     "seed": 732000
+    },
+    {
+     "op": "judge",
+     "text": "Second line goes here. Third line ends it.",
+     "seed": 732000
+    },
+    {
+     "op": "speak",
+     "text": "Second line goes here.",
+     "style": "(warm)",
+     "seed": 228
+    },
+    {
+     "op": "speak",
+     "text": "Third line ends it.",
+     "style": "(warm)",
+     "seed": 74
+    },
+    {
+     "op": "judge",
+     "text": "First line here.",
+     "seed": 905
+    },
+    {
+     "op": "judge",
+     "text": "Second line goes here.",
+     "seed": 228
+    },
+    {
+     "op": "judge",
+     "text": "Third line ends it.",
+     "seed": 74
+    },
+    {
+     "op": "judge",
+     "text": "First line here.",
+     "seed": 1905
+    }
+   ],
+   "messages": [
+    "speak: part 2 re-rolled with seed 730000.",
+    "speak: part 1 (seed 905): bad 1. Heard: \"heard First line here.\". Regenerating.",
+    "speak: part 2 (seed 730000): bad none. Heard: \"heard Second line goes here. Third line ends it.\". Regenerating.",
+    "speak: part 2 (seed 731000): bad 3. Heard: \"heard Second line goes here. Third line ends it.\". Regenerating.",
+    "speak: part 2 (seed 732000): bad none. Heard: \"heard Second line goes here. Third line ends it.\".",
+    "speak: part(s) 2 failed every take whole, so their beats are spoken apart."
+   ],
+   "seed": 7,
+   "parts": [
+    "First line here.",
+    "Second line goes here.",
+    "Third line ends it."
+   ],
+   "best": [
+    {
+     "seed": 1905,
+     "ok": true,
+     "badness": 0
+    },
+    {
+     "seed": 228,
+     "ok": true,
+     "badness": 0
+    },
+    {
+     "seed": 74,
+     "ok": true,
+     "badness": 0
+    }
+   ],
+   "takes": "{\n \"seed\": 7,\n \"takes\": {\n  \"First line here.\": 1905,\n  \"Second line goes here.\": 228,\n  \"Third line ends it.\": 74\n }\n}"
+  }
+ ]
+}

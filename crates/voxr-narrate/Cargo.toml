@@ -58,6 +58,9 @@ name = "narration_transcript_oracle"
 [[test]]
 name = "narration_take_oracle"
 
+[[test]]
+name = "narration_pick_oracle"
+
 [[example]]
 name = "transcribe_take"
 required-features = ["whisper"]

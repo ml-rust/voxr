@@ -2,7 +2,8 @@
 //! timed script files, the written script, numbers read back from words and
 //! digits, the check of a spoken take against its script, its glitches, and
 //! the polish of its voice. Also a spoken take read into timed words, and
-//! the take loop's cache keys, file names and take-record files.
+//! the take loop's cache keys, file names and take-record files, and its
+//! pick of each part's best take through a speech engine and a judge.
 
 mod error;
 mod js;
