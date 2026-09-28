@@ -10,7 +10,7 @@
 //! `FIXTURE_DIR` holds `tokenizer_fixture.safetensors` (int64 `ids_plain_{i}`
 //! / `ids_expanded_{i}` for i in 0..8) and the sibling `tokenizer_fixture.json`
 //! (each index's exact text and label), both written by
-//! `audio/pipeline/make_tokenizer_fixture.py` from the reference.
+//! `crates/voxr/tests/tools/voxcpm/make_tokenizer_fixture.py` from the reference.
 //!
 //! This is an EXACT integer-id gate, not a tolerance comparison like the
 //! sibling tensor checks: one wrong id shifts every position after it in the

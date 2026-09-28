@@ -7,7 +7,7 @@
 //!
 //! `CKPT_DIR` is the VoxCPM2 checkpoint (`config.json` + `model.safetensors`).
 //! `FIXTURE_DIR` holds `locenc_fixture.safetensors`, written by
-//! `audio/pipeline/make_locenc_fixture.py` from the reference implementation.
+//! `crates/voxr/tests/tools/voxcpm/make_locenc_fixture.py` from the reference implementation.
 //!
 //! This is the gate for the port, same posture as `voxcpm_vae_check`: running
 //! and producing plausible numbers proves nothing, reproducing the reference

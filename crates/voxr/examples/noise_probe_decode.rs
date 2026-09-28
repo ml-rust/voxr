@@ -1,8 +1,8 @@
 //! Decode the noise-conditioning probe's token ids and measure their noise floor.
 //!
 //! Second half of the experiment started by
-//! `audio/pipeline/noise_conditioning_probe.py`. That script generates audio
-//! token ids under three prompts that differ ONLY in the checkpoint's
+//! `crates/voxr/tests/tools/expressive-tts/noise_conditioning_probe.py`. That
+//! script generates audio token ids under three prompts that differ ONLY in the checkpoint's
 //! `Audio quality:` description line; this one decodes them through NeuCodec and
 //! measures each take with the same `measure_quality` the corpus pipeline uses.
 //!

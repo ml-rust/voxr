@@ -347,8 +347,8 @@ fn whisper_transcribe_segments_covers_each_range() {
         translate: false,
         // 48 is what the reference was captured with, and it must match
         // exactly: segment 1 HITS this cap — whisper-tiny falls into a
-        // repetition loop on that range — so any other budget diverges. See
-        // `audio/pipeline/make_whisper_asr_reference.py`.
+        // repetition loop on that range — so any other budget diverges.
+        // See `crates/voxr/tests/tools/whisper/make_whisper_asr_reference.py`.
         max_new_tokens: Some(48),
     };
 

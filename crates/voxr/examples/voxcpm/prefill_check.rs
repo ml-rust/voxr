@@ -9,13 +9,14 @@
 //!
 //! `CKPT_DIR` is the VoxCPM2 checkpoint (`config.json` + `model.safetensors`).
 //! `FIXTURE_DIR` holds the fixture written by
-//! `audio/pipeline/make_prefill_fixture.py` from the reference
-//! implementation, and `audiovae.safetensors` (produced by
-//! `audio/pipeline/convert_audiovae.py`), same layout as `voxcpm_vae_check`.
-//! `FIXTURE_NAME` selects the fixture file and defaults to
-//! `prefill_fixture.safetensors`; pass `prefill_zeroshot_fixture.safetensors`
+//! `crates/voxr/tests/tools/voxcpm/make_prefill_fixture.py` from the
+//! reference implementation, and `audiovae.safetensors` (produced by
+//! `crates/voxr/tests/tools/voxcpm/convert_audiovae.py`), same layout as
+//! `voxcpm_vae_check`. `FIXTURE_NAME` selects the fixture file and defaults
+//! to `prefill_fixture.safetensors`; pass `prefill_zeroshot_fixture.safetensors`
 //! for the no-reference one, or a fixture written by
-//! `audio/pipeline/make_continuation_fixture.py` for a continuation mode.
+//! `crates/voxr/tests/tools/voxcpm/make_continuation_fixture.py` for a
+//! continuation mode.
 //!
 //! This is Unit A of the end-to-end orchestrator: reference-audio encoding
 //! and the two-LM prefill, up to (not including) the per-patch CFM sampling

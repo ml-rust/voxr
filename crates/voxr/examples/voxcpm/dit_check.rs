@@ -7,7 +7,7 @@
 //!
 //! `CKPT_DIR` is the VoxCPM2 checkpoint (`config.json` + `model.safetensors`).
 //! `FIXTURE_DIR` holds `dit_fixture.safetensors`, written by
-//! `audio/pipeline/make_dit_fixture.py` from the reference implementation.
+//! `crates/voxr/tests/tools/voxcpm/make_dit_fixture.py` from the reference implementation.
 //! The fixture keeps the reference's `[b, feat_dim, patch_size]` layout for
 //! `x`, `cond` and `out`; the port takes and returns `[b, patch_size,
 //! feat_dim]`, so this gate transposes at its own boundary.

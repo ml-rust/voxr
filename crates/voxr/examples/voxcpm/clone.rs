@@ -1,6 +1,6 @@
 //! End-to-end VoxCPM2 voice cloning: reference wav plus target text in, a
 //! 48 kHz wav out. This is the Rust replacement for
-//! `audio/pipeline/voxcpm_clone.py`.
+//! `crates/voxr/tests/tools/voxcpm/voxcpm_clone.py`.
 //!
 //! ```text
 //! cargo run --release --features audio,f16 --example voxcpm_clone -- \

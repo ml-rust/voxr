@@ -7,8 +7,8 @@
 //!
 //! `CKPT_DIR` is the VoxCPM2 checkpoint (`config.json` + `model.safetensors`).
 //! `FIXTURE_DIR` holds `residual_lm_fixture.safetensors`, written by
-//! `audio/pipeline/make_residual_lm_fixture.py` from the reference
-//! implementation. `--features f16` is required: the checkpoint is BF16 and
+//! `crates/voxr/tests/tools/voxcpm/make_residual_lm_fixture.py` from the
+//! reference implementation. `--features f16` is required: the checkpoint is BF16 and
 //! the cast path is f16-gated even though the model runs in F32.
 //!
 //! This is the gate for the port, same posture as `voxcpm_baselm_check`,

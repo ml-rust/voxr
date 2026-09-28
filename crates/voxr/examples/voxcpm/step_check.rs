@@ -16,14 +16,16 @@
 //! the same fixture `voxcpm_prefill_check` reads, re-run here so the loop
 //! starts from a real prefill state. The step fixture (default
 //! `step_fixture.safetensors`) is written by
-//! `audio/pipeline/make_step_fixture.py` from the SAME reference wav and
-//! target text. `audiovae.safetensors` comes from
-//! `audio/pipeline/convert_audiovae.py`, same layout as `voxcpm_vae_check`.
+//! `crates/voxr/tests/tools/voxcpm/make_step_fixture.py` from the SAME
+//! reference wav and target text. `audiovae.safetensors` comes from
+//! `crates/voxr/tests/tools/voxcpm/convert_audiovae.py`, same layout as
+//! `voxcpm_vae_check`.
 //!
 //! # Continuation fixtures
 //!
-//! `audio/pipeline/make_continuation_fixture.py` writes a prefill and a step
-//! fixture pair for ref+continuation or continuation-only; pass both names.
+//! `crates/voxr/tests/tools/voxcpm/make_continuation_fixture.py` writes a
+//! prefill and a step fixture pair for ref+continuation or continuation-only;
+//! pass both names.
 //! The prefill fixture's `T_prompt > 0` switches the gate to that mode: the
 //! prompt wav is encoded with `encode_prompt` and prefilled as the row's
 //! tail, and `init_prefix_feat_cond` is then the prompt's last patch. Two
