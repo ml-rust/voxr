@@ -1,0 +1,256 @@
+{
+ "cases": [
+  {
+   "case": "hash",
+   "checkpoint": null,
+   "voice": "af_heart",
+   "refId": "",
+   "parts": [
+    "reference",
+    7,
+    ""
+   ],
+   "key": "447f1315622d5bfb9f7f"
+  },
+  {
+   "case": "hash",
+   "checkpoint": null,
+   "voice": "af_heart",
+   "refId": "",
+   "parts": [
+    "line one\nline \"two\"\\three",
+    1.6,
+    0.5
+   ],
+   "key": "22a9790bb65157fddeb6"
+  },
+  {
+   "case": "hash",
+   "checkpoint": "openbmb/VoxCPM2",
+   "voice": "suara Melayu 迷路 🎙️",
+   "refId": "ref:123:456.75",
+   "parts": [
+    "hifi",
+    16,
+    10,
+    null
+   ],
+   "key": "3bdf908b21a451d6dc7c"
+  },
+  {
+   "case": "hash",
+   "checkpoint": null,
+   "voice": "v",
+   "refId": "",
+   "parts": [
+    900719925474099,
+    0,
+    2,
+    10
+   ],
+   "key": "ae4a65dd81bebdc1f926"
+  },
+  {
+   "case": "textSeed",
+   "text": "Hello there.",
+   "base": 7,
+   "seed": 155
+  },
+  {
+   "case": "textSeed",
+   "text": "Ada \"kutipan\" dan sengkang-lain.",
+   "base": 7,
+   "seed": 791
+  },
+  {
+   "case": "textSeed",
+   "text": "Perjalanan ke Jepun 🗾 dan 迷路 di sana.",
+   "base": 900000,
+   "seed": 900993
+  },
+  {
+   "case": "textSeed",
+   "text": "",
+   "base": 0,
+   "seed": 603
+  },
+  {
+   "case": "anchor",
+   "checkpoint": null,
+   "voice": "af_heart",
+   "seed": 7,
+   "language": null,
+   "anchorKey": "447f1315622d5bfb9f7f",
+   "anchorFile": "voice-447f1315622d5bfb9f7f.wav"
+  },
+  {
+   "case": "anchor",
+   "checkpoint": null,
+   "voice": "suara Melayu",
+   "seed": 900719925474099,
+   "language": "ms",
+   "anchorKey": "e373b11dd68810951681",
+   "anchorFile": "voice-e373b11dd68810951681.wav"
+  },
+  {
+   "case": "reference",
+   "checkpoint": null,
+   "voice": "af_heart",
+   "refId": "/rec with spaces.wav:12345:1699999999999.25",
+   "anchorKey": null,
+   "cloneFrom": "ref-00c058b4308143f02449.wav",
+   "content": "a small fixed reference, to hash deterministically",
+   "prepared": "f77ee6c70e4449f36f94ded2033865fc61a0b1df"
+  },
+  {
+   "case": "take",
+   "anchor": "no-reference",
+   "voice": "af_heart",
+   "seed": 7,
+   "style": "",
+   "text": "Hello there.",
+   "cfg": 2,
+   "steps": 10,
+   "hifi": false,
+   "anchorKey": "447f1315622d5bfb9f7f",
+   "takeFile": "21a9335ecef45f883f57.wav"
+  },
+  {
+   "case": "take",
+   "anchor": "no-reference",
+   "voice": "af_heart",
+   "seed": 7,
+   "style": "",
+   "text": "Hello there.",
+   "cfg": 1.6,
+   "steps": 16,
+   "hifi": false,
+   "anchorKey": "447f1315622d5bfb9f7f",
+   "takeFile": "3662b3ff94f748337278.wav"
+  },
+  {
+   "case": "take",
+   "anchor": "no-reference",
+   "voice": "af_heart",
+   "seed": 7,
+   "style": "(calm tone)",
+   "text": "Hello there.",
+   "cfg": 2,
+   "steps": 10,
+   "hifi": true,
+   "anchorKey": "447f1315622d5bfb9f7f",
+   "takeFile": "6d1760e0137edee5aac6.wav"
+  },
+  {
+   "case": "take",
+   "anchor": "reference",
+   "voice": "af_heart",
+   "seed": 7,
+   "style": "",
+   "text": "Hello there.",
+   "cfg": 2,
+   "steps": 10,
+   "hifi": false,
+   "anchorKey": null,
+   "takeFile": "d6243e5f9f5a0be728d8.wav"
+  },
+  {
+   "case": "takesRead",
+   "name": "current format",
+   "raw": "{\"seed\":9,\"takes\":{\"Hello there.\":812,\"unicode 迷路\":3}}",
+   "asked": null,
+   "configSeed": null,
+   "current": true,
+   "before": 9,
+   "seed": 9,
+   "chosen": {
+    "Hello there.": 812,
+    "unicode 迷路": 3
+   }
+  },
+  {
+   "case": "takesRead",
+   "name": "old flat file",
+   "raw": "{\"Hello there.\":812}",
+   "asked": null,
+   "configSeed": 5,
+   "current": false,
+   "before": 5,
+   "seed": 5,
+   "chosen": {
+    "Hello there.": 812
+   }
+  },
+  {
+   "case": "takesRead",
+   "name": "corrupt json",
+   "raw": "{not json",
+   "asked": null,
+   "configSeed": null,
+   "current": false,
+   "before": 7,
+   "seed": 7,
+   "chosen": {}
+  },
+  {
+   "case": "takesRead",
+   "name": "takes not an object",
+   "raw": "{\"seed\":9,\"takes\":\"nope\"}",
+   "asked": null,
+   "configSeed": null,
+   "current": false,
+   "before": 7,
+   "seed": 7,
+   "chosen": {
+    "seed": 9,
+    "takes": "nope"
+   }
+  },
+  {
+   "case": "takesRead",
+   "name": "asked seed matches before, keeps chosen",
+   "raw": "{\"seed\":9,\"takes\":{\"a\":1}}",
+   "asked": 9,
+   "configSeed": null,
+   "current": true,
+   "before": 9,
+   "seed": 9,
+   "chosen": {
+    "a": 1
+   }
+  },
+  {
+   "case": "takesRead",
+   "name": "asked seed resets chosen",
+   "raw": "{\"seed\":9,\"takes\":{\"a\":1}}",
+   "asked": 99,
+   "configSeed": null,
+   "current": true,
+   "before": 9,
+   "seed": 99,
+   "chosen": {}
+  },
+  {
+   "case": "takesRead",
+   "name": "no file, config seed",
+   "raw": null,
+   "asked": null,
+   "configSeed": 42,
+   "current": false,
+   "before": 42,
+   "seed": 42,
+   "chosen": {}
+  },
+  {
+   "case": "takesRead",
+   "name": "no file, no config seed",
+   "raw": null,
+   "asked": null,
+   "configSeed": null,
+   "current": false,
+   "before": 7,
+   "seed": 7,
+   "chosen": {}
+  }
+ ]
+}

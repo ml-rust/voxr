@@ -25,6 +25,8 @@ thiserror = "2"
 # RBJ cookbook biquads: the band levels and the bass shelf of a reference
 # voice's preparation.
 biquad = "0.6"
+# A take's own-text seed and a cache key's sha1 digest.
+sha1 = "0.11"
 
 # `HeardWord: From<&WordTiming>`, `WhisperTranscriber` and `read_take_16k`:
 # Whisper word timings and the audio decode that feeds them.
@@ -49,6 +51,9 @@ name = "narration_polish_oracle"
 
 [[test]]
 name = "narration_transcript_oracle"
+
+[[test]]
+name = "narration_take_oracle"
 
 [[example]]
 name = "transcribe_take"
