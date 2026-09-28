@@ -4,46 +4,60 @@
 //! The canonical header carries the RIFF and `data` chunk sizes up front. A
 //! streamed response cannot know them, so both are written as `u32::MAX`,
 //! the convention players and decoders treat as "read to end of stream".
-//! The rest of the header is byte-identical to the finished-file header, so
-//! a stream header followed by [`super::encode::encode_pcm16_raw`] (or
+//! hound writes sizes only when a file is finalized, so it cannot produce this
+//! header. Each stream header is the finished-file header of zero samples from
+//! [`super::encode`] with those two fields overwritten, so a stream header
+//! followed by [`super::encode::encode_pcm16_raw`] (or
 //! [`super::encode::encode_f32_raw`]) chunks is a finished
-//! [`super::encode::encode_wav_pcm16`] (or `encode_wav_f32`) file except
-//! for those two fields.
+//! [`super::encode::encode_wav_pcm16`] (or `encode_wav_f32`) file except for
+//! those two fields.
 
-use crate::error::Result;
+use crate::error::{Error, Result};
 
-use super::encode::{HEADER_LEN, WavHeader, write_header};
-use super::format::{FORMAT_IEEE_FLOAT, FORMAT_PCM};
+use super::encode::{encode_wav_f32, encode_wav_pcm16};
+use super::format::{DATA_SIZE_OFFSET, HEADER_LEN, RIFF_SIZE_OFFSET};
 
 /// Size field value meaning "unknown, read to end of stream".
 pub const STREAM_SIZE_UNKNOWN: u32 = u32::MAX;
 
 /// Mono 16-bit PCM stream header; follow it with
 /// [`super::encode::encode_pcm16_raw`] chunks.
+///
+/// Returns [`crate::Error::InvalidArgument`] when `sample_rate` is 0 or
+/// overflows the header's byte rate.
 pub fn wav_stream_header_pcm16(sample_rate: u32) -> Result<Vec<u8>> {
-    stream_header(FORMAT_PCM, 16, sample_rate)
+    unknown_length(encode_wav_pcm16(&[], sample_rate)?)
 }
 
 /// Mono 32-bit IEEE float stream header; follow it with
 /// [`super::encode::encode_f32_raw`] chunks.
+///
+/// Returns [`crate::Error::InvalidArgument`] when `sample_rate` is 0 or
+/// overflows the header's byte rate.
 pub fn wav_stream_header_f32(sample_rate: u32) -> Result<Vec<u8>> {
-    stream_header(FORMAT_IEEE_FLOAT, 32, sample_rate)
+    unknown_length(encode_wav_f32(&[], sample_rate)?)
 }
 
-fn stream_header(format_tag: u16, bits_per_sample: u16, sample_rate: u32) -> Result<Vec<u8>> {
-    let mut out = Vec::with_capacity(HEADER_LEN);
-    write_header(
-        &mut out,
-        WavHeader {
-            format_tag,
-            channels: 1,
-            sample_rate,
-            bits_per_sample,
-            riff_size: STREAM_SIZE_UNKNOWN,
-            data_size: STREAM_SIZE_UNKNOWN,
-        },
-    )?;
-    Ok(out)
+/// Overwrite the RIFF and `data` sizes of an empty mono file's header with
+/// [`STREAM_SIZE_UNKNOWN`].
+fn unknown_length(mut header: Vec<u8>) -> Result<Vec<u8>> {
+    let len = header.len();
+    let wrong_len = || Error::DataError {
+        reason: format!(
+            "an empty mono WAV encoded to {len} bytes, expected the {HEADER_LEN}-byte \
+             canonical header; report this as a voxr bug"
+        ),
+    };
+    if len != HEADER_LEN {
+        return Err(wrong_len());
+    }
+    for offset in [RIFF_SIZE_OFFSET, DATA_SIZE_OFFSET] {
+        header
+            .get_mut(offset..offset + 4)
+            .ok_or_else(wrong_len)?
+            .copy_from_slice(&STREAM_SIZE_UNKNOWN.to_le_bytes());
+    }
+    Ok(header)
 }
 
 #[cfg(test)]
@@ -114,5 +128,6 @@ mod tests {
     #[test]
     fn stream_header_rejects_an_overflowing_byte_rate() {
         assert!(wav_stream_header_f32(u32::MAX).is_err());
+        assert!(wav_stream_header_pcm16(0).is_err());
     }
 }

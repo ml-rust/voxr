@@ -1,12 +1,18 @@
-//! Minimal RIFF/WAVE encoder for raw mono/stereo PCM.
+//! RIFF/WAVE encoder for f32 samples in `[-1, 1]`.
 //!
-//! The TTS path produces `Vec<f32>` waveform samples in `[-1, 1]` at the model's
-//! native sample rate. This module converts those to either 16-bit signed PCM
-//! (small, widely supported) or 32-bit float PCM (lossless) inside a WAV container.
+//! The TTS path produces `Vec<f32>` waveform samples at the model's native
+//! sample rate. 16-bit signed PCM files (small, widely supported) go through
+//! hound. 32-bit IEEE float files (lossless) use the canonical 44-byte header
+//! from [`super::format`]: hound writes float as `WAVE_FORMAT_EXTENSIBLE` with a
+//! 68-byte header, and [`super::stream::wav_stream_header_f32`] must match the
+//! finished file byte for byte outside the two size fields.
+
+use std::io::Cursor;
 
 use crate::error::{Error, Result};
 
-use super::format::{FORMAT_IEEE_FLOAT, FORMAT_PCM};
+pub use super::format::HEADER_LEN;
+use super::format::{EXTENSIBLE_HEADER_LEN, FORMAT_IEEE_FLOAT, FmtFields, canonical_header};
 
 fn bad(arg: &'static str, reason: String) -> Error {
     Error::InvalidArgument { arg, reason }
@@ -16,17 +22,22 @@ fn bad(arg: &'static str, reason: String) -> Error {
 ///
 /// Samples outside `[-1, 1]` are clipped. Returns a standalone byte buffer
 /// suitable as an HTTP response body, or [`Error::InvalidArgument`] when the
-/// sample count is too large for the WAV container's 32-bit size fields.
+/// sample rate is 0 or the sample count is too large for the WAV container's
+/// 32-bit size fields.
 pub fn encode_wav_pcm16(samples: &[f32], sample_rate: u32) -> Result<Vec<u8>> {
     encode_wav_pcm16_multichannel(samples, sample_rate, 1)
 }
 
 /// Encode interleaved multi-channel f32 samples as 16-bit PCM WAV.
 ///
-/// `samples.len()` must be divisible by `channels`. Returns
-/// [`Error::InvalidArgument`] when `channels` is 0, when `samples.len()` is not
-/// divisible by `channels`, or when the sample count is too large for the WAV
-/// container's 32-bit size fields.
+/// One or two channels produce the canonical [`HEADER_LEN`]-byte header. More
+/// than two produce the 68-byte `WAVE_FORMAT_EXTENSIBLE` header the WAV
+/// format requires for them.
+///
+/// Returns [`Error::InvalidArgument`] when `channels` is 0, when `samples.len()`
+/// is not divisible by `channels`, when the sample rate is 0, when the rate and
+/// channel count overflow the header's rate fields, or when the sample count is
+/// too large for the WAV container's 32-bit size fields.
 pub fn encode_wav_pcm16_multichannel(
     samples: &[f32],
     sample_rate: u32,
@@ -44,74 +55,62 @@ pub fn encode_wav_pcm16_multichannel(
             ),
         ));
     }
-
+    // hound derives the same rate fields without overflow checks and divides
+    // by the sample rate, so both are checked before it runs.
+    checked_wave_rates(sample_rate, channels, 16)?;
+    let header_len = if channels > 2 {
+        EXTENSIBLE_HEADER_LEN
+    } else {
+        HEADER_LEN
+    };
     let data_size = checked_data_size(samples.len(), 2)?; // 2 bytes per i16 sample
-    let riff_size = checked_riff_size(samples.len(), data_size)?;
+    checked_riff_size(samples.len(), data_size, header_len)?;
 
-    let mut out = Vec::with_capacity(HEADER_LEN + data_size as usize);
-    write_header(
-        &mut out,
-        WavHeader {
-            format_tag: FORMAT_PCM,
-            channels,
-            sample_rate,
-            bits_per_sample: 16,
-            riff_size,
-            data_size,
-        },
-    )?;
-    write_pcm16(&mut out, samples);
-    Ok(out)
+    let spec = hound::WavSpec {
+        channels,
+        sample_rate,
+        bits_per_sample: 16,
+        sample_format: hound::SampleFormat::Int,
+    };
+    let what = || format!("{} samples of {channels}-channel 16-bit PCM", samples.len());
+    let mut cursor = Cursor::new(Vec::with_capacity(header_len + data_size as usize));
+    let mut writer =
+        hound::WavWriter::new(&mut cursor, spec).map_err(|e| write_error(&what(), e))?;
+    for &s in samples {
+        writer
+            .write_sample(pcm16(s))
+            .map_err(|e| write_error(&what(), e))?;
+    }
+    writer.finalize().map_err(|e| write_error(&what(), e))?;
+    Ok(cursor.into_inner())
 }
 
-/// Byte length of the 44-byte canonical header every encoder here writes.
-pub const HEADER_LEN: usize = 44;
-
-/// The fields of a canonical 44-byte RIFF/WAVE header. The rate fields are
-/// derived in [`write_header`], so a header can never disagree with itself.
-pub(super) struct WavHeader {
-    pub(super) format_tag: u16,
-    pub(super) channels: u16,
-    pub(super) sample_rate: u32,
-    pub(super) bits_per_sample: u16,
-    /// `36 + data_size` for a finished file, `u32::MAX` for a stream.
-    pub(super) riff_size: u32,
-    /// Bytes in the `data` chunk, `u32::MAX` for a stream.
-    pub(super) data_size: u32,
+/// A hound write error. The checks before hound runs cover every input it
+/// rejects, and the sink is an in-memory buffer, so reaching this is a bug.
+fn write_error(what: &str, err: hound::Error) -> Error {
+    Error::DataError {
+        reason: format!(
+            "hound failed to write {what} into memory: {err}; the input passed every \
+             size check, so report this as a voxr bug"
+        ),
+    }
 }
 
-/// Append the 44-byte header to `out`. Errors when the rate fields overflow
-/// the widths the header stores them in.
-pub(super) fn write_header(out: &mut Vec<u8>, header: WavHeader) -> Result<()> {
-    let (byte_rate, block_align) =
-        checked_wave_rates(header.sample_rate, header.channels, header.bits_per_sample)?;
-    out.extend_from_slice(b"RIFF");
-    out.extend_from_slice(&header.riff_size.to_le_bytes());
-    out.extend_from_slice(b"WAVE");
-    out.extend_from_slice(b"fmt ");
-    out.extend_from_slice(&16u32.to_le_bytes()); // fmt chunk size
-    out.extend_from_slice(&header.format_tag.to_le_bytes());
-    out.extend_from_slice(&header.channels.to_le_bytes());
-    out.extend_from_slice(&header.sample_rate.to_le_bytes());
-    out.extend_from_slice(&byte_rate.to_le_bytes());
-    out.extend_from_slice(&block_align.to_le_bytes());
-    out.extend_from_slice(&header.bits_per_sample.to_le_bytes());
-    out.extend_from_slice(b"data");
-    out.extend_from_slice(&header.data_size.to_le_bytes());
-    Ok(())
+/// One sample as clipped signed 16-bit PCM, scaled by `i16::MAX` so `-1.0`
+/// and `1.0` map to symmetric codes.
+fn pcm16(s: f32) -> i16 {
+    (s.clamp(-1.0, 1.0) * i16::MAX as f32).round() as i16
 }
 
 /// Append `samples` as clipped little-endian signed 16-bit PCM.
-pub(super) fn write_pcm16(out: &mut Vec<u8>, samples: &[f32]) {
+fn write_pcm16(out: &mut Vec<u8>, samples: &[f32]) {
     for &s in samples {
-        let clipped = s.clamp(-1.0, 1.0);
-        let i = (clipped * i16::MAX as f32).round() as i16;
-        out.extend_from_slice(&i.to_le_bytes());
+        out.extend_from_slice(&pcm16(s).to_le_bytes());
     }
 }
 
 /// Append `samples` as little-endian IEEE f32.
-pub(super) fn write_f32(out: &mut Vec<u8>, samples: &[f32]) {
+fn write_f32(out: &mut Vec<u8>, samples: &[f32]) {
     for &s in samples {
         out.extend_from_slice(&s.to_le_bytes());
     }
@@ -119,24 +118,24 @@ pub(super) fn write_f32(out: &mut Vec<u8>, samples: &[f32]) {
 
 /// Encode mono f32 samples as `audio/wav` with 32-bit float PCM (no clipping).
 ///
-/// Returns [`Error::InvalidArgument`] when the sample count is too large for the
-/// WAV container's 32-bit size fields.
+/// Returns [`Error::InvalidArgument`] when the sample rate is 0, when it
+/// overflows the header's byte rate, or when the sample count is too large for
+/// the WAV container's 32-bit size fields.
 pub fn encode_wav_f32(samples: &[f32], sample_rate: u32) -> Result<Vec<u8>> {
+    let (byte_rate, block_align) = checked_wave_rates(sample_rate, 1, 32)?;
     let data_size = checked_data_size(samples.len(), 4)?;
-    let riff_size = checked_riff_size(samples.len(), data_size)?;
+    let riff_size = checked_riff_size(samples.len(), data_size, HEADER_LEN)?;
 
-    let mut out = Vec::with_capacity(HEADER_LEN + data_size as usize);
-    write_header(
-        &mut out,
-        WavHeader {
-            format_tag: FORMAT_IEEE_FLOAT,
-            channels: 1,
-            sample_rate,
-            bits_per_sample: 32,
-            riff_size,
-            data_size,
-        },
-    )?;
+    let fmt = FmtFields {
+        format_tag: FORMAT_IEEE_FLOAT,
+        channels: 1,
+        sample_rate,
+        byte_rate,
+        block_align,
+        bits_per_sample: 32,
+    };
+    let mut out = canonical_header(&fmt, riff_size, data_size);
+    out.reserve(data_size as usize);
     write_f32(&mut out, samples);
     Ok(out)
 }
@@ -162,10 +161,17 @@ pub fn encode_f32_raw(samples: &[f32]) -> Vec<u8> {
 /// `fmt ` chunk rate fields: `byte_rate` (bytes per second) and `block_align`
 /// (bytes per frame), both checked against the widths the header stores them in.
 ///
-/// `block_align` is a `u16`, so it overflows above 32767 channels at 16 bits, and
-/// `byte_rate` is a `u32`, so a large `sample_rate` and channel count together
-/// overflow it. Either would silently emit a header describing a different file.
+/// A sample rate of 0 describes no playable file. `block_align` is a `u16`, so
+/// it overflows above 32767 channels at 16 bits, and `byte_rate` is a `u32`, so
+/// a large `sample_rate` and channel count together overflow it. Either would
+/// silently emit a header describing a different file.
 fn checked_wave_rates(sample_rate: u32, channels: u16, bits_per_sample: u16) -> Result<(u32, u16)> {
+    if sample_rate == 0 {
+        return Err(bad(
+            "sample_rate",
+            "sample rate is 0 Hz; pass the rate the samples were produced at".to_string(),
+        ));
+    }
     let bytes_per_sample = bits_per_sample / 8;
     let block_align = channels.checked_mul(bytes_per_sample).ok_or_else(|| {
         bad(
@@ -205,15 +211,17 @@ fn checked_data_size(sample_count: usize, bytes_per_sample: usize) -> Result<u32
         })
 }
 
-/// `RIFF` chunk size in bytes: 36 (fixed header) + `data_size`, checked against
-/// the WAV container's 32-bit size field.
-fn checked_riff_size(sample_count: usize, data_size: u32) -> Result<u32> {
-    36u32.checked_add(data_size).ok_or_else(|| {
+/// `RIFF` chunk size in bytes: the header after the 8-byte RIFF preamble plus
+/// `data_size`, checked against the WAV container's 32-bit size field.
+fn checked_riff_size(sample_count: usize, data_size: u32, header_len: usize) -> Result<u32> {
+    let fixed = (header_len - 8) as u32;
+    fixed.checked_add(data_size).ok_or_else(|| {
         bad(
             "samples",
             format!(
                 "sample count {sample_count} produces a {data_size}-byte data chunk, \
-                 too large to encode as a WAV file (36 + data_size overflows a u32 RIFF size)"
+                 too large to encode as a WAV file ({fixed} + data_size overflows a u32 \
+                 RIFF size)"
             ),
         )
     })
@@ -334,5 +342,27 @@ mod tests {
         let wav = encode_wav_pcm16_multichannel(&[], 8_000, 32_767)
             .expect("32767 channels at 16 bits fits a u16 block alignment");
         assert_eq!(u16::from_le_bytes(wav[32..34].try_into().unwrap()), 65_534);
+    }
+
+    /// More than two channels need `WAVE_FORMAT_EXTENSIBLE`; the decoder must
+    /// read that header back to the same samples.
+    #[test]
+    fn three_channel_pcm16_uses_the_extensible_header_and_round_trips() {
+        let input = [0.5f32, -0.5, 0.25, 1.0, -1.0, 0.0];
+        let wav = encode_wav_pcm16_multichannel(&input, 16_000, 3).unwrap();
+        assert_eq!(wav.len(), EXTENSIBLE_HEADER_LEN + input.len() * 2);
+        assert_eq!(u16::from_le_bytes(wav[20..22].try_into().unwrap()), 0xFFFE);
+        let decoded = crate::wav::decode_wav(&wav).unwrap();
+        assert_eq!(decoded.channels, 3);
+        for (a, b) in input.iter().zip(decoded.samples.iter()) {
+            assert!((a - b).abs() <= 1.0 / 32_768.0, "{a} vs {b}");
+        }
+    }
+
+    #[test]
+    fn rejects_a_zero_sample_rate() {
+        let err = encode_wav_pcm16(&[0.0; 4], 0).expect_err("0 Hz");
+        assert!(err.to_string().contains("0 Hz"), "{err}");
+        assert!(encode_wav_f32(&[0.0; 4], 0).is_err());
     }
 }

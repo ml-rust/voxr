@@ -1,16 +1,26 @@
-//! Minimal RIFF/WAVE decoder for PCM and IEEE-float audio.
+//! RIFF/WAVE decoder for PCM and IEEE-float audio, on hound.
 //!
 //! The counterpart of [`super::encode`]: it turns a WAV byte buffer back into
 //! interleaved `f32` samples in `[-1, 1]` plus the format needed to interpret them.
 //! Every WAV this crate writes round-trips through [`decode_wav`], and the integer
 //! widths real recorders produce (24-bit, 32-bit) decode as well.
 //!
+//! hound validates the `fmt ` fields and decodes the samples. The chunk walk
+//! stays here, for what hound 3.5 does not do: skip the RIFF pad byte after an
+//! odd-sized chunk, accept `data` before `fmt `, clamp a `data` chunk left at
+//! [`STREAM_SIZE_UNKNOWN`], and resolve a `WAVE_FORMAT_EXTENSIBLE` SubFormat by
+//! its leading format tag rather than by the whole GUID. The walk locates both
+//! chunks, and hound reads a canonical 44-byte header rebuilt from them,
+//! followed by the borrowed `data` bytes.
+//!
 //! The parser reads untrusted file bytes, so it never panics: every read is bounds
 //! checked and every malformed input returns a descriptive [`Error::InvalidArgument`].
 
+use std::io::{Cursor, Read};
+
 use crate::error::{Error, Result};
 
-use super::format::{FORMAT_EXTENSIBLE, FORMAT_IEEE_FLOAT, FORMAT_PCM};
+use super::format::{FORMAT_EXTENSIBLE, FmtFields, HEADER_LEN, canonical_header};
 use super::stream::STREAM_SIZE_UNKNOWN;
 
 /// A decoded WAV file: interleaved samples plus the format needed to interpret them.
@@ -31,13 +41,9 @@ impl WavData {
     }
 }
 
-/// Parsed `fmt ` chunk, after resolving `WAVE_FORMAT_EXTENSIBLE`.
-struct Format {
-    tag: u16,
-    channels: u16,
-    sample_rate: u32,
-    bits_per_sample: u16,
-}
+/// What hound supports and this decoder returns, for error messages.
+const SUPPORTED: &str = "16/24/32-bit integer PCM or 32-bit IEEE float; re-encode the file \
+                         to one of those, or decode it with `decode_audio` (feature `decode`)";
 
 fn bad(reason: String) -> Error {
     Error::InvalidArgument {
@@ -68,7 +74,8 @@ fn read_u32(bytes: &[u8], off: usize) -> Option<u32> {
 /// Returns [`Error::InvalidArgument`] for a buffer that is truncated, carries bad
 /// RIFF/WAVE magic, declares a chunk size that overruns the buffer, has no `fmt `
 /// or `data` chunk, declares zero channels, uses an unsupported format tag or
-/// bit width, or holds a `data` chunk that is not a whole number of frames.
+/// bit width, declares a block alignment too small for its bit width, or holds a
+/// `data` chunk that is not a whole number of frames.
 pub fn decode_wav(bytes: &[u8]) -> Result<WavData> {
     if bytes.len() < 12 {
         return Err(bad(format!(
@@ -88,7 +95,7 @@ pub fn decode_wav(bytes: &[u8]) -> Result<WavData> {
     }
 
     let end = bytes.len();
-    let mut format: Option<Format> = None;
+    let mut format: Option<FmtFields> = None;
     let mut data_range: Option<(usize, usize)> = None;
     // Whether the `data` size came from the header (exact) or from the buffer
     // length (streamed, clamped). Only the latter tolerates a partial frame.
@@ -160,13 +167,9 @@ pub fn decode_wav(bytes: &[u8]) -> Result<WavData> {
         ))
     })?;
 
-    let bytes_per_sample = (format.bits_per_sample / 8) as usize;
-    let frame_size = bytes_per_sample
-        .checked_mul(format.channels as usize)
-        .ok_or_else(|| bad("frame size overflows".to_string()))?;
-    if frame_size == 0 {
-        return Err(bad("frame size is zero".to_string()));
-    }
+    // A zero block alignment is left for hound to reject with the rest of the
+    // `fmt ` fields.
+    let frame_size = format.block_align.max(1) as usize;
     let whole_frames = data.len() - data.len() % frame_size;
     if whole_frames != data.len() && declared_data {
         return Err(bad(format!(
@@ -178,13 +181,7 @@ pub fn decode_wav(bytes: &[u8]) -> Result<WavData> {
         )));
     }
     let data = &data[..whole_frames];
-
-    let samples = decode_samples(data, &format, bytes_per_sample);
-    Ok(WavData {
-        samples,
-        sample_rate: format.sample_rate,
-        channels: format.channels,
-    })
+    decode_samples(&format, data)
 }
 
 /// Render a chunk id for error messages, replacing non-printable bytes.
@@ -200,7 +197,9 @@ fn tag_name(id: &[u8; 4]) -> String {
         .collect()
 }
 
-fn parse_fmt(bytes: &[u8], body: usize, size: usize) -> Result<Format> {
+/// Parse a `fmt ` chunk body, resolving `WAVE_FORMAT_EXTENSIBLE` to the format
+/// tag its SubFormat GUID carries.
+fn parse_fmt(bytes: &[u8], body: usize, size: usize) -> Result<FmtFields> {
     if size < 16 {
         return Err(bad(format!(
             "'fmt ' chunk is {size} bytes, the minimum is 16"
@@ -210,13 +209,16 @@ fn parse_fmt(bytes: &[u8], body: usize, size: usize) -> Result<Format> {
         read_u16(bytes, body + off)
             .ok_or_else(|| bad(format!("'fmt ' chunk is truncated at offset {off}")))
     };
-    let mut tag = field(0)?;
+    let mut format_tag = field(0)?;
     let channels = field(2)?;
     let sample_rate = read_u32(bytes, body + 4)
         .ok_or_else(|| bad("'fmt ' chunk is truncated at the sample rate".to_string()))?;
+    let byte_rate = read_u32(bytes, body + 8)
+        .ok_or_else(|| bad("'fmt ' chunk is truncated at the byte rate".to_string()))?;
+    let block_align = field(12)?;
     let bits_per_sample = field(14)?;
 
-    if tag == FORMAT_EXTENSIBLE {
+    if format_tag == FORMAT_EXTENSIBLE {
         // Extensible layout: 16 standard bytes, cbSize (2), validBitsPerSample (2),
         // dwChannelMask (4), then a 16-byte SubFormat GUID whose first two bytes
         // hold the real format tag.
@@ -231,92 +233,79 @@ fn parse_fmt(bytes: &[u8], body: usize, size: usize) -> Result<Format> {
                 "WAVE_FORMAT_EXTENSIBLE cbSize is {cb_size}, the minimum is 22"
             )));
         }
-        tag = field(24)?;
-        if tag == FORMAT_EXTENSIBLE {
+        format_tag = field(24)?;
+        if format_tag == FORMAT_EXTENSIBLE {
             return Err(bad(
                 "WAVE_FORMAT_EXTENSIBLE SubFormat GUID is itself 0xFFFE".to_string(),
             ));
         }
     }
 
-    if channels == 0 {
-        return Err(bad("'fmt ' chunk declares 0 channels".to_string()));
-    }
-    match tag {
-        FORMAT_PCM => {
-            if !matches!(bits_per_sample, 16 | 24 | 32) {
-                return Err(bad(format!(
-                    "integer PCM with {bits_per_sample} bits per sample is unsupported, \
-                     expected 16, 24, or 32"
-                )));
-            }
-        }
-        FORMAT_IEEE_FLOAT => {
-            if bits_per_sample != 32 {
-                return Err(bad(format!(
-                    "IEEE float with {bits_per_sample} bits per sample is unsupported, \
-                     expected 32"
-                )));
-            }
-        }
-        other => {
-            return Err(bad(format!(
-                "unsupported WAVE format tag {other}, expected 1 (PCM), 3 (IEEE float), \
-                 or 0xFFFE (extensible)"
-            )));
-        }
-    }
-
-    Ok(Format {
-        tag,
+    Ok(FmtFields {
+        format_tag,
         channels,
         sample_rate,
+        // The byte rate is redundant with the other fields. hound rejects a
+        // file whose byte rate disagrees with them, so a consistent one is
+        // derived here; only an overflowing product keeps the declared value
+        // for hound to reject.
+        byte_rate: sample_rate
+            .checked_mul(block_align as u32)
+            .unwrap_or(byte_rate),
+        block_align,
         bits_per_sample,
     })
 }
 
-fn decode_samples(data: &[u8], format: &Format, bytes_per_sample: usize) -> Vec<f32> {
-    let count = data.len() / bytes_per_sample.max(1);
-    let mut out = Vec::with_capacity(count);
-    for chunk in data.chunks_exact(bytes_per_sample) {
-        out.push(decode_one(chunk, format));
-    }
-    out
-}
+/// Hand hound the canonical header for `format` followed by `data`, and
+/// convert what it reads to `f32`.
+fn decode_samples(f: &FmtFields, data: &[u8]) -> Result<WavData> {
+    let data_len = u32::try_from(data.len()).map_err(|_| {
+        bad(format!(
+            "'data' chunk is {} bytes, past the 4 GiB a WAV size field can declare; split \
+             the recording into smaller files",
+            data.len()
+        ))
+    })?;
+    let riff_size = data_len.saturating_add((HEADER_LEN - 8) as u32);
+    let header = canonical_header(f, riff_size, data_len);
+    let rejected = |err: hound::Error| {
+        bad(format!(
+            "hound rejected the stream (format tag {}, {} channels, {} Hz, {} bits per \
+             sample, block alignment {}): {err}; supported are {SUPPORTED}",
+            f.format_tag, f.channels, f.sample_rate, f.bits_per_sample, f.block_align
+        ))
+    };
 
-/// Convert one sample's bytes to `f32`. `chunk.len()` is `bits_per_sample / 8`,
-/// which `parse_fmt` has already restricted to 2, 3, or 4.
-fn decode_one(chunk: &[u8], format: &Format) -> f32 {
-    match (format.tag, chunk.len()) {
-        (FORMAT_IEEE_FLOAT, 4) => match chunk.try_into() {
-            Ok(raw) => f32::from_le_bytes(raw),
-            Err(_) => 0.0,
-        },
-        (FORMAT_PCM, 2) => match chunk.try_into() {
-            // i16::MAX matches the writer's scale, so the round trip is symmetric.
-            Ok(raw) => scale(i16::from_le_bytes(raw) as f64, i16::MAX as f64),
-            Err(_) => 0.0,
-        },
-        (FORMAT_PCM, 3) => {
-            let raw: [u8; 3] = match chunk.try_into() {
-                Ok(raw) => raw,
-                Err(_) => return 0.0,
-            };
-            let packed = raw[0] as i32 | ((raw[1] as i32) << 8) | ((raw[2] as i32) << 16);
-            // Sign-extend from 24 bits.
-            let value = if packed & 0x0080_0000 != 0 {
-                packed - 0x0100_0000
-            } else {
-                packed
-            };
-            scale(value as f64, 8_388_607.0)
+    let reader = hound::WavReader::new(Cursor::new(header).chain(data)).map_err(rejected)?;
+    let spec = reader.spec();
+    let samples = match (spec.sample_format, spec.bits_per_sample) {
+        (hound::SampleFormat::Float, _) => reader
+            .into_samples::<f32>()
+            .collect::<std::result::Result<Vec<_>, _>>()
+            .map_err(rejected)?,
+        (hound::SampleFormat::Int, bits @ (16 | 24 | 32)) => {
+            // i16::MAX at 16 bits matches the writer's scale, so the round
+            // trip is symmetric.
+            let full_scale = ((1i64 << (bits - 1)) - 1) as f64;
+            reader
+                .into_samples::<i32>()
+                .map(|s| s.map(|v| scale(v as f64, full_scale)))
+                .collect::<std::result::Result<Vec<_>, _>>()
+                .map_err(rejected)?
         }
-        (FORMAT_PCM, 4) => match chunk.try_into() {
-            Ok(raw) => scale(i32::from_le_bytes(raw) as f64, i32::MAX as f64),
-            Err(_) => 0.0,
-        },
-        _ => 0.0,
-    }
+        (hound::SampleFormat::Int, bits) => {
+            return Err(bad(format!(
+                "integer PCM with {bits} bits per sample is unsupported; supported are \
+                 {SUPPORTED}"
+            )));
+        }
+    };
+    Ok(WavData {
+        samples,
+        sample_rate: spec.sample_rate,
+        channels: spec.channels,
+    })
 }
 
 /// Normalise an integer sample against positive full scale, clamped to `[-1, 1]`
@@ -365,10 +354,9 @@ mod tests {
     use super::*;
     use crate::wav::encode::encode_wav_pcm16;
 
-    /// Offsets of the two size fields `encode_wav_pcm16` writes: RIFF size at
-    /// 4, `data` size at 40 (12-byte header + 24-byte `fmt ` chunk + 4-byte id).
-    const RIFF_SIZE_OFF: usize = 4;
-    const DATA_SIZE_OFF: usize = 40;
+    use crate::wav::format::{
+        DATA_SIZE_OFFSET as DATA_SIZE_OFF, RIFF_SIZE_OFFSET as RIFF_SIZE_OFF,
+    };
 
     fn pcm16_with_sizes(samples: &[f32], riff: u32, data: u32) -> Vec<u8> {
         let mut bytes = encode_wav_pcm16(samples, 16_000).expect("encode");
