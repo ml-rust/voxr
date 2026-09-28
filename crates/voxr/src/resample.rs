@@ -1,8 +1,8 @@
 //! Sample-rate conversion for mono `f32` audio.
 //!
 //! Recorded corpora arrive at 44.1 or 48 kHz; [`boostr::model::audio::neucodec`] and the mel
-//! front-end demand 16 kHz. [`resample`] is that missing link: a polyphase
-//! windowed-sinc FIR converter between any two rates.
+//! front-end demand 16 kHz. [`resample`] is that missing link: a windowed-sinc
+//! converter between any two rates, run by rubato's asynchronous sinc resampler.
 //!
 //! **CPU-only.** Resampling runs once per file at load time, on a host-side
 //! `Vec<f32>` that has just come out of the WAV decoder and has never touched a
@@ -10,56 +10,71 @@
 //! than the filter itself. Stays here (not in numr) because it is an audio
 //! specific composition, not a core numerical op.
 //!
-//! # Design
+//! # Filter
 //!
-//! `from_rate / to_rate` reduces by GCD to a coprime fraction `down / up`.
-//! Conceptually the signal is upsampled by `up` (zero stuffing), low-pass
-//! filtered, then decimated by `down`. The `up`-times longer signal is never
-//! materialised: the prototype filter is split into `up` phases, and each output
-//! sample reads one phase against the input samples it actually overlaps.
+//! rubato evaluates a Blackman² windowed sinc ([`WINDOW`]) at [`OVERSAMPLING`]
+//! points per input sample and interpolates cubically between them. The cutoff
+//! is `min(from_rate, to_rate) / 2`, the lower of the two Nyquist limits,
+//! scaled by [`ROLLOFF`] to leave a transition band. That cutoff is the
+//! anti-aliasing: content the output rate cannot represent is stopped before it
+//! folds back into the audible band.
 //!
-//! The prototype is `h(n) = up * fc * sinc(fc * n) * kaiser(n)` on the upsampled
-//! grid, with `fc = 0.95 * min(1/up, 1/down)`. Its cutoff is therefore
-//! `min(from_rate, to_rate) / 2` — the lower of the two Nyquist limits — scaled
-//! by [`ROLLOFF`] to leave a transition band. That cutoff is the anti-aliasing:
-//! content that the output rate cannot represent is stopped before decimation
-//! folds it back into the audible band. The `up` factor restores the gain that
-//! zero stuffing loses, so a DC input keeps its amplitude.
-//!
-//! The Kaiser window ([`KAISER_BETA`] = 8.6, about 80 dB of stopband rejection)
-//! suppresses the ringing a rectangular truncation of the sinc would leave.
+//! `taps_per_phase` sets the filter's half-width in samples of the LOWER of the
+//! two rates. rubato measures its sinc length in input samples, so the length
+//! passed to it is `2 * taps_per_phase * max(1, from_rate / to_rate)`, rounded
+//! up to a multiple of 8 by rubato: the same span of the signal whichever
+//! direction the conversion goes.
 //!
 //! # Edges
 //!
-//! Input indices outside `0..samples.len()` read as zero (implicit zero
-//! padding). The first and last few hundred output samples therefore ramp in and
-//! out over the filter's half-width instead of holding steady amplitude. For
-//! speech corpora that region is leading and trailing silence; callers that need
-//! exact edge amplitude must pad the signal themselves before calling.
+//! Input outside `0..samples.len()` reads as zero, and rubato's group delay is
+//! trimmed so output sample `m` sits at input time `m * from_rate / to_rate`.
+//! The first and last few dozen output samples therefore ramp in and out over
+//! the filter's half-width instead of holding steady amplitude. For speech
+//! corpora that region is leading and trailing silence; callers that need exact
+//! edge amplitude must pad the signal themselves before calling.
+
+use rubato::audioadapter_buffers::direct::InterleavedSlice;
+use rubato::{
+    Async, FixedAsync, Resampler, SincInterpolationParameters, SincInterpolationType,
+    WindowFunction, calculate_cutoff,
+};
 
 use crate::error::{Error, Result};
 
 use crate::wav::decode::{WavData, to_mono};
 
-/// Filter taps per polyphase branch, and so the filter's half-width in input
-/// samples on either side of an output sample. 32 puts the transition band
-/// near 8% of the lower sample rate.
-pub const DEFAULT_TAPS_PER_PHASE: usize = 32;
+/// Filter half-width in samples of the lower rate. At this width the
+/// transition band fits between [`ROLLOFF`] and just past the lower Nyquist
+/// limit.
+pub const DEFAULT_TAPS_PER_PHASE: usize = 64;
 
-/// Kaiser shape parameter. 8.6 gives roughly 80 dB of stopband rejection.
-const KAISER_BETA: f64 = 8.6;
+/// Sinc window. Squared Blackman: a faster rolloff than Blackman-Harris² for
+/// the same length, with a stopband still far below 16-bit resolution.
+const WINDOW: WindowFunction = WindowFunction::Blackman2;
 
 /// Cutoff as a fraction of the lower Nyquist limit, leaving a transition band
-/// below it rather than aliasing right at the edge.
-const ROLLOFF: f64 = 0.95;
+/// below it rather than aliasing right at the edge. A filter too short for this
+/// cutoff gets rubato's own, lower one instead, which keeps aliasing under the
+/// window's sidelobe level.
+const ROLLOFF: f32 = 0.95;
 
-/// Largest prototype filter [`resample`] builds, in taps on the upsampled grid.
-///
-/// The prototype spans `2 * taps_per_phase * max(up, down) + 1` taps, so a rate
-/// pair that barely reduces — 44100 to 16001, which is already coprime — would
-/// demand millions of taps and tens of megabytes. Such a pair is a typo, not a
-/// workload, so it is rejected instead of allocated.
+/// Sinc evaluations per input sample in rubato's filter table.
+const OVERSAMPLING: usize = 128;
+
+/// Input frames rubato processes per call.
+const CHUNK_FRAMES: usize = 1024;
+
+/// Largest filter table [`resample`] builds, in taps: rubato's table holds
+/// `sinc_len * OVERSAMPLING` of them, so this bounds `taps_per_phase`.
 pub const MAX_FILTER_TAPS: usize = 1 << 20;
+
+/// Largest term of the reduced rate ratio `to_rate / from_rate` accepted.
+///
+/// Real rates share large common factors: 44100 to 16000 reduces to 160/441.
+/// A pair that barely reduces, such as 44100 to 16001 (already coprime), is a
+/// mistyped rate, not a workload, so it is rejected rather than converted.
+const MAX_RATIO_TERM: u64 = 16_383;
 
 fn bad(arg: &'static str, reason: String) -> Error {
     Error::InvalidArgument { arg, reason }
@@ -95,141 +110,40 @@ fn output_len(in_len: usize, from_rate: u32, to_rate: u32) -> Result<usize> {
     })
 }
 
-/// One polyphase branch: the taps `h(r + j * up)` for `j` in `j_min..`.
-struct Phase {
-    j_min: i64,
-    taps: Vec<f32>,
+/// Reject a rate pair whose reduced ratio has a term above [`MAX_RATIO_TERM`].
+fn check_ratio(from_rate: u32, to_rate: u32) -> Result<()> {
+    let divisor = gcd(from_rate, to_rate).max(1);
+    let up = (to_rate / divisor) as u64;
+    let down = (from_rate / divisor) as u64;
+    if up.max(down) > MAX_RATIO_TERM {
+        return Err(bad(
+            "from_rate",
+            format!(
+                "resampling {from_rate} Hz to {to_rate} Hz reduces to {up}/{down}, a ratio \
+                 with a term above {MAX_RATIO_TERM}; real rates share a larger common \
+                 factor, so check both rates for a typo"
+            ),
+        ));
+    }
+    Ok(())
 }
 
-/// The prototype low-pass split into `up` interleaved branches.
-struct PolyphaseFilter {
-    up: i64,
-    down: i64,
-    phases: Vec<Phase>,
-}
-
-impl PolyphaseFilter {
-    /// Build the branch table for the coprime ratio `up / down`.
-    ///
-    /// `from_rate` and `to_rate` are carried only to name the offending pair in
-    /// the [`MAX_FILTER_TAPS`] error.
-    fn design(
-        up: u64,
-        down: u64,
-        taps_per_phase: usize,
-        from_rate: u32,
-        to_rate: u32,
-    ) -> Result<Self> {
-        let half_len = (taps_per_phase as u64)
-            .checked_mul(up.max(down))
-            .filter(|half| *half <= (MAX_FILTER_TAPS as u64 - 1) / 2)
-            .ok_or_else(|| {
-                bad(
-                    "from_rate",
-                    format!(
-                        "resampling {from_rate} Hz to {to_rate} Hz reduces to {up}/{down}, \
-                         needing more than {MAX_FILTER_TAPS} filter taps at \
-                         {taps_per_phase} taps per phase; pick rates with a larger common \
-                         factor, or lower taps_per_phase"
-                    ),
-                )
-            })?;
-
-        let up_i = up as i64;
-        let half_i = half_len.max(1) as i64;
-        let half = half_i as f64;
-        let fc = ROLLOFF * (1.0 / up as f64).min(1.0 / down as f64);
-        // Zero stuffing by `up` divides the signal's energy across `up` slots;
-        // the same factor here restores unity passband gain.
-        let gain = up as f64 * fc;
-        let i0_beta = bessel_i0(KAISER_BETA);
-
-        let mut phases = Vec::with_capacity(up as usize);
-        for r in 0..up_i {
-            // Taps live at offsets `r + j * up` inside `[-half_i, half_i]`.
-            let j_min = -((half_i + r) / up_i);
-            let j_max = (half_i - r) / up_i;
-            let mut taps = Vec::with_capacity((j_max - j_min + 1).max(0) as usize);
-            for j in j_min..=j_max {
-                let n = (r + j * up_i) as f64;
-                let t = n / half;
-                let window = bessel_i0(KAISER_BETA * (1.0 - t * t).max(0.0).sqrt()) / i0_beta;
-                taps.push((gain * sinc(fc * n) * window) as f32);
-            }
-            phases.push(Phase { j_min, taps });
-        }
-        Ok(Self {
-            up: up_i,
-            down: down as i64,
-            phases,
-        })
+/// rubato's sinc length for `taps_per_phase`: the filter's full width in input
+/// samples. Errors when the filter table would pass [`MAX_FILTER_TAPS`].
+fn sinc_len(taps_per_phase: usize, from_rate: u32, to_rate: u32) -> Result<usize> {
+    let decimation = (from_rate as f64 / to_rate as f64).max(1.0);
+    let len = (2.0 * taps_per_phase as f64 * decimation).ceil();
+    if len * OVERSAMPLING as f64 > MAX_FILTER_TAPS as f64 {
+        return Err(bad(
+            "taps_per_phase",
+            format!(
+                "{taps_per_phase} taps per phase at {from_rate} Hz to {to_rate} Hz needs a \
+                 {len}-sample sinc, over the {MAX_FILTER_TAPS}-tap table limit at \
+                 {OVERSAMPLING}x oversampling; lower taps_per_phase"
+            ),
+        ));
     }
-
-    /// Filter and resample `x` into exactly `out_len` samples.
-    ///
-    /// Output sample `m` sits at position `m * down` on the upsampled grid. That
-    /// position selects a branch (`p mod up`) and an input anchor (`p div up`);
-    /// only the taps of that one branch are touched.
-    fn apply(&self, x: &[f32], out_len: usize) -> Vec<f32> {
-        let n = x.len() as i64;
-        let mut out = Vec::with_capacity(out_len);
-        for m in 0..out_len {
-            let p = (m as i64).saturating_mul(self.down);
-            let r = p.rem_euclid(self.up) as usize;
-            let anchor = p.div_euclid(self.up);
-            let mut acc = 0.0f32;
-            if let Some(phase) = self.phases.get(r) {
-                // Clamp the tap range to the taps whose input index is in
-                // bounds; everything outside reads as zero, so it is skipped.
-                let last = phase.j_min + phase.taps.len() as i64 - 1;
-                let lo = phase.j_min.max(anchor - n + 1);
-                let hi = last.min(anchor);
-                if lo <= hi {
-                    let start = (lo - phase.j_min) as usize;
-                    let end = (hi - phase.j_min) as usize + 1;
-                    if let Some(taps) = phase.taps.get(start..end) {
-                        for (t, &tap) in taps.iter().enumerate() {
-                            let idx = anchor - lo - t as i64;
-                            if let Some(&sample) = usize::try_from(idx).ok().and_then(|k| x.get(k))
-                            {
-                                acc += tap * sample;
-                            }
-                        }
-                    }
-                }
-            }
-            out.push(acc);
-        }
-        out
-    }
-}
-
-/// Normalised sinc, `sin(pi x) / (pi x)`, with the removable singularity filled.
-fn sinc(x: f64) -> f64 {
-    if x.abs() < 1e-12 {
-        return 1.0;
-    }
-    let px = std::f64::consts::PI * x;
-    px.sin() / px
-}
-
-/// Modified Bessel function of the first kind, order zero.
-///
-/// Sums `sum_k (x/2)^(2k) / (k!)^2`. Every term is positive and the factorial
-/// square dominates, so for the `x <= KAISER_BETA` this module uses it settles
-/// to f64 precision in well under 64 terms.
-fn bessel_i0(x: f64) -> f64 {
-    let quarter = (x / 2.0) * (x / 2.0);
-    let mut term = 1.0f64;
-    let mut sum = 1.0f64;
-    for k in 1..64 {
-        term *= quarter / ((k * k) as f64);
-        sum += term;
-        if term < 1e-18 * sum {
-            break;
-        }
-    }
-    sum
+    Ok(len as usize)
 }
 
 /// Resample mono f32 samples from `from_rate` to `to_rate`.
@@ -240,19 +154,22 @@ pub fn resample(samples: &[f32], from_rate: u32, to_rate: u32) -> Result<Vec<f32
     resample_with_taps(samples, from_rate, to_rate, DEFAULT_TAPS_PER_PHASE)
 }
 
-/// Resample mono f32 samples, choosing the filter's taps per polyphase branch.
+/// Resample mono f32 samples, choosing the filter's half-width.
 ///
-/// Longer branches narrow the transition band and cost proportionally more
-/// arithmetic per output sample.
+/// `taps_per_phase` is the half-width in samples of the lower rate; rubato gets
+/// a sinc of `2 * taps_per_phase * max(1, from_rate / to_rate)` input samples
+/// (see the module docs). Wider filters move the cutoff closer to Nyquist and
+/// cost proportionally more arithmetic per output sample.
 ///
 /// Returns exactly `ceil(samples.len() * to_rate / from_rate)` samples. An empty
 /// input gives an empty output. `from_rate == to_rate` returns the input
-/// unchanged, bit for bit, with no filtering. Out-of-range input indices read as
-/// zero, so the edges ramp — see the module docs.
+/// unchanged, bit for bit, with no filtering. Out-of-range input reads as zero,
+/// so the edges ramp; see the module docs.
 ///
 /// Returns [`Error::InvalidArgument`] when either rate is 0, when
-/// `taps_per_phase` is 0, when the rate pair needs more than
-/// [`MAX_FILTER_TAPS`] taps, or when the output length overflows.
+/// `taps_per_phase` is 0, when the rate pair reduces to a ratio with a term
+/// above 16383, when the filter table exceeds [`MAX_FILTER_TAPS`], or when the
+/// output length overflows.
 pub fn resample_with_taps(
     samples: &[f32],
     from_rate: u32,
@@ -278,12 +195,35 @@ pub fn resample_with_taps(
     if samples.is_empty() || out_len == 0 {
         return Ok(Vec::new());
     }
+    check_ratio(from_rate, to_rate)?;
+    let sinc_len = sinc_len(taps_per_phase, from_rate, to_rate)?;
 
-    let divisor = gcd(from_rate, to_rate).max(1);
-    let up = (to_rate / divisor) as u64;
-    let down = (from_rate / divisor) as u64;
-    let filter = PolyphaseFilter::design(up, down, taps_per_phase, from_rate, to_rate)?;
-    Ok(filter.apply(samples, out_len))
+    let failed = |what: &str, err: &dyn std::fmt::Display| Error::DataError {
+        reason: format!(
+            "rubato failed to {what} for {} samples at {from_rate} Hz to {to_rate} Hz \
+             with a {sinc_len}-sample sinc: {err}; the inputs passed every check, so \
+             report this as a voxr bug",
+            samples.len()
+        ),
+    };
+    let params = SincInterpolationParameters::new(sinc_len, WINDOW)
+        .f_cutoff(ROLLOFF.min(calculate_cutoff(sinc_len, WINDOW)))
+        .oversampling_factor(OVERSAMPLING)
+        .interpolation(SincInterpolationType::Cubic);
+    let ratio = to_rate as f64 / from_rate as f64;
+    let mut resampler =
+        Async::<f32>::new_sinc(ratio, 1.0, &params, CHUNK_FRAMES, 1, FixedAsync::Input)
+            .map_err(|e| failed("build the resampler", &e))?;
+    let input = InterleavedSlice::new(samples, 1, samples.len())
+        .map_err(|e| failed("wrap the input", &e))?;
+    let mut out = resampler
+        .process_all(&input, samples.len(), None)
+        .map_err(|e| failed("resample", &e))?
+        .take_data();
+    // rubato sizes the output as `ceil(ratio * len)` in f64, which can land one
+    // past the exact integer ceiling when the product is a whole number.
+    out.resize(out_len, 0.0);
+    Ok(out)
 }
 
 /// Downmix to mono and resample to `target_rate` in one step.
