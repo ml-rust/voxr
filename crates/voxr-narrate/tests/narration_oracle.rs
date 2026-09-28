@@ -1,4 +1,4 @@
-//! Output parity between `voxr::narration` and the JavaScript
+//! Output parity between `voxr_narrate` and the JavaScript
 //! narration-script modules it ports.
 //!
 //! The fixture (`tests/fixtures/narration_oracle.json`) is checked in and
@@ -19,8 +19,7 @@ use std::process::Command;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
-use voxr::Error;
-use voxr::narration::{self, ChunkOptions, HeardWord, PAUSES, STRAY_PAUSE};
+use voxr_narrate::{self as narration, ChunkOptions, Error, HeardWord, PAUSES, STRAY_PAUSE};
 
 mod common;
 use common::load_json;
@@ -67,12 +66,11 @@ fn reason(e: Error) -> String {
     match e {
         Error::InvalidArgument { reason, .. }
         | Error::DataError { reason }
-        | Error::ModelError { reason } => reason,
-        other => other.to_string(),
+        | Error::Pattern { reason } => reason,
     }
 }
 
-fn to_json<T: Serialize>(r: voxr::Result<T>) -> Value {
+fn to_json<T: Serialize>(r: voxr_narrate::Result<T>) -> Value {
     match r {
         Ok(v) => serde_json::to_value(v).unwrap_or_else(|e| panic!("serializing output: {e}")),
         Err(e) => json!({ "error": reason(e) }),
@@ -122,7 +120,7 @@ fn actual(case: &Case) -> Value {
         "writtenScript" => {
             let ear = text(&input["ear"], "ear");
             let written = text(&input["written"], "written");
-            let run = || -> voxr::Result<Value> {
+            let run = || -> voxr_narrate::Result<Value> {
                 let w = narration::written_script(ear, written)?;
                 let spans = w.spans(&narration::phrases(ear)?)?;
                 Ok(json!({ "text": w.text, "spans": spans }))

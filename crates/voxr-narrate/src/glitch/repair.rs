@@ -5,7 +5,7 @@
 //! Every sum runs in `f64` in sample order, and every stored sample is
 //! rounded to `f32`, so the result matches the JavaScript tidy bit for bit.
 
-use crate::narration::js::{js_round, js_to_fixed_text};
+use crate::js::{js_round, js_to_fixed_text};
 
 /// A frame is loud within this many dB of the take's loudest frame.
 const LOUD_DB: f64 = -40.0;

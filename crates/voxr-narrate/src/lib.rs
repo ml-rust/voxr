@@ -2,6 +2,7 @@
 //! timed script files, the written script, numbers read back from words and
 //! digits, the check of a spoken take against its script, and its glitches.
 
+mod error;
 mod js;
 mod pattern;
 
@@ -10,5 +11,6 @@ pub mod glitch;
 pub mod text;
 
 pub use check::*;
+pub use error::{Error, Result};
 pub use glitch::*;
 pub use text::*;

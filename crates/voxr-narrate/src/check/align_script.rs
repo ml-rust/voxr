@@ -6,8 +6,8 @@ use serde::Serialize;
 use super::heard::HeardWord;
 use super::speech_match::{key, match_words, script_words, split_units};
 use crate::error::Result;
-use crate::narration::js::js_to_fixed;
-use crate::narration::pattern::{Patterns, split};
+use crate::js::js_to_fixed;
+use crate::pattern::{Patterns, split};
 
 /// A silence over this many seconds between two words with no punctuation
 /// between them is a stray pause.

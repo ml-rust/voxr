@@ -7,9 +7,7 @@
 //! voice says the spoken form, and nothing else is spoken.
 
 use crate::error::Result;
-use crate::narration::pattern::{
-    Patterns, collapse, group, replace_all, replace_all_with, trim, utf16_len,
-};
+use crate::pattern::{Patterns, collapse, group, replace_all, replace_all_with, trim, utf16_len};
 
 /// The shortest and longest delivery note, in UTF-16 code units.
 const NOTE_UNITS: std::ops::RangeInclusive<usize> = 2..=120;

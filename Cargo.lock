@@ -1446,6 +1446,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "voxr-narrate"
+version = "0.1.0"
+dependencies = [
+ "regexr",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "unicode-normalization",
+ "voxr",
+]
+
+[[package]]
 name = "wasip2"
 version = "1.0.4+wasi-0.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"

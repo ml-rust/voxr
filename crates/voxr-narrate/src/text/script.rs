@@ -9,7 +9,7 @@ use std::path::Path;
 use serde::Serialize;
 
 use crate::error::{Error, Result};
-use crate::narration::pattern::{Patterns, collapse, group, number, replace_all_with, split, trim};
+use crate::pattern::{Patterns, collapse, group, number, replace_all_with, split, trim};
 
 /// A subtitle cue.
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -298,7 +298,7 @@ mod tests {
     }
 
     #[test]
-    fn reads_from_disk() -> Result<()> {
+    fn reads_from_disk() -> std::result::Result<(), Box<dyn std::error::Error>> {
         let dir = tempfile::tempdir()?;
         let path = dir.path().join("brief.txt");
         std::fs::write(&path, "0:00 One.\n0:05 Two.\n")?;

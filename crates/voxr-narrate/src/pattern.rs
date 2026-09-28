@@ -252,7 +252,7 @@ impl Patterns {
         PATTERNS
             .get_or_init(Self::build)
             .as_ref()
-            .map_err(|reason| Error::ModelError {
+            .map_err(|reason| Error::Pattern {
                 reason: reason.clone(),
             })
     }

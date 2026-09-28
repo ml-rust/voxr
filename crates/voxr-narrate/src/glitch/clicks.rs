@@ -5,7 +5,7 @@
 //! rounded to `f32`, so the results match the JavaScript click check and
 //! repair bit for bit.
 
-use crate::narration::js::{js_round, js_to_fixed};
+use crate::js::{js_round, js_to_fixed};
 
 /// Hops per second of the second-difference energy: 2 ms hops.
 const HOPS_PER_SECOND: f64 = 500.0;

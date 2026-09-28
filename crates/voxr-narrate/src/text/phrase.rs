@@ -11,7 +11,7 @@ use serde::Serialize;
 
 use super::tags::is_note;
 use crate::error::Result;
-use crate::narration::pattern::{Patterns, collapse, group, number, split, trim};
+use crate::pattern::{Patterns, collapse, group, number, split, trim};
 
 /// The silence after each kind of break, in seconds.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize)]

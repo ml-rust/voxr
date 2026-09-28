@@ -8,9 +8,9 @@ use serde::Serialize;
 use super::heard::HeardWord;
 use super::speech_match::{key, match_words, norm, script_words, split_units};
 use crate::error::Result;
-use crate::narration::js::js_string;
-use crate::narration::pattern::Patterns;
-use crate::narration::text::numbers::{is_number_word, numbers_in};
+use crate::js::js_string;
+use crate::pattern::Patterns;
+use crate::text::numbers::{is_number_word, numbers_in};
 
 /// Extra speech over this many seconds fails a take.
 const EXTRA_SECONDS: f64 = 0.35;

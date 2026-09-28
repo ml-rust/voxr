@@ -15,8 +15,8 @@ pub struct HeardWord {
 }
 
 #[cfg(feature = "whisper")]
-impl From<&crate::whisper::WordTiming> for HeardWord {
-    fn from(w: &crate::whisper::WordTiming) -> Self {
+impl From<&voxr::WordTiming> for HeardWord {
+    fn from(w: &voxr::WordTiming) -> Self {
         Self {
             text: w.text.clone(),
             start: f64::from(w.start),
@@ -50,7 +50,7 @@ mod tests {
     #[cfg(feature = "whisper")]
     #[test]
     fn from_word_timing_widens_times() {
-        let t = crate::whisper::WordTiming {
+        let t = voxr::WordTiming {
             text: " hello".into(),
             start: 0.5,
             end: 0.75,

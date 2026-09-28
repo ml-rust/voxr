@@ -1,4 +1,4 @@
-// Reference outputs for `voxr::narration`: runs the JavaScript narration-script modules over the corpus
+// Reference outputs for `voxr_narrate`: runs the JavaScript narration-script modules over the corpus
 // next to this file and prints one JSON document to stdout.
 //
 // Usage: NARRATION_JS_DIR=<directory holding speak.mjs, subtitles.mjs, numbers.mjs, voice.mjs> \

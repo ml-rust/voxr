@@ -1,4 +1,4 @@
-// Reference outputs for the sample-level checks in `voxr::narration`: runs the JavaScript tidy, click and
+// Reference outputs for the sample-level checks in `voxr_narrate`: runs the JavaScript tidy, click and
 // pitch checks over the signals in signals.mjs and prints one JSON document to stdout. Each case carries the FNV-1a
 // hash of its input, so a signal built differently is reported as such. Sample outputs are written as hashes and
 // numbers as JavaScript's String(x), which reads back as the exact double.

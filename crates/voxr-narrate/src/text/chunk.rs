@@ -11,7 +11,7 @@ use serde::Serialize;
 
 use super::phrase::{Phrase, PhraseKind, phrases};
 use crate::error::Result;
-use crate::narration::pattern::Patterns;
+use crate::pattern::Patterns;
 
 /// How [`chunks`] groups phrases.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
