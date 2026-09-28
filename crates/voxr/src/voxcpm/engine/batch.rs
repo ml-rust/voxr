@@ -11,8 +11,8 @@
 //! A job owns everything it reads and borrows nothing. A voice from the
 //! engine's table travels as its id, and the owner thread looks the tensor
 //! up in [`EngineInner`] when it builds the batch. A reference the caller
-//! encoded travels as an [`Arc`] of its tensor, so the tensor lives until
-//! the last job holding it is done.
+//! encoded travels as an [`Arc`] of its tensor, and so does a continuation
+//! prompt, so each tensor lives until the last job holding it is done.
 //!
 //! [`VoxCpm2SynthOptions::batch_window`]: crate::voxcpm::VoxCpm2SynthOptions::batch_window
 
@@ -24,7 +24,7 @@ use numr::dtype::DType;
 use numr::runtime::Runtime;
 use numr::tensor::Tensor;
 
-use boostr::model::audio::voxcpm::model::{RowOptions, VoxCpm2Model};
+use boostr::model::audio::voxcpm::model::{PadSide, RowOptions, VoxCpm2Model};
 
 use crate::error::Result;
 use crate::voxcpm::engine::queue::{collect_batch, recv_job};
@@ -60,13 +60,19 @@ pub(super) enum JobVoice<R: Runtime> {
 pub(super) struct Job<R: Runtime> {
     /// The voice this row renders with.
     pub(super) voice: JobVoice<R>,
+    /// The `[T_prompt, patch_size, feat_dim]` continuation prompt this row
+    /// continues from, `None` for no continuation.
+    pub(super) prompt: Option<Arc<Tensor<R>>>,
     /// This row's base seed. Patch `i` draws with `seed + i`.
     pub(super) seed: u64,
-    /// Text tokens with `AUDIO_START_ID` already appended.
+    /// Text tokens with `AUDIO_START_ID` already appended: the prompt
+    /// transcript and the request text as one string, for a continuation
+    /// row.
     pub(super) text_token_ids: Vec<u32>,
     /// This row's patch cap.
     pub(super) max_len: usize,
-    /// This row's prefill sequence length, reference prefix included.
+    /// This row's prefill sequence length, reference prefix and prompt tail
+    /// included.
     pub(super) seq_len: usize,
     /// Where this row's output goes.
     pub(super) reply: Reply,
@@ -82,11 +88,14 @@ impl<R: Runtime> Job<R> {
     }
 }
 
-/// A request to encode one reference recording on the owner thread.
+/// A request to encode one recording on the owner thread.
 pub(super) struct EncodeJob<R: Runtime> {
-    /// Mono PCM at the reference encoder's rate.
+    /// Mono PCM at the encoder's rate.
     pub(super) samples: Vec<f32>,
-    /// Where the encoded `[T_ref, patch_size, feat_dim]` tensor goes.
+    /// Where the zero padding to whole patches goes: [`PadSide::Right`] for
+    /// a reference, [`PadSide::Left`] for a continuation prompt.
+    pub(super) side: PadSide,
+    /// Where the encoded `[T, patch_size, feat_dim]` tensor goes.
     pub(super) reply: Sender<Result<Tensor<R>>>,
 }
 
@@ -94,7 +103,8 @@ pub(super) struct EncodeJob<R: Runtime> {
 pub(super) enum Work<R: Runtime> {
     /// A render, batched with whatever else is queued.
     Render(Job<R>),
-    /// A reference encode, run at once between two steps or batches.
+    /// A reference or prompt encode, run at once between two steps or
+    /// batches.
     Encode(EncodeJob<R>),
 }
 
@@ -234,6 +244,7 @@ mod tests {
         let (tx, _rx) = channel();
         let job = TestJob {
             voice: JobVoice::ZeroShot,
+            prompt: None,
             seed: 42,
             text_token_ids: vec![1, 2],
             max_len: 22,

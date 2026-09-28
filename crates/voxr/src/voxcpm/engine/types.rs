@@ -19,12 +19,13 @@ use splintr::AnyTokenizer;
 
 use boostr::model::audio::voxcpm::VoxCpmClient;
 use boostr::model::audio::voxcpm::model::{LoraAdapterReport, VoxCpm2Model};
+use boostr::model::audio::voxcpm::vae::decoder::HOP_LENGTH;
 use boostr::quant::traits::DequantOps;
 
 use crate::voxcpm::engine::batch::Work;
 use crate::voxcpm::options::VoxCpm2SynthOptions;
 
-/// Sample rate the reference encoder expects.
+/// Sample rate the reference and prompt encoder expects.
 pub(super) const REF_RATE: u32 = 16_000;
 
 /// Hard cap on generated patches for one request, whatever the text length.
@@ -32,7 +33,7 @@ pub(super) const MAX_LEN_CAP: usize = 4096;
 
 /// Containers `decode_audio` probes; a file with any other extension in the
 /// voices directory is not a voice.
-pub(super) const VOICE_EXTENSIONS: [&str; 4] = ["wav", "flac", "mp3", "ogg"];
+pub const VOICE_EXTENSIONS: [&str; 4] = ["wav", "flac", "mp3", "ogg"];
 
 /// Reserved voice id selecting zero-shot rendering: no reference recording,
 /// no reference encode, `ref_feat = None` straight through to `prefill`.
@@ -106,7 +107,7 @@ pub(super) struct EncodedVoice<R: Runtime> {
 /// thread behind an [`Arc`]. Immutable after [`VoxCpm2Engine::load`]: a
 /// caller reads the voice table and the tokenizer to plan its request, the
 /// owner thread reads the model and the client to run it. Only the owner
-/// thread runs the model, reference encodes included.
+/// thread runs the model, reference and prompt encodes included.
 pub(super) struct EngineInner<R: Runtime<DType = DType>> {
     pub(super) model: VoxCpm2Model<R>,
     pub(super) client: Arc<R::Client>,
@@ -115,8 +116,9 @@ pub(super) struct EngineInner<R: Runtime<DType = DType>> {
     pub(super) options: VoxCpm2SynthOptions,
     pub(super) adapter: Option<LoraAdapterReport>,
     /// This engine's identity, unique within the process. A
-    /// [`Reference`](crate::voxcpm::Reference) records it, so a reference
-    /// encoded by another engine is refused.
+    /// [`Reference`](crate::voxcpm::Reference) and a
+    /// [`Prompt`](crate::voxcpm::Prompt) record it, so one encoded by another
+    /// engine is refused.
     pub(super) id: u64,
 }
 
@@ -144,6 +146,18 @@ impl<R: Runtime<DType = DType>> VoxCpm2Engine<R> {
     /// serving the base (unadapted) model.
     pub fn adapter(&self) -> Option<&LoraAdapterReport> {
         self.inner.adapter.as_ref()
+    }
+
+    /// Output samples one generated patch decodes to: the model's patch size
+    /// times the decoder's hop, at
+    /// [`TtsEngine::sample_rate`](crate::tts::TtsEngine::sample_rate).
+    ///
+    /// Every waveform a render returns is a whole number of patches, and
+    /// every streamed chunk but the last is exactly
+    /// [`VoxCpm2SynthOptions::stream_chunk_patches`](crate::voxcpm::VoxCpm2SynthOptions::stream_chunk_patches)
+    /// patches.
+    pub fn samples_per_patch(&self) -> usize {
+        self.inner.model.config.patch_size * HOP_LENGTH
     }
 }
 

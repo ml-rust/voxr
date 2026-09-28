@@ -1,6 +1,6 @@
 //! Taking work off the owner thread's queue: block for the next render,
-//! gather a batch within the drain window, and serve every reference encode
-//! met on the way at once, without spending a batch slot on it.
+//! gather a batch within the drain window, and serve every reference or
+//! prompt encode met on the way at once, without spending a batch slot on it.
 
 use std::sync::mpsc::{Receiver, RecvTimeoutError};
 use std::time::{Duration, Instant};
@@ -62,6 +62,7 @@ mod tests {
     use crate::error::Result;
     use crate::voxcpm::engine::batch::JobVoice;
     use crate::voxcpm::engine::reply::Reply;
+    use boostr::model::audio::voxcpm::model::PadSide;
     use numr::runtime::cpu::CpuRuntime;
     use numr::tensor::Tensor;
     use std::sync::mpsc::channel;
@@ -75,6 +76,7 @@ mod tests {
         let (tx, _rx) = channel();
         Work::Render(TestJob {
             voice: JobVoice::ZeroShot,
+            prompt: None,
             seed: 0,
             text_token_ids: vec![1, 2],
             max_len: 22,
@@ -88,6 +90,7 @@ mod tests {
         (
             Work::Encode(EncodeJob {
                 samples: vec![0.0; 4],
+                side: PadSide::Right,
                 reply: tx,
             }),
             rx,

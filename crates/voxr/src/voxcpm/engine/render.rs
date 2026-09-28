@@ -1,12 +1,9 @@
-//! The caller's half of a request: resolve the voice and the seed,
-//! tokenize, size the patch budget, queue the job, and block on the reply.
+//! The caller's half of a request: plan it (`super::plan`), queue the job,
+//! and block on the reply.
 //!
-//! Everything here runs on the caller's thread. No device work happens on
-//! it, so a bad request — an unknown voice, a reference from another engine,
-//! empty text, a speed the model cannot serve — fails before it ever reaches
-//! a batch. The generation itself runs on the engine's owner thread
-//! (`super::batch`, `super::run`), which groups whatever is queued at the
-//! same time into ONE generation.
+//! Everything here runs on the caller's thread. The generation itself runs
+//! on the engine's owner thread (`super::batch`, `super::run`), which groups
+//! whatever is queued at the same time into ONE generation.
 //!
 //! A streaming caller keeps its sink here and drains decoded chunks off a
 //! channel: the sink is not `Send`, so it must not cross to the owner
@@ -22,19 +19,15 @@ use numr::runtime::Runtime;
 use numr::tensor::Tensor;
 
 use boostr::model::audio::voxcpm::model::VoxCpm2Model;
-use boostr::model::audio::voxcpm::model::config::AUDIO_START_ID;
 use boostr::model::audio::voxcpm::vae::decoder::SAMPLE_RATE;
 
 use crate::error::{Error, Result};
 use crate::lang::Lang;
 use crate::tts::{TtsEngine, Voice};
-use crate::voxcpm::engine::batch::{Job, JobVoice, Work};
+use crate::voxcpm::engine::batch::Work;
 use crate::voxcpm::engine::reply::Reply;
 use crate::voxcpm::engine::request::{SynthRequest, VoiceSource};
-use crate::voxcpm::engine::types::{
-    MAX_LEN_CAP, VoxCpm2Engine, VoxCpm2RenderClient, ZERO_SHOT_VOICE_ID,
-};
-use crate::voxcpm::tokenizer::{normalize_whitespace, tokenize};
+use crate::voxcpm::engine::types::{VoxCpm2Engine, VoxCpm2RenderClient, ZERO_SHOT_VOICE_ID};
 
 impl<R> VoxCpm2Engine<R>
 where
@@ -43,87 +36,6 @@ where
     VoxCpm2Model<R>: Send + Sync,
     Tensor<R>: Send + Sync,
 {
-    /// Everything before device work: resolve the voice and the seed,
-    /// tokenize, size the budget. Runs on the caller's thread, so a bad
-    /// request never joins a batch.
-    ///
-    /// The job owns what it reads: a table voice travels as its id, which
-    /// the owner thread looks up when it builds the batch, and a request
-    /// reference travels as an [`Arc`] of its tensor.
-    fn plan(&self, request: &SynthRequest<'_, R>, reply: Reply) -> Result<Job<R>> {
-        let (voice, ref_len) = self.resolve_voice(request.voice)?;
-        let normalized = normalize_whitespace(request.text);
-        if normalized.is_empty() {
-            return Err(Error::InvalidArgument {
-                arg: "text",
-                reason: "input text must not be empty".into(),
-            });
-        }
-        let mut text_token_ids = tokenize(&self.inner.tokenizer, &normalized);
-        let text_len = text_token_ids.len();
-        text_token_ids.push(AUDIO_START_ID);
-
-        // The clone pipeline's budget: six patches per text token plus ten,
-        // capped.
-        let max_len = (text_len * 6 + 10).min(MAX_LEN_CAP);
-        let seq_len = seq_len_for(ref_len, text_token_ids.len());
-
-        Ok(Job {
-            voice,
-            seed: request.seed.unwrap_or(self.inner.options.seed),
-            text_token_ids,
-            max_len,
-            seq_len,
-            reply,
-        })
-    }
-
-    /// The job's voice and its reference length in patches, `None` for
-    /// zero-shot. An id outside the voice table, or a reference another
-    /// engine encoded, is refused here.
-    fn resolve_voice(&self, voice: VoiceSource<'_, R>) -> Result<(JobVoice<R>, Option<usize>)> {
-        match voice {
-            VoiceSource::ZeroShot => Ok((JobVoice::ZeroShot, None)),
-            VoiceSource::Named(id) if id == ZERO_SHOT_VOICE_ID => Ok((JobVoice::ZeroShot, None)),
-            VoiceSource::Named(id) => {
-                let voice = self
-                    .inner
-                    .voices
-                    .get(id)
-                    .ok_or_else(|| Error::InvalidArgument {
-                        arg: "voice",
-                        reason: format!(
-                            "unknown voice {id:?}; available voices: [{}], or {:?} for \
-                             zero-shot rendering",
-                            self.inner
-                                .voices
-                                .keys()
-                                .cloned()
-                                .collect::<Vec<_>>()
-                                .join(", "),
-                            ZERO_SHOT_VOICE_ID,
-                        ),
-                    })?;
-                let patches = voice.ref_feat.shape().first().copied().unwrap_or(0);
-                Ok((JobVoice::Named(id.to_string()), Some(patches)))
-            }
-            VoiceSource::Reference(reference) => {
-                if reference.engine != self.inner.id {
-                    return Err(Error::InvalidArgument {
-                        arg: "voice",
-                        reason: "this reference was encoded by a different VoxCPM2 engine; \
-                                 encode it again with this engine's encode_reference"
-                            .into(),
-                    });
-                }
-                Ok((
-                    JobVoice::Reference(Arc::clone(&reference.feat)),
-                    Some(reference.patches()),
-                ))
-            }
-        }
-    }
-
     /// Queue work for the owner thread.
     pub(super) fn submit(&self, work: Work<R>) -> Result<()> {
         let Some(jobs) = self.jobs.as_ref() else {
@@ -136,7 +48,8 @@ where
     /// waveform.
     ///
     /// Equal requests render equal samples on one backend, alone or batched
-    /// with any others.
+    /// with any others. A continuation request's waveform holds only its new
+    /// speech, never the prompt clip.
     pub fn render_request(&self, request: &SynthRequest<'_, R>) -> Result<Vec<f32>> {
         let (done, reply) = channel();
         self.submit(Work::Render(self.plan(request, Reply::Buffered(done))?))?;
@@ -148,7 +61,9 @@ where
     /// drops when the row ends, which is how the last chunk is recognised.
     ///
     /// A `sink` error cancels this row and returns at once; the batch runs
-    /// on for the other rows.
+    /// on for the other rows. The chunks concatenate to the waveform
+    /// [`render_request`](Self::render_request) returns, so a continuation
+    /// request streams no prompt audio either.
     pub fn render_request_stream(
         &self,
         request: &SynthRequest<'_, R>,
@@ -270,31 +185,9 @@ fn check_speed(speed: f32) -> Result<()> {
     Ok(())
 }
 
-/// Sequence length behind `prefill`'s cache sizing. Mirrors `clone.rs`'s
-/// zero-shot/reference branch exactly (see its `SequenceLayout` docs): a
-/// reference prefix adds `t_ref + 2` positions before the text; zero-shot
-/// carries no reference prefix at all, not a reference of zero patches.
-/// `text_len` is the token count AFTER `AUDIO_START_ID` is appended.
-fn seq_len_for(ref_len: Option<usize>, text_len: usize) -> usize {
-    match ref_len {
-        Some(t_ref) => t_ref + 2 + text_len,
-        None => text_len,
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn seq_len_for_with_reference_adds_t_ref_plus_two() {
-        assert_eq!(seq_len_for(Some(40), 12), 40 + 2 + 12);
-    }
-
-    #[test]
-    fn seq_len_for_zero_shot_is_text_len_only() {
-        assert_eq!(seq_len_for(None, 12), 12);
-    }
 
     #[test]
     fn speed_other_than_natural_is_refused() {

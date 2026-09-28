@@ -4,7 +4,13 @@
 //!
 //! A row's reference is either a voice-table tensor in [`EngineInner`] or
 //! the tensor its job holds an [`Arc`](std::sync::Arc) of. Both are looked
-//! up where the prefill reads them, so a row stores no borrow.
+//! up where the prefill reads them, so a row stores no borrow. A
+//! continuation prompt is always the job's own tensor.
+//!
+//! Every decode goes through boostr's `decode_row` and `decode_row_from`.
+//! Both decode a continuation row behind its prompt context and trim the
+//! context's samples, so neither a buffered reply nor a streamed chunk holds
+//! prompt audio.
 //!
 //! Every row of a batch steps on every iteration; a finished row's patches
 //! are computed and its bookkeeping stands still. That is what lets a row be
@@ -127,7 +133,7 @@ where
                 &[PrefillRow {
                     ref_feat: self.reference(&row.job.voice)?,
                     text_token_ids: &row.job.text_token_ids,
-                    prompt_feat: None,
+                    prompt_feat: row.job.prompt.as_deref(),
                 }],
                 capacity,
             )?;

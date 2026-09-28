@@ -108,6 +108,7 @@ mod tests {
     use super::*;
     use crate::voxcpm::engine::batch::JobVoice;
     use crate::voxcpm::engine::reply::Reply;
+    use boostr::model::audio::voxcpm::model::PadSide;
     use numr::runtime::cpu::CpuRuntime;
     use std::sync::mpsc::channel;
 
@@ -118,6 +119,7 @@ mod tests {
         drop(rx);
         Work::Render(Job {
             voice: JobVoice::ZeroShot,
+            prompt: None,
             seed: 0,
             text_token_ids: vec![1, 2],
             max_len: 22,
@@ -131,6 +133,7 @@ mod tests {
         drop(rx);
         Work::Encode(EncodeJob {
             samples: vec![0.0; 4],
+            side: PadSide::Left,
             reply: tx,
         })
     }

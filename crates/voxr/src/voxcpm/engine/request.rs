@@ -1,29 +1,16 @@
-//! The request-level surface: a [`SynthRequest`] names its text, its voice
-//! and its seed, and a [`Reference`] is a voice encoded once from samples
-//! the caller holds and reused across requests.
-//!
-//! A reference encode runs on the engine's owner thread, like every other
-//! use of the model. The caller resamples on its own thread, queues the
-//! samples and blocks. The owner thread serves the encode between two
-//! batches, or between two steps of a persistent batch, so it never lands
-//! inside a running step.
+//! The request-level surface: a [`SynthRequest`] names its text, its voice,
+//! its optional continuation prompt and its seed. A [`Reference`] is a voice
+//! and a [`Prompt`] is a continuation clip, each encoded once from samples
+//! the caller holds and reused across requests. `super::encode` holds the
+//! encode methods.
 
 use std::sync::Arc;
-use std::sync::mpsc::channel;
 
-use numr::dtype::DType;
 use numr::runtime::Runtime;
 use numr::tensor::Tensor;
 
-use boostr::model::audio::voxcpm::model::VoxCpm2Model;
-
-use crate::error::{Error, Result};
-use crate::resample::resample;
-use crate::voxcpm::engine::batch::{EncodeJob, Work};
-use crate::voxcpm::engine::render::worker_gone;
-use crate::voxcpm::engine::types::{EngineInner, REF_RATE, VoxCpm2Engine, VoxCpm2RenderClient};
-
-/// A reference voice encoded by one [`VoxCpm2Engine`].
+/// A reference voice encoded by one
+/// [`VoxCpm2Engine`](crate::voxcpm::VoxCpm2Engine).
 ///
 /// Holds the `[T_ref, patch_size, feat_dim]` tensor behind an [`Arc`], so a
 /// clone is cheap and every request using it shares one tensor. A queued
@@ -31,7 +18,7 @@ use crate::voxcpm::engine::types::{EngineInner, REF_RATE, VoxCpm2Engine, VoxCpm2
 /// request using it is done. Only the engine that encoded it accepts it.
 pub struct Reference<R: Runtime> {
     pub(super) feat: Arc<Tensor<R>>,
-    /// [`EngineInner::id`] of the engine that encoded it.
+    /// The id of the engine that encoded it.
     pub(super) engine: u64,
 }
 
@@ -51,14 +38,74 @@ impl<R: Runtime> Clone for Reference<R> {
     }
 }
 
+/// A continuation ("Hi-Fi") prompt clip encoded by one
+/// [`VoxCpm2Engine`](crate::voxcpm::VoxCpm2Engine).
+///
+/// Holds the `[T_prompt, patch_size, feat_dim]` tensor behind an [`Arc`],
+/// left-padded so the clip's real audio ends at its last patch. A request
+/// that names it continues from that clip: the prompt patches sit after the
+/// text in the prefill, and the output starts where the clip ends. Only the
+/// engine that encoded it accepts it.
+pub struct Prompt<R: Runtime> {
+    pub(super) feat: Arc<Tensor<R>>,
+    /// The id of the engine that encoded it.
+    pub(super) engine: u64,
+}
+
+impl<R: Runtime> Prompt<R> {
+    /// Prompt patches (`T_prompt`) this prompt adds to a prefill.
+    pub fn patches(&self) -> usize {
+        self.feat.shape().first().copied().unwrap_or(0)
+    }
+}
+
+impl<R: Runtime> Clone for Prompt<R> {
+    fn clone(&self) -> Self {
+        Self {
+            feat: Arc::clone(&self.feat),
+            engine: self.engine,
+        }
+    }
+}
+
+/// A request's continuation prompt: the encoded clip and the words spoken
+/// in it.
+///
+/// The model reads `text` + the request's text as one transcript, so `text`
+/// is the clip's exact transcript, not a description of it.
+pub struct PromptSource<'a, R: Runtime> {
+    /// A prompt from
+    /// [`VoxCpm2Engine::encode_prompt`](crate::voxcpm::VoxCpm2Engine::encode_prompt)
+    /// on the same engine.
+    pub prompt: &'a Prompt<R>,
+    /// The transcript of the prompt clip.
+    pub text: &'a str,
+}
+
+impl<'a, R: Runtime> PromptSource<'a, R> {
+    /// `prompt`, whose clip speaks `text`.
+    pub fn new(prompt: &'a Prompt<R>, text: &'a str) -> Self {
+        Self { prompt, text }
+    }
+}
+
+impl<R: Runtime> Clone for PromptSource<'_, R> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
+impl<R: Runtime> Copy for PromptSource<'_, R> {}
+
 /// The voice one request renders with.
 pub enum VoiceSource<'a, R: Runtime> {
     /// An id from [`TtsEngine::voices`](crate::tts::TtsEngine::voices).
     /// [`ZERO_SHOT_VOICE_ID`](crate::voxcpm::ZERO_SHOT_VOICE_ID) selects
     /// zero-shot, the same as [`VoiceSource::ZeroShot`].
     Named(&'a str),
-    /// A reference from [`VoxCpm2Engine::encode_reference`] on the same
-    /// engine.
+    /// A reference from
+    /// [`VoxCpm2Engine::encode_reference`](crate::voxcpm::VoxCpm2Engine::encode_reference)
+    /// on the same engine.
     Reference(&'a Reference<R>),
     /// No reference recording: the model's own voice, or one a style prefix
     /// designs.
@@ -82,6 +129,12 @@ pub struct SynthRequest<'a, R: Runtime> {
     pub text: &'a str,
     /// The voice to render with.
     pub voice: VoiceSource<'a, R>,
+    /// The clip this request continues from, `None` for no continuation.
+    ///
+    /// Hi-Fi cloning names the same recording twice: as the voice, through
+    /// [`VoiceSource::Reference`], and here. The request's output holds
+    /// only the new speech, never the prompt clip.
+    pub prompt: Option<PromptSource<'a, R>>,
     /// This request's base seed. `None` takes
     /// [`VoxCpm2SynthOptions::seed`](crate::voxcpm::VoxCpm2SynthOptions::seed)
     /// from load time.
@@ -89,12 +142,23 @@ pub struct SynthRequest<'a, R: Runtime> {
 }
 
 impl<'a, R: Runtime> SynthRequest<'a, R> {
-    /// A request for `text` in `voice` at the load-time seed.
+    /// A request for `text` in `voice` at the load-time seed, with no
+    /// continuation prompt.
     pub fn new(text: &'a str, voice: VoiceSource<'a, R>) -> Self {
         Self {
             text,
             voice,
+            prompt: None,
             seed: None,
+        }
+    }
+
+    /// The same request continuing from `prompt`, whose clip speaks
+    /// `prompt_text`.
+    pub fn with_prompt(self, prompt: &'a Prompt<R>, prompt_text: &'a str) -> Self {
+        Self {
+            prompt: Some(PromptSource::new(prompt, prompt_text)),
+            ..self
         }
     }
 
@@ -114,61 +178,3 @@ impl<R: Runtime> Clone for SynthRequest<'_, R> {
 }
 
 impl<R: Runtime> Copy for SynthRequest<'_, R> {}
-
-impl<R> VoxCpm2Engine<R>
-where
-    R: Runtime<DType = DType> + 'static,
-    R::Client: VoxCpm2RenderClient<R>,
-    VoxCpm2Model<R>: Send + Sync,
-    Tensor<R>: Send + Sync,
-{
-    /// Encode a reference recording once, for any number of requests to
-    /// name through [`VoiceSource::Reference`].
-    ///
-    /// `samples` is mono PCM at `sample_rate`. It is resampled to the
-    /// encoder's rate here, on the caller's thread, with the resampler the
-    /// voices directory goes through at load. The same samples therefore
-    /// encode to the same tensor a voices-directory file does.
-    ///
-    /// The encode itself runs on the owner thread. This call blocks until
-    /// the owner thread reaches it: after the running batch, or after the
-    /// running step of a persistent batch.
-    pub fn encode_reference(&self, samples: &[f32], sample_rate: u32) -> Result<Reference<R>> {
-        if samples.is_empty() {
-            return Err(Error::InvalidArgument {
-                arg: "samples",
-                reason: format!(
-                    "reference recording at {sample_rate} Hz has 0 samples; pass mono PCM \
-                     holding the reference voice"
-                ),
-            });
-        }
-        let samples = resample(samples, sample_rate, REF_RATE)?;
-        let (reply, encoded) = channel();
-        self.submit(Work::Encode(EncodeJob { samples, reply }))?;
-        let feat = encoded.recv().map_err(|_| worker_gone())??;
-        Ok(Reference {
-            feat: Arc::new(feat),
-            engine: self.inner.id,
-        })
-    }
-}
-
-impl<R> EngineInner<R>
-where
-    R: Runtime<DType = DType> + 'static,
-    R::Client: VoxCpm2RenderClient<R>,
-    VoxCpm2Model<R>: Send + Sync,
-    Tensor<R>: Send + Sync,
-{
-    /// Run one queued reference encode and reply with its tensor. Runs on
-    /// the owner thread only. A caller that already went away is not an
-    /// error in turn, so the send result is dropped.
-    pub(super) fn serve_encode(&self, job: EncodeJob<R>) {
-        let encoded = self
-            .model
-            .encode_reference(self.client.as_ref(), &job.samples)
-            .map_err(Error::from);
-        let _ = job.reply.send(encoded);
-    }
-}

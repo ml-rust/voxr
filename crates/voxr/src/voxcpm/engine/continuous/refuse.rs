@@ -8,8 +8,8 @@ use numr::runtime::Runtime;
 use crate::error::Error;
 use crate::voxcpm::engine::batch::{Job, Work};
 
-/// Fail every queued and every later request, reference encodes included,
-/// until the queue closes.
+/// Fail every queued and every later request, reference and prompt encodes
+/// included, until the queue closes.
 ///
 /// A caller blocks on its reply channel, so a stopped thread must keep
 /// answering rather than stop reading the queue.
@@ -35,7 +35,7 @@ pub(super) fn too_large<R: Runtime>(job: &Job<R>, capacity: usize) -> Error {
         reason: format!(
             "this request needs {} cache positions ({} for its prefill, {} for its patches, \
              1 past the last) but a continuous batch's slot holds {capacity}; shorten the \
-             text, or use a shorter reference recording",
+             text, or use a shorter reference or prompt recording",
             job.seq_len + job.max_len + 1,
             job.seq_len,
             job.max_len,
@@ -49,6 +49,7 @@ mod tests {
     use crate::error::Result;
     use crate::voxcpm::engine::batch::{EncodeJob, JobVoice};
     use crate::voxcpm::engine::reply::Reply;
+    use boostr::model::audio::voxcpm::model::PadSide;
     use numr::runtime::cpu::CpuRuntime;
     use std::sync::mpsc::channel;
 
@@ -60,6 +61,7 @@ mod tests {
         (
             Job {
                 voice: JobVoice::ZeroShot,
+                prompt: None,
                 seed: 0,
                 text_token_ids: vec![1, 2],
                 max_len,
@@ -113,6 +115,7 @@ mod tests {
         tx.send(Work::Render(first)).expect("queue");
         tx.send(Work::Encode(EncodeJob {
             samples: vec![0.0; 4],
+            side: PadSide::Right,
             reply: encode_reply,
         }))
         .expect("queue");

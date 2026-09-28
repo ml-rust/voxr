@@ -1,6 +1,6 @@
 //! The owner thread's continuous-batching loop: one persistent
 //! [`GenerateState`], its slot table, and the admit/step/release cycle.
-//! A reference encode queued meanwhile runs between two steps.
+//! A reference or prompt encode queued meanwhile runs between two steps.
 
 use std::sync::mpsc::Receiver;
 
@@ -24,8 +24,8 @@ use crate::voxcpm::engine::types::{EngineInner, MAX_LEN_CAP, VoxCpm2RenderClient
 ///
 /// The cycle: take whatever is queued into free slots, step the batch once,
 /// then reply for and release every slot that finished. Only the cold start
-/// blocks, because an empty batch has nothing to step. A reference encode
-/// taken off the queue runs at once, between two steps.
+/// blocks, because an empty batch has nothing to step. A reference or
+/// prompt encode taken off the queue runs at once, between two steps.
 ///
 /// A failure to open the batch, or a failed step, is not survivable. Every
 /// row reads the state behind it. Every waiting caller is failed and every
@@ -195,6 +195,10 @@ where
     /// Anything that refuses the request — an unknown voice, a request too
     /// long for a slot, a prefill error — is reported on the job's own reply
     /// and leaves the slot free and the batch untouched.
+    ///
+    /// `admit` seats a continuation row's first-patch condition and decode
+    /// context with it, and `release` drops both, so a slot's next occupant
+    /// inherits neither.
     fn seat(&mut self, inner: &EngineInner<R>, slot: usize, job: Job<R>) {
         // One past the last patch is where the lane table advances to on the
         // final step, so the budget is strictly below the slot's capacity.
@@ -217,7 +221,7 @@ where
             &[PrefillRow {
                 ref_feat,
                 text_token_ids: &job.text_token_ids,
-                prompt_feat: None,
+                prompt_feat: job.prompt.as_deref(),
             }],
             job.seq_len,
         ) {

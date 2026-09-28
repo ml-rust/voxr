@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use boostr::model::audio::voxcpm::VoxCpm2Weights;
-use voxr::voxcpm::{VoxCpm2Engine, VoxCpm2LoadOptions, VoxCpm2SynthOptions};
+use voxr::voxcpm::{VOICE_EXTENSIONS, VoxCpm2Engine, VoxCpm2LoadOptions, VoxCpm2SynthOptions};
 
 /// The runtime the engine runs on: CUDA under the `cuda` feature, else the
 /// CPU.
@@ -91,6 +91,36 @@ pub fn load_engine(
         VoxCpm2Engine::<Rt>::load(&weights, None, voices, &device, client, options)
             .expect("load VoxCPM2 on CPU")
     }
+}
+
+/// The file behind voice `id`, found the way the engine lists voices: an
+/// audio file in `dir` whose stem is `id`.
+pub fn voice_file(dir: &Path, id: &str) -> PathBuf {
+    std::fs::read_dir(dir)
+        .expect("read voices directory")
+        .map(|entry| entry.expect("voices directory entry").path())
+        .find(|path| {
+            path.is_file()
+                && path.file_stem().and_then(|s| s.to_str()) == Some(id)
+                && path
+                    .extension()
+                    .and_then(|e| e.to_str())
+                    .is_some_and(|ext| VOICE_EXTENSIONS.iter().any(|a| ext.eq_ignore_ascii_case(a)))
+        })
+        .unwrap_or_else(|| panic!("no audio file for voice {id:?} in {}", dir.display()))
+}
+
+/// Voice `id`'s recording in `dir` as mono PCM, with its sample rate.
+pub fn voice_samples(dir: &Path, id: &str) -> (Vec<f32>, u32) {
+    let path = voice_file(dir, id);
+    let bytes = std::fs::read(&path).expect("read voice file");
+    let hint = path
+        .file_name()
+        .and_then(|n| n.to_str())
+        .and_then(voxr::extension_hint);
+    let data = voxr::decode_audio(&bytes, hint).expect("decode voice file");
+    let mono = voxr::resample::to_mono_at_rate(&data, data.sample_rate).expect("downmix");
+    (mono, data.sample_rate)
 }
 
 /// Panics unless `got` equals `want` bit for bit, naming the first differing
