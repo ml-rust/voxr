@@ -23,6 +23,15 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 # `corpus` and `voxcpm` load `tokenizer.json` files through splintr.
 splintr = { version = "0.20", features = ["vocab-whisper"] }
+# RIFF/WAVE read and write for finished files. The unknown-length stream
+# header stays in `wav::stream`: hound writes sizes only on finalize.
+hound = "3.5"
+# Windowed-sinc sample-rate conversion behind `resample`. No default
+# features: the FFT resampler and its realfft dependency go unused.
+rubato = { version = "5", default-features = false }
+# RBJ cookbook biquads: the enhance pipeline's high-pass and shelves, and
+# the K-weighting stages behind `enhance::loudness`.
+biquad = "0.6"
 
 # Compressed-audio decode (FLAC/MP3/OGG-Vorbis/WAV). Off by default: a
 # WAV-only consumer has no use for four codec decoders.
@@ -45,7 +54,7 @@ unicode-general-category = { version = "1", optional = true }
 # spaCy tokenizer: its prefix, suffix, infix and URL patterns use lookbehind
 # and lookahead. splintr already links regexr, so nothing new enters the
 # graph.
-regexr = { version = "0.5", optional = true, default-features = false }
+regexr = { version = "0.6", optional = true, default-features = false }
 
 [dev-dependencies]
 tempfile = "3"

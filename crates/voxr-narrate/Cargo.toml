@@ -13,7 +13,7 @@ bench = false
 [dependencies]
 # The sentence pattern uses lookahead; spaCy-style word splitting uses
 # lookbehind and lookahead too.
-regexr = { version = "0.5", default-features = false }
+regexr = { version = "0.6", default-features = false }
 # Number words are read after NFKD, and the speech check normalizes
 # recognized words the same way.
 unicode-normalization = "0.1"
