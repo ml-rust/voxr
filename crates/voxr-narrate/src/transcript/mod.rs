@@ -1,7 +1,7 @@
 //! A narration take read into timed words: the take's loudness, the pieces
 //! a recognizer reads, recognizer loops collapsed, word times settled on
 //! the sound, script words placed phrase by phrase, and the transcript
-//! files.
+//! files. With the `whisper` feature, Whisper as the recognizer.
 
 pub mod envelope;
 pub mod even;
@@ -12,6 +12,8 @@ pub mod output;
 pub mod phrase_align;
 pub mod pieces;
 pub mod transcriber;
+#[cfg(feature = "whisper")]
+pub mod whisper_transcriber;
 
 pub use envelope::{Envelope, HOP, TRANSCRIPT_RATE, envelope};
 pub use even::even_out;
@@ -28,3 +30,5 @@ pub use pieces::pieces;
 pub use transcriber::{
     DEFAULT_LANGUAGE, TranscribeOptions, Transcribed, Transcriber, transcribe_narration,
 };
+#[cfg(feature = "whisper")]
+pub use whisper_transcriber::{WhisperTranscriber, read_take_16k};

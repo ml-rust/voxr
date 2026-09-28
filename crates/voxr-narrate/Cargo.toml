@@ -26,17 +26,20 @@ thiserror = "2"
 # voice's preparation.
 biquad = "0.6"
 
-# `HeardWord: From<&WordTiming>`: a script word placed on a Whisper timing.
+# `HeardWord: From<&WordTiming>`, `WhisperTranscriber` and `read_take_16k`:
+# Whisper word timings and the audio decode that feeds them.
 # A workspace-internal path dependency, off by default so a consumer that
 # only parses scripts and checks speech does not pull in voxr's audio stack.
 voxr = { path = "../voxr", optional = true, default-features = false }
+# `WhisperTranscriber`: the runtime and client a Whisper checkpoint runs on.
+numr = { version = "0.7", optional = true }
 
 [dev-dependencies]
 tempfile = "3"
 
 [features]
 default = []
-whisper = ["dep:voxr", "voxr/whisper"]
+whisper = ["dep:voxr", "voxr/whisper", "dep:numr"]
 
 [[test]]
 name = "narration_oracle"
@@ -46,3 +49,7 @@ name = "narration_polish_oracle"
 
 [[test]]
 name = "narration_transcript_oracle"
+
+[[example]]
+name = "transcribe_take"
+required-features = ["whisper"]

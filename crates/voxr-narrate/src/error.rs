@@ -1,7 +1,8 @@
 //! voxr-narrate error types.
 //!
 //! Argument checks on scripts and takes, data that does not fit the
-//! pipeline, and the built-in patterns failing to compile.
+//! pipeline, the built-in patterns failing to compile, and a speech
+//! recognizer failing to load or read.
 
 /// voxr-narrate result type.
 pub type Result<T> = std::result::Result<T, Error>;
@@ -28,6 +29,13 @@ pub enum Error {
     /// Decoded or generated data does not fit the pipeline.
     #[error("data error: {reason}")]
     DataError {
+        /// Description of what went wrong.
+        reason: String,
+    },
+
+    /// A speech recognizer failed to load or to read audio.
+    #[error("recognizer error: {reason}")]
+    Recognizer {
         /// Description of what went wrong.
         reason: String,
     },

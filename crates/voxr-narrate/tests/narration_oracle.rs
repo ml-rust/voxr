@@ -65,7 +65,8 @@ fn reason(e: Error) -> String {
     match e {
         Error::InvalidArgument { reason, .. }
         | Error::DataError { reason }
-        | Error::Pattern { reason } => reason,
+        | Error::Pattern { reason }
+        | Error::Recognizer { reason } => reason,
     }
 }
 
