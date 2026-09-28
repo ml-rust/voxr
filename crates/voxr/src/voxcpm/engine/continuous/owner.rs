@@ -217,6 +217,7 @@ where
             &[PrefillRow {
                 ref_feat,
                 text_token_ids: &job.text_token_ids,
+                prompt_feat: None,
             }],
             job.seq_len,
         ) {

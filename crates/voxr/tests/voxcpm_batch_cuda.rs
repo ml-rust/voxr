@@ -206,10 +206,12 @@ fn batch_of_two_matches_single_renders() {
         PrefillRow {
             ref_feat: Some(&ref_feat),
             text_token_ids: &ids[0],
+            prompt_feat: None,
         },
         PrefillRow {
             ref_feat: None,
             text_token_ids: &ids[1],
+            prompt_feat: None,
         },
     ];
     let max_lens: Vec<usize> = ids.iter().map(|ids| budget(ids.len() - 1)).collect();
@@ -357,6 +359,7 @@ fn duplicate_rows_match_each_other_and_the_single() {
     let row = PrefillRow {
         ref_feat: Some(&ref_feat),
         text_token_ids: &ids,
+        prompt_feat: None,
     };
     let max_len = budget(ids.len() - 1);
     let single = render_single(&client, &model, &row, max_len, SEEDS[0]);

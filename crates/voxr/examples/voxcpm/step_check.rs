@@ -7,17 +7,34 @@
 //! end-to-end orchestrator.
 //!
 //! ```text
-//! cargo run --release --features audio,f16 --example voxcpm_step_check -- CKPT_DIR FIXTURE_DIR
+//! cargo run --release -p voxr --features voxcpm --example voxcpm_step_check -- CKPT_DIR FIXTURE_DIR [PREFILL_FIXTURE STEP_FIXTURE]
 //! ```
 //!
 //! `CKPT_DIR` is the VoxCPM2 checkpoint (`config.json` + `model.safetensors`).
-//! `FIXTURE_DIR` holds three things. `prefill_fixture.safetensors` supplies
-//! `ref_wav` and `text_token`; it is the same fixture `voxcpm_prefill_check`
-//! reads, re-run here so the loop starts from a real prefill state.
-//! `step_fixture.safetensors` is written by
+//! `FIXTURE_DIR` holds three things. The prefill fixture (default
+//! `prefill_fixture.safetensors`) supplies the wavs and `text_token`; it is
+//! the same fixture `voxcpm_prefill_check` reads, re-run here so the loop
+//! starts from a real prefill state. The step fixture (default
+//! `step_fixture.safetensors`) is written by
 //! `audio/pipeline/make_step_fixture.py` from the SAME reference wav and
 //! target text. `audiovae.safetensors` comes from
 //! `audio/pipeline/convert_audiovae.py`, same layout as `voxcpm_vae_check`.
+//!
+//! # Continuation fixtures
+//!
+//! `audio/pipeline/make_continuation_fixture.py` writes a prefill and a step
+//! fixture pair for ref+continuation or continuation-only; pass both names.
+//! The prefill fixture's `T_prompt > 0` switches the gate to that mode: the
+//! prompt wav is encoded with `encode_prompt` and prefilled as the row's
+//! tail, and `init_prefix_feat_cond` is then the prompt's last patch. Two
+//! more gated sections run:
+//!
+//! - context: `GenerateState::context` must hold `context_len` patches (the
+//!   step fixture's metadata) equal to the fixture's `context_patches`.
+//! - trim: the reference's own `trim_patches` (context plus its generated
+//!   patches) decoded from patch `context_len` must match its trimmed
+//!   `trim_wav`, sample count exact. The row's own decode after the gated
+//!   steps must have the same sample count.
 //!
 //! This is a real numerical gate, not a smoke test - running and producing
 //! plausible numbers proves nothing, reproducing the reference output does.
@@ -134,10 +151,12 @@
 //! proportional to the operand's scale), so a fixed 2e-3 bound would reject
 //! correct large-magnitude output exactly as it would in the prefill gate.
 use boostr::format::safetensors_loader::SafeTensorsLoader;
-use boostr::model::audio::voxcpm::model::VoxCpm2Model;
-use boostr::model::audio::voxcpm::model::config::AUDIO_START_ID;
+use boostr::model::audio::voxcpm::model::config::{
+    AUDIO_START_ID, REF_AUDIO_END_ID, STREAMING_PREFIX_LEN,
+};
 use boostr::model::audio::voxcpm::model::generate::{GenerateOptions, GenerateState, StepOutcome};
 use boostr::model::audio::voxcpm::model::sequence::SequenceLayout;
+use boostr::model::audio::voxcpm::model::{PrefillRow, VoxCpm2Model};
 use numr::autograd::Var;
 use numr::dtype::DType;
 use numr::runtime::cpu::{CpuClient, CpuDevice, CpuRuntime};
@@ -230,9 +249,26 @@ fn check(
     })
 }
 
+/// Read `__metadata__[key]` as a `usize`; `None` when the key is absent.
+fn meta_usize(
+    fx: &SafeTensorsLoader,
+    key: &str,
+) -> Result<Option<usize>, Box<dyn std::error::Error>> {
+    match fx.first().and_then(|st| st.metadata().get(key)) {
+        Some(raw) => Ok(Some(raw.parse::<usize>()?)),
+        None => Ok(None),
+    }
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let ck = PathBuf::from(std::env::args().nth(1).expect("checkpoint dir"));
     let fx_dir = PathBuf::from(std::env::args().nth(2).expect("fixture dir"));
+    let prefill_name = std::env::args()
+        .nth(3)
+        .unwrap_or_else(|| "prefill_fixture.safetensors".to_string());
+    let step_name = std::env::args()
+        .nth(4)
+        .unwrap_or_else(|| "step_fixture.safetensors".to_string());
     let device = CpuDevice::default();
     let client = CpuClient::new(device.clone());
 
@@ -248,23 +284,47 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut ok = true;
 
     // --- 0. Reproduce the prefill, exactly as voxcpm_prefill_check does ------
-    let mut prefill_fx = SafeTensorsLoader::open(fx_dir.join("prefill_fixture.safetensors"))?;
-    let ref_wav = prefill_fx.load_tensor::<CpuRuntime>("ref_wav", &device)?;
-    let ref_wav_samples: Vec<f32> = ref_wav.contiguous()?.to_vec();
-    let ref_feat = model.encode_reference(&client, &ref_wav_samples)?;
-    let t_ref = ref_feat.shape()[0];
+    let mut prefill_fx = SafeTensorsLoader::open(fx_dir.join(&prefill_name))?;
+    // A fixture without `T_ref` is the original reference-mode one.
+    let has_reference = meta_usize(&prefill_fx, "T_ref")?.is_none_or(|t_ref| t_ref > 0);
+    let t_prompt = meta_usize(&prefill_fx, "T_prompt")?.unwrap_or(0);
+    println!("prefill fixture: {prefill_name}  reference={has_reference}  T_prompt={t_prompt}");
+    let ref_feat = if has_reference {
+        let ref_wav = prefill_fx.load_tensor::<CpuRuntime>("ref_wav", &device)?;
+        let ref_wav_samples: Vec<f32> = ref_wav.contiguous()?.to_vec();
+        Some(model.encode_reference(&client, &ref_wav_samples)?)
+    } else {
+        None
+    };
+    let t_ref = ref_feat.as_ref().map_or(0, |f| f.shape()[0]);
+    let prompt_feat = if t_prompt > 0 {
+        let prompt_wav = prefill_fx.load_tensor::<CpuRuntime>("prompt_wav", &device)?;
+        let prompt_wav_samples: Vec<f32> = prompt_wav.contiguous()?.to_vec();
+        let feat = model.encode_prompt(&client, &prompt_wav_samples)?;
+        assert_eq!(feat.shape()[0], t_prompt, "encoded T_prompt must match");
+        Some(feat)
+    } else {
+        None
+    };
 
     let text_token_tensor = prefill_fx.load_tensor::<CpuRuntime>("text_token", &device)?;
     let full_ids: Vec<i64> = text_token_tensor.contiguous()?.to_vec();
     let seq_len_want = full_ids.len();
-    let text_token_ids: Vec<u32> = full_ids[t_ref + 2..].iter().map(|&id| id as u32).collect();
-    assert_eq!(
-        full_ids[t_ref + 1],
-        104,
-        "expected the ref-audio-end delimiter (104) at index T_ref+1={}, got {}",
-        t_ref + 1,
-        full_ids[t_ref + 1]
-    );
+    let prefix_len = if has_reference { t_ref + 2 } else { 0 };
+    let text_end = seq_len_want - t_prompt;
+    let text_token_ids: Vec<u32> = full_ids[prefix_len..text_end]
+        .iter()
+        .map(|&id| id as u32)
+        .collect();
+    if has_reference {
+        assert_eq!(
+            full_ids[t_ref + 1],
+            i64::from(REF_AUDIO_END_ID),
+            "expected the ref-audio-end delimiter ({REF_AUDIO_END_ID}) at index T_ref+1={}, got {}",
+            t_ref + 1,
+            full_ids[t_ref + 1]
+        );
+    }
     assert_eq!(
         *text_token_ids.last().expect("non-empty text slice"),
         AUDIO_START_ID,
@@ -272,16 +332,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     // Built only to confirm the slice reproduces S; prefill() rebuilds its own
     // layout internally.
-    let layout = SequenceLayout::build(t_ref, &text_token_ids)?;
+    let layout = SequenceLayout::build(t_ref, &text_token_ids, t_prompt)?;
     assert_eq!(layout.seq_len(), seq_len_want);
 
-    let prefill_state = model.prefill(&client, Some(&ref_feat), &text_token_ids, MAX_LENGTH)?;
+    let row = PrefillRow {
+        ref_feat: ref_feat.as_ref(),
+        text_token_ids: &text_token_ids,
+        prompt_feat: prompt_feat.as_ref(),
+    };
+    let prefill_state = model.prefill_batch(&client, &[row], MAX_LENGTH)?;
 
     // --- Starting state: prefill handoff -> GenerateState::start -------------
     // Checked BEFORE any step, and reported as its own section: a mismatch
     // here means every step check below is meaningless, so it must not be
     // confused with a `generate.rs` bug.
-    let mut step_fx = SafeTensorsLoader::open(fx_dir.join("step_fixture.safetensors"))?;
+    let mut step_fx = SafeTensorsLoader::open(fx_dir.join(&step_name))?;
 
     let init_position_tensor = step_fx.load_tensor::<CpuRuntime>("init_position", &device)?;
     let init_position = init_position_tensor.item::<i64>()? as usize;
@@ -323,6 +388,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Gate::Gated,
     )?
     .pass;
+
+    // --- Continuation decode context -------------------------------------------
+    if t_prompt > 0 {
+        ok &= check_context(&mut step_fx, &state, &device)?;
+    }
 
     // --- Steps 0..3, noise injected from the fixture --------------------------
     // cfg_value=2.0 and min_len=2 come from `GenerateOptions::new`; only
@@ -551,6 +621,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ok &= stop_logits.pass;
     }
 
+    if t_prompt > 0 {
+        ok &= check_trim(&client, &model, &mut step_fx, &state, &device)?;
+    }
+
     println!(
         "\nnot compared: step{{0,1,2}}_t_span - computed internally by cfm_time_span from options, not loaded from the fixture as a tensor."
     );
@@ -615,4 +689,76 @@ fn generator_z(
 ) -> Result<Var<CpuRuntime>, Box<dyn std::error::Error>> {
     let tensor = fx.load_tensor::<CpuRuntime>(&format!("step{i}_z"), device)?;
     Ok(Var::new(tensor.transpose(1, 2)?.contiguous()?, false))
+}
+
+/// Gate `GenerateState::context` against the step fixture: `context_len`
+/// patches, each equal to the matching row of `context_patches`.
+fn check_context(
+    step_fx: &mut SafeTensorsLoader,
+    state: &GenerateState<CpuRuntime>,
+    device: &CpuDevice,
+) -> Result<bool, Box<dyn std::error::Error>> {
+    let context_len = meta_usize(step_fx, "context_len")?
+        .ok_or("continuation step fixture has no __metadata__.context_len")?;
+    let got = &state.context[0];
+    println!(
+        "context: {} patches (want context_len {context_len}, STREAMING_PREFIX_LEN {STREAMING_PREFIX_LEN})",
+        got.len()
+    );
+    let mut ok = got.len() == context_len;
+    println!("  {}", if ok { "OK" } else { "MISMATCH" });
+    let want = step_fx.load_tensor::<CpuRuntime>("context_patches", device)?;
+    for (k, patch) in got.iter().enumerate().take(context_len) {
+        let want_k = want.narrow(0, k, 1)?.contiguous()?;
+        ok &= check(
+            &format!("context patch {k}"),
+            patch.tensor(),
+            &want_k,
+            Gate::Gated,
+        )?
+        .pass;
+    }
+    Ok(ok)
+}
+
+/// Gate the context trim. The reference's own `trim_patches` (context plus
+/// generated) decoded from patch `context_len` must match its `trim_wav`
+/// with an exact sample count; then the row's own decode after the gated
+/// steps must return the same count, context excluded.
+fn check_trim(
+    client: &CpuClient,
+    model: &VoxCpm2Model<CpuRuntime>,
+    step_fx: &mut SafeTensorsLoader,
+    state: &GenerateState<CpuRuntime>,
+    device: &CpuDevice,
+) -> Result<bool, Box<dyn std::error::Error>> {
+    let context_len = meta_usize(step_fx, "context_len")?
+        .ok_or("continuation step fixture has no __metadata__.context_len")?;
+    let trim_samples = meta_usize(step_fx, "trim_samples")?
+        .ok_or("continuation step fixture has no __metadata__.trim_samples")?;
+    let trim_patches = step_fx.load_tensor::<CpuRuntime>("trim_patches", device)?;
+    let patches: Vec<Var<CpuRuntime>> = (0..trim_patches.shape()[0])
+        .map(|k| -> Result<Var<CpuRuntime>, Box<dyn std::error::Error>> {
+            Ok(Var::new(trim_patches.narrow(0, k, 1)?.contiguous()?, false))
+        })
+        .collect::<Result<_, _>>()?;
+    let decoded = model.decode_patches_from(client, &patches, context_len)?;
+    let samples = decoded.shape()[2];
+    println!(
+        "trim: decoded {samples} samples after dropping {context_len} context patches (want {trim_samples})"
+    );
+    let mut ok = samples == trim_samples;
+    println!("  {}", if ok { "OK" } else { "MISMATCH" });
+    let want = step_fx.load_tensor::<CpuRuntime>("trim_wav", device)?;
+    let got = decoded.reshape(&[1, samples])?;
+    ok &= check("trim: trimmed waveform", &got, &want, Gate::Gated)?.pass;
+
+    let own = model.decode_row(client, state, 0)?;
+    let own_samples = own.shape()[2];
+    let own_ok = own_samples == trim_samples;
+    println!(
+        "trim: the row's own decode {own_samples} samples (want {trim_samples}, context excluded)\n  {}",
+        if own_ok { "OK" } else { "MISMATCH" }
+    );
+    Ok(ok && own_ok)
 }

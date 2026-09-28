@@ -127,6 +127,7 @@ where
                 &[PrefillRow {
                     ref_feat: self.reference(&row.job.voice)?,
                     text_token_ids: &row.job.text_token_ids,
+                    prompt_feat: None,
                 }],
                 capacity,
             )?;
