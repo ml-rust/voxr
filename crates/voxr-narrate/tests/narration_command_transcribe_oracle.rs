@@ -106,6 +106,9 @@ fn flags(opts: &Value) -> TranscribeFlags {
         language: text("language"),
         script: text("script"),
         manifest: text("manifest"),
+        // A case without "manifest" ran with it undefined: `--manifest`
+        // given last, with no value.
+        manifest_missing: opts.get("manifest").is_none(),
     }
 }
 

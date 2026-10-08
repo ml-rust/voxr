@@ -28,6 +28,10 @@ pub struct TranscribeFlags {
     pub script: Option<String>,
     /// `--manifest`: the video manifest. `None` reads `video.json`.
     pub manifest: Option<String>,
+    /// `--manifest` came last, with no value: the skill's manifest path is
+    /// then undefined. Files passed are read on their own, and a run with
+    /// none fails.
+    pub manifest_missing: bool,
 }
 
 /// What a transcribe run reads and where it writes.
@@ -82,7 +86,12 @@ pub fn plan_transcribe(
 ) -> std::result::Result<TranscribePlan, CommandError> {
     let manifest_arg = Path::new(flags.manifest.as_deref().unwrap_or(DEFAULT_MANIFEST));
     let loose = !flags.files.is_empty();
-    let manifest = if loose && !resolve(cwd, manifest_arg).exists() {
+    if flags.manifest_missing && !loose {
+        return Err(CommandError::Failed(
+            "transcribe --manifest: no path follows it. Pass the manifest's path, or drop --manifest to read video.json".to_string(),
+        ));
+    }
+    let manifest = if loose && (flags.manifest_missing || !resolve(cwd, manifest_arg).exists()) {
         None
     } else {
         Some(load_manifest(manifest_arg, cwd, probe)?)
@@ -189,6 +198,32 @@ mod tests {
         assert!(matches!(
             check_narration(&plan.narrations[0]),
             Err(CommandError::Input(m)) if m.ends_with("a.wav does not exist.")
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn a_manifest_flag_with_no_value_reads_files_alone() -> std::result::Result<(), CommandError> {
+        let dir = tempfile::tempdir().map_err(|e| CommandError::Failed(e.to_string()))?;
+        // A manifest beside the files is not read: the skill's path is
+        // undefined, and no file exists there.
+        std::fs::write(dir.path().join(DEFAULT_MANIFEST), "{}")
+            .map_err(|e| CommandError::Failed(e.to_string()))?;
+        let mut probe = |_: &Path| -> Result<f64> { Ok(1.0) };
+        let flags = TranscribeFlags {
+            files: vec!["a.wav".to_string()],
+            manifest_missing: true,
+            ..TranscribeFlags::default()
+        };
+        let plan = plan_transcribe(&flags, dir.path(), &mut probe)?;
+        assert!(plan.manifest.is_none() && !plan.timeline);
+        let none = TranscribeFlags {
+            manifest_missing: true,
+            ..TranscribeFlags::default()
+        };
+        assert!(matches!(
+            plan_transcribe(&none, dir.path(), &mut probe),
+            Err(CommandError::Failed(m)) if m.starts_with("transcribe --manifest: no path follows it.")
         ));
         Ok(())
     }

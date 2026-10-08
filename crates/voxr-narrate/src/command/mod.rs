@@ -12,6 +12,7 @@ mod js_value;
 mod manifest_fields;
 mod manifest_sound;
 
+pub mod argv;
 pub mod flags;
 pub mod manifest;
 pub mod outcome;
@@ -26,6 +27,7 @@ pub mod transcribe_plan;
 pub mod transcribe_report;
 pub mod transcribe_words;
 
+pub use argv::{FlagKind, SKILL_FLAGS, SkillArgs, SkillFlag, parse_skill_args};
 pub use flags::{flag_number, reroll_parts};
 pub use manifest::{DEFAULT_MANIFEST, LoadedManifest, load_manifest};
 pub use outcome::{

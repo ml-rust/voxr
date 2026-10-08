@@ -124,6 +124,14 @@ const SCENARIOS = [
     heard: { 'take.wav': HEARD },
     opts: { rest: ['take.wav'], manifest: 'video.json' },
   },
+  {
+    // `--manifest` given last, with no value: `opts.manifest` is undefined, and the file is read alone.
+    name: 'a file beside a manifest, --manifest given no value',
+    audio: { 'take.wav': SPEECH },
+    files: { 'video.json': JSON.stringify({ scenes: [{ file: 'a.html', duration: 3 }] }) },
+    heard: { 'take.wav': HEARD },
+    opts: { rest: ['take.wav'], manifest: undefined },
+  },
   { name: 'two files and one script', audio: {}, files: { 's.txt': 'x' }, heard: {}, opts: { rest: ['a.wav', 'b.wav'], manifest: 'video.json', script: 's.txt' } },
   { name: 'a script that does not exist', audio: { 'take.wav': SPEECH }, files: {}, heard: {}, opts: { rest: ['take.wav'], manifest: 'video.json', script: 'gone.txt' } },
   { name: 'a file that does not exist', audio: { 'take.wav': SPEECH }, files: {}, heard: { 'take.wav': HEARD }, opts: { rest: ['take.wav', 'gone.wav'], manifest: 'video.json' } },
