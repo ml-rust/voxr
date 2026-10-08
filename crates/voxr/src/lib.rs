@@ -20,6 +20,7 @@
 pub mod enhance;
 pub mod error;
 pub mod eval;
+pub mod ffmpeg;
 pub mod g2p;
 pub mod lang;
 pub mod pitch;
@@ -54,17 +55,22 @@ pub use corpus::{
     pack_utterances_with_layout,
 };
 #[cfg(feature = "decode")]
-pub use decode::{decode_audio, decode_audio_file_mono_at, decode_audio_mono_at, extension_hint};
+pub use decode::{
+    decode_audio, decode_audio_file_mono_at, decode_audio_like_ffmpeg, decode_audio_mono_at,
+    extension_hint,
+};
 pub use eval::{
     ErrorRate, align, by_group, canonical_character_error_rate, canonical_word_error_rate,
     canonicalize, character_error_rate, grand_total, normalize, total, word_error_rate,
 };
+pub use ffmpeg::{ffmpeg_program, ffprobe_program};
 pub use lang::{Lang, LangTag};
 pub use pitch::{PitchOptions, PitchTrack, estimate_pitch};
 pub use quality::{TakeQuality, measure_quality};
 pub use resample::{
-    DEFAULT_TAPS_PER_PHASE, MAX_FILTER_TAPS, ffmpeg_resampled_len, resample,
+    DEFAULT_TAPS_PER_PHASE, MAX_FILTER_TAPS, ffmpeg_default_layout, ffmpeg_resampled_len, resample,
     resample_interleaved_like_ffmpeg, resample_like_ffmpeg, resample_with_taps, to_mono_at_rate,
+    to_mono_like_ffmpeg,
 };
 pub use spectral::{SpectralDistance, multi_resolution_stft_distance, snr_db};
 pub use stretch::{MAX_TEMPO, MIN_TEMPO, PcmSample, atempo, atempo_interleaved, atempo_pcm16};
@@ -86,7 +92,7 @@ pub use tts_eval::{Pace, pace, pace_from_segments};
 pub use vad::{SpeechSegment, VadSegmentOptions, segments_from_probabilities, speech_timestamps};
 pub use wav::{
     WavData, decode_wav, encode_f32_raw, encode_pcm16_raw, encode_wav_f32, encode_wav_pcm16,
-    to_mono, wav_stream_header_f32, wav_stream_header_pcm16,
+    encode_wav_pcm16_values, to_mono, wav_stream_header_f32, wav_stream_header_pcm16,
 };
 #[cfg(feature = "whisper")]
 pub use whisper::{

@@ -182,6 +182,7 @@ fn to_mono_at_rate_matches_to_mono_then_resample() {
         samples,
         sample_rate: 48_000,
         channels: 2,
+        layout: None,
     };
 
     let combined = to_mono_at_rate(&data, 16_000).expect("to_mono_at_rate");

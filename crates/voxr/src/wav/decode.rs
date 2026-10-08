@@ -20,7 +20,8 @@ use std::io::{Cursor, Read};
 
 use crate::error::{Error, Result};
 
-use super::format::{FORMAT_EXTENSIBLE, FmtFields, HEADER_LEN, canonical_header};
+use super::format::{FmtFields, HEADER_LEN, canonical_header};
+use super::layout::{mask_layout, parse_fmt};
 use super::stream::STREAM_SIZE_UNKNOWN;
 
 /// A decoded WAV file: interleaved samples plus the format needed to interpret them.
@@ -32,6 +33,11 @@ pub struct WavData {
     pub sample_rate: u32,
     /// Channel count, at least 1.
     pub channels: u16,
+    /// The channel positions as an ffmpeg channel mask (`AV_CH_*` bits,
+    /// equal to `WAVE_FORMAT_EXTENSIBLE`'s for the first 18), the channels
+    /// interleaved in ascending bit order. `None` when the file names no
+    /// positions: ffmpeg then takes its default layout for the count.
+    pub layout: Option<u64>,
 }
 
 impl WavData {
@@ -45,20 +51,20 @@ impl WavData {
 const SUPPORTED: &str = "16/24/32-bit integer PCM or 32-bit IEEE float; re-encode the file \
                          to one of those, or decode it with `decode_audio` (feature `decode`)";
 
-fn bad(reason: String) -> Error {
+pub(super) fn bad(reason: String) -> Error {
     Error::InvalidArgument {
         arg: "wav bytes",
         reason,
     }
 }
 
-fn read_u16(bytes: &[u8], off: usize) -> Option<u16> {
+pub(super) fn read_u16(bytes: &[u8], off: usize) -> Option<u16> {
     let end = off.checked_add(2)?;
     let raw: [u8; 2] = bytes.get(off..end)?.try_into().ok()?;
     Some(u16::from_le_bytes(raw))
 }
 
-fn read_u32(bytes: &[u8], off: usize) -> Option<u32> {
+pub(super) fn read_u32(bytes: &[u8], off: usize) -> Option<u32> {
     let end = off.checked_add(4)?;
     let raw: [u8; 4] = bytes.get(off..end)?.try_into().ok()?;
     Some(u32::from_le_bytes(raw))
@@ -197,66 +203,6 @@ fn tag_name(id: &[u8; 4]) -> String {
         .collect()
 }
 
-/// Parse a `fmt ` chunk body, resolving `WAVE_FORMAT_EXTENSIBLE` to the format
-/// tag its SubFormat GUID carries.
-fn parse_fmt(bytes: &[u8], body: usize, size: usize) -> Result<FmtFields> {
-    if size < 16 {
-        return Err(bad(format!(
-            "'fmt ' chunk is {size} bytes, the minimum is 16"
-        )));
-    }
-    let field = |off: usize| -> Result<u16> {
-        read_u16(bytes, body + off)
-            .ok_or_else(|| bad(format!("'fmt ' chunk is truncated at offset {off}")))
-    };
-    let mut format_tag = field(0)?;
-    let channels = field(2)?;
-    let sample_rate = read_u32(bytes, body + 4)
-        .ok_or_else(|| bad("'fmt ' chunk is truncated at the sample rate".to_string()))?;
-    let byte_rate = read_u32(bytes, body + 8)
-        .ok_or_else(|| bad("'fmt ' chunk is truncated at the byte rate".to_string()))?;
-    let block_align = field(12)?;
-    let bits_per_sample = field(14)?;
-
-    if format_tag == FORMAT_EXTENSIBLE {
-        // Extensible layout: 16 standard bytes, cbSize (2), validBitsPerSample (2),
-        // dwChannelMask (4), then a 16-byte SubFormat GUID whose first two bytes
-        // hold the real format tag.
-        if size < 40 {
-            return Err(bad(format!(
-                "WAVE_FORMAT_EXTENSIBLE 'fmt ' chunk is {size} bytes, the minimum is 40"
-            )));
-        }
-        let cb_size = field(16)?;
-        if cb_size < 22 {
-            return Err(bad(format!(
-                "WAVE_FORMAT_EXTENSIBLE cbSize is {cb_size}, the minimum is 22"
-            )));
-        }
-        format_tag = field(24)?;
-        if format_tag == FORMAT_EXTENSIBLE {
-            return Err(bad(
-                "WAVE_FORMAT_EXTENSIBLE SubFormat GUID is itself 0xFFFE".to_string(),
-            ));
-        }
-    }
-
-    Ok(FmtFields {
-        format_tag,
-        channels,
-        sample_rate,
-        // The byte rate is redundant with the other fields. hound rejects a
-        // file whose byte rate disagrees with them, so a consistent one is
-        // derived here; only an overflowing product keeps the declared value
-        // for hound to reject.
-        byte_rate: sample_rate
-            .checked_mul(block_align as u32)
-            .unwrap_or(byte_rate),
-        block_align,
-        bits_per_sample,
-    })
-}
-
 /// Hand hound the canonical header for `format` followed by `data`, and
 /// convert what it reads to `f32`.
 fn decode_samples(f: &FmtFields, data: &[u8]) -> Result<WavData> {
@@ -305,6 +251,7 @@ fn decode_samples(f: &FmtFields, data: &[u8]) -> Result<WavData> {
         samples,
         sample_rate: spec.sample_rate,
         channels: spec.channels,
+        layout: mask_layout(f.channel_mask, f.channels),
     })
 }
 

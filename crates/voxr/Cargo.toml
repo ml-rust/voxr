@@ -42,7 +42,15 @@ symphonia = { version = "0.5", optional = true, default-features = false, featur
   "vorbis",
   "pcm",
   "wav",
+  "isomp4",
+  "aac",
+  "alac",
+  "adpcm",
+  "mkv",
 ] }
+# Opus, the codec of most WebM audio, which symphonia does not decode: a
+# pure-Rust decoder registered with symphonia's codecs.
+opus-rs = { version = "0.1", optional = true }
 
 # misaki English G2P: the embedded lexicons are zlib streams, and the port
 # needs NFKC and Unicode general categories. boostr's `zip` already links
@@ -68,7 +76,7 @@ splintr = { version = "0.20", features = ["vocab-cl100k"] }
 default = []
 
 # Compressed containers beyond RIFF/WAVE.
-decode = ["dep:symphonia"]
+decode = ["dep:symphonia", "dep:opus-rs"]
 # misaki English G2P from raw text or pre-tagged tokens, with the US and GB
 # lexicons embedded. No system dependencies. Implies `spacy-tagger` (and so
 # `spacy-tokenizer`), the tokenizer and tagger misaki's pipeline reads its
@@ -121,6 +129,10 @@ f16 = ["boostr/f16"]
 # Fixture-gated integration tests that need a model gate. Without these
 # entries a featureless `cargo check --all-targets` fails on the import
 # rather than skipping the target.
+[[test]]
+name = "decode_ffmpeg_parity"
+required-features = ["decode"]
+
 [[test]]
 name = "whisper_integration"
 required-features = ["whisper", "vad"]

@@ -1,5 +1,6 @@
 //! The output of ffmpeg's default audio resampler: `-ar N`, or `aresample`
-//! with every resampler option at its documented default.
+//! with every resampler option at its documented default, and the mono mix
+//! of `-ac 1`.
 //!
 //! The method is a textbook polyphase Kaiser-windowed sinc interpolator
 //! (R. E. Crochiere and L. R. Rabiner, "Multirate Digital Signal
@@ -12,8 +13,10 @@
 
 mod bank;
 mod convert;
+mod downmix;
 mod kernel;
 mod length;
 
 pub use convert::{resample_interleaved_like_ffmpeg, resample_like_ffmpeg};
+pub use downmix::{ffmpeg_default_layout, to_mono_like_ffmpeg};
 pub use length::ffmpeg_resampled_len;

@@ -2,8 +2,8 @@
 //!
 //! Model and kernel errors arrive from boostr and pass through unchanged in
 //! [`Error::Boostr`]; the variants declared here cover what this crate adds:
-//! argument checks on sample buffers, files that fail to load, and decoded
-//! data that does not fit the pipeline.
+//! argument checks on sample buffers, files that fail to load, audio voxr
+//! does not decode, and decoded data that does not fit the pipeline.
 
 /// voxr result type.
 pub type Result<T> = std::result::Result<T, Error>;
@@ -17,6 +17,14 @@ pub enum Error {
         /// Argument name.
         arg: &'static str,
         /// Why it is invalid.
+        reason: String,
+    },
+
+    /// A well-formed input uses a codec, feature or layout voxr does not
+    /// decode, such as multichannel or HE-AAC. Another decoder can read it.
+    #[error("unsupported audio: {reason}")]
+    Unsupported {
+        /// What is unsupported, and the next action.
         reason: String,
     },
 
