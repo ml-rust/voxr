@@ -281,6 +281,7 @@ mod tests {
 
     fn setup<'a>(rerolls: &'a [usize], lines: bool) -> VoxcpmSetup<'a> {
         VoxcpmSetup {
+            asr_model: None,
             cache_dir: Path::new("/cache"),
             out: Path::new("/out/voiceover.wav"),
             voice: "",

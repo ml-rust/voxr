@@ -1,41 +1,68 @@
-//! A take heard back and checked against its text, through one of two
-//! speech recognizers.
+//! A take heard back and checked against its text, through the default or
+//! the small speech recognizer, or the one the user's config names.
 
 use crate::check::{HeardWord, StrayPause, Verdict, check_speech, stray_pauses};
-use crate::error::Result;
+use crate::error::{Error, Result};
 use crate::pattern::{starts_with_en, utf16_len, utf16_prefix};
 use crate::transcript::{TranscribeOptions, Transcribed, Transcriber, transcribe_narration};
 
 /// The heard words are clipped to this many UTF-16 code units.
 const HEARD_CLIP: usize = 140;
 
-/// Which of the two speech recognizers hears a take.
+/// The skill's default recognizer: `voice.mjs`'s `DEFAULT_MODEL`.
+pub const DEFAULT_ASR_MODEL: &str = "onnx-community/whisper-base_timestamped";
+
+/// The skill's small recognizer: `voice.mjs`'s `SMALL_MODEL`.
+pub const SMALL_ASR_MODEL: &str = "onnx-community/whisper-small_timestamped";
+
+/// Which speech recognizer hears a take.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Recognizer {
-    /// The default recognizer.
+    /// The default recognizer: [`DEFAULT_ASR_MODEL`].
     Default,
-    /// The small recognizer. It is larger than the default one, and hears
-    /// a language other than English.
+    /// The small recognizer: [`SMALL_ASR_MODEL`]. It is larger than the
+    /// default one, and hears a language other than English.
     Small,
+    /// The model the user's config names as `asr.model`, when it is neither
+    /// of the two. The caller resolves the id and supplies the recognizer.
+    Configured,
 }
 
 impl Recognizer {
-    /// The recognizer a second opinion comes from.
+    /// The recognizer a second opinion comes from: the small one for any
+    /// recognizer but itself, whose second opinion is the default one.
     pub fn other(self) -> Self {
         match self {
-            Self::Default => Self::Small,
+            Self::Default | Self::Configured => Self::Small,
             Self::Small => Self::Default,
         }
     }
 }
 
-/// The recognizer for `language` when no config names one:
-/// [`Recognizer::Small`] for a language not starting with `en` (any case),
-/// else [`Recognizer::Default`].
-pub fn asr_model(language: Option<&str>) -> Recognizer {
-    match language {
-        Some(l) if !l.is_empty() && !starts_with_en(l) => Recognizer::Small,
-        _ => Recognizer::Default,
+/// The recognizer heard first: the skill's `asrModel(language)`.
+///
+/// `configured`, the config's `asr.model`, wins when it is set: the default
+/// or the small recognizer when it names one of their ids, else
+/// [`Recognizer::Configured`]. An empty id counts as set, as JavaScript's
+/// `??` reads it. Without it, [`Recognizer::Small`] hears a language not
+/// starting with `en` (any case), and [`Recognizer::Default`] every other.
+pub fn asr_model(language: Option<&str>, configured: Option<&str>) -> Recognizer {
+    match configured {
+        Some(SMALL_ASR_MODEL) => Recognizer::Small,
+        Some(DEFAULT_ASR_MODEL) => Recognizer::Default,
+        Some(_) => Recognizer::Configured,
+        None => match language {
+            Some(l) if !l.is_empty() && !starts_with_en(l) => Recognizer::Small,
+            _ => Recognizer::Default,
+        },
+    }
+}
+
+/// The error when a take asks for the configured recognizer and none was
+/// supplied.
+pub(crate) fn no_configured_recognizer() -> Error {
+    Error::Recognizer {
+        reason: "the config names an asr.model, and no recognizer for it was supplied. Load the configured model and pass it to the hearing".to_string(),
     }
 }
 
@@ -52,14 +79,42 @@ pub trait Hearing {
     ) -> Result<Transcribed>;
 }
 
-/// [`Hearing`] through two [`Transcriber`]s and
-/// [`transcribe_narration`]. `to_16k` resamples a take to the 16 kHz the
-/// transcribers read.
+impl<H: Hearing + ?Sized> Hearing for &mut H {
+    fn hear(
+        &mut self,
+        take: &[f32],
+        rate: u32,
+        recognizer: Recognizer,
+        language: Option<&str>,
+    ) -> Result<Transcribed> {
+        (**self).hear(take, rate, recognizer, language)
+    }
+}
+
+/// `pcm` at 16 kHz read into timed words by `transcriber` through
+/// [`transcribe_narration`], in `language`: what every [`Hearing`] over a
+/// [`Transcriber`] does once the take is at 16 kHz.
+pub fn hear_16k(
+    pcm: &[f32],
+    transcriber: &mut dyn Transcriber,
+    language: Option<&str>,
+) -> Result<Transcribed> {
+    let opts = TranscribeOptions {
+        language: language.map(str::to_string),
+    };
+    transcribe_narration(pcm, transcriber, &opts)
+}
+
+/// [`Hearing`] through [`Transcriber`]s and [`transcribe_narration`].
+/// `to_16k` resamples a take to the 16 kHz the transcribers read.
 pub struct TranscriberHearing<'a, F> {
     /// The default recognizer.
     pub default: &'a mut dyn Transcriber,
     /// The small recognizer.
     pub small: &'a mut dyn Transcriber,
+    /// The recognizer the config's `asr.model` names. A take asking for it
+    /// when it is `None` is refused.
+    pub configured: Option<&'a mut dyn Transcriber>,
     /// Resamples `(samples, rate)` to 16 kHz.
     pub to_16k: F,
 }
@@ -79,11 +134,12 @@ where
         let transcriber: &mut dyn Transcriber = match recognizer {
             Recognizer::Default => &mut *self.default,
             Recognizer::Small => &mut *self.small,
+            Recognizer::Configured => match self.configured.as_deref_mut() {
+                Some(t) => t,
+                None => return Err(no_configured_recognizer()),
+            },
         };
-        let opts = TranscribeOptions {
-            language: language.map(str::to_string),
-        };
-        transcribe_narration(&pcm, transcriber, &opts)
+        hear_16k(&pcm, transcriber, language)
     }
 }
 
@@ -174,6 +230,7 @@ pub(crate) mod tests {
     pub(crate) struct ScriptedHearing {
         pub(crate) default: Vec<Transcribed>,
         pub(crate) small: Vec<Transcribed>,
+        pub(crate) configured: Vec<Transcribed>,
         pub(crate) calls: Vec<Recognizer>,
     }
 
@@ -189,6 +246,7 @@ pub(crate) mod tests {
             let list = match recognizer {
                 Recognizer::Default => &mut self.default,
                 Recognizer::Small => &mut self.small,
+                Recognizer::Configured => &mut self.configured,
             };
             Ok(if list.is_empty() {
                 heard("", false)
@@ -219,18 +277,55 @@ pub(crate) mod tests {
         ScriptedHearing {
             default: default.iter().map(|&(l, x)| heard(l, x)).collect(),
             small: small.iter().map(|&(l, x)| heard(l, x)).collect(),
+            configured: Vec::new(),
             calls: Vec::new(),
         }
     }
 
     #[test]
     fn asr_model_picks_small_for_other_languages() {
-        assert_eq!(asr_model(None), Recognizer::Default);
-        assert_eq!(asr_model(Some("")), Recognizer::Default);
-        assert_eq!(asr_model(Some("en")), Recognizer::Default);
-        assert_eq!(asr_model(Some("EN-gb")), Recognizer::Default);
-        assert_eq!(asr_model(Some("ms")), Recognizer::Small);
-        assert_eq!(asr_model(Some("日本")), Recognizer::Small);
+        assert_eq!(asr_model(None, None), Recognizer::Default);
+        assert_eq!(asr_model(Some(""), None), Recognizer::Default);
+        assert_eq!(asr_model(Some("en"), None), Recognizer::Default);
+        assert_eq!(asr_model(Some("EN-gb"), None), Recognizer::Default);
+        assert_eq!(asr_model(Some("ms"), None), Recognizer::Small);
+        assert_eq!(asr_model(Some("日本"), None), Recognizer::Small);
+    }
+
+    #[test]
+    fn a_configured_model_wins_over_the_language() {
+        let id = Some("openai/whisper-large-v3");
+        assert_eq!(asr_model(Some("ms"), id), Recognizer::Configured);
+        assert_eq!(asr_model(None, id), Recognizer::Configured);
+        assert_eq!(
+            asr_model(Some("ms"), Some(DEFAULT_ASR_MODEL)),
+            Recognizer::Default
+        );
+        assert_eq!(
+            asr_model(Some("en"), Some(SMALL_ASR_MODEL)),
+            Recognizer::Small
+        );
+        assert_eq!(asr_model(Some("en"), Some("")), Recognizer::Configured);
+        assert_eq!(Recognizer::Configured.other(), Recognizer::Small);
+    }
+
+    #[test]
+    fn a_configured_recognizer_hears_first_and_the_small_one_checks_it() -> Result<()> {
+        // A loop retries with the small recognizer, as the skill's
+        // `model !== SMALL_MODEL` does.
+        let mut h = hearing(&[], &[("one two three", false)]);
+        h.configured.push(heard("one", true));
+        let c = heard_check(
+            &mut h,
+            Recognizer::Configured,
+            &[0.0; 8],
+            48000,
+            "one two three",
+            None,
+        )?;
+        assert!(c.check.ok);
+        assert_eq!(h.calls, [Recognizer::Configured, Recognizer::Small]);
+        Ok(())
     }
 
     #[test]

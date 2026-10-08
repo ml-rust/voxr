@@ -1614,6 +1614,7 @@ name = "voxr-narrate"
 version = "0.1.0"
 dependencies = [
  "biquad",
+ "boostr",
  "numr",
  "regexr 0.6.0",
  "serde",

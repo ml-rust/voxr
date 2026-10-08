@@ -71,6 +71,9 @@ pub struct VoxcpmSetup<'a> {
     pub hifi: bool,
     /// The language spoken.
     pub language: Option<&'a str>,
+    /// The user's config `asr.model`: the recognizer heard first in place
+    /// of the language's own ([`asr_model`](super::hear::asr_model)).
+    pub asr_model: Option<&'a str>,
     /// Parts, from 1, to speak again with a fresh seed.
     pub rerolls: &'a [usize],
     /// A timed script: every line is its own part, to place it at its time.

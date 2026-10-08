@@ -1,5 +1,6 @@
 //! Whisper as the recognizer of a narration take: one checkpoint loaded
-//! once and read piece by piece, and a take decoded to 16 kHz mono.
+//! once and read piece by piece, the same reading over a checkpoint the
+//! caller already holds, and a take decoded to 16 kHz mono.
 
 use std::path::Path;
 
@@ -94,9 +95,32 @@ impl<R: Runtime<DType = DType>> WhisperTranscriber<R> {
     pub fn bundle(&self) -> &WhisperBundle<R> {
         &self.bundle
     }
+
+    /// The checkpoint as a [`WhisperWords`], borrowed.
+    pub fn words(&self) -> WhisperWords<'_, R> {
+        WhisperWords::new(&self.bundle, &self.client)
+    }
 }
 
-impl<R: Runtime<DType = DType>> Transcriber for WhisperTranscriber<R>
+/// A Whisper checkpoint the caller holds, read as a [`Transcriber`]: what
+/// [`WhisperTranscriber`] does, over a borrowed bundle and client.
+///
+/// The bundle's `generation_config.json` must list `alignment_heads`, as
+/// [`WhisperTranscriber::from_dir_on`] checks at load. A bundle without
+/// them fails each read, naming its checkpoint.
+pub struct WhisperWords<'a, R: Runtime<DType = DType>> {
+    bundle: &'a WhisperBundle<R>,
+    client: &'a R::Client,
+}
+
+impl<'a, R: Runtime<DType = DType>> WhisperWords<'a, R> {
+    /// Reads with `bundle` on `client`.
+    pub fn new(bundle: &'a WhisperBundle<R>, client: &'a R::Client) -> Self {
+        Self { bundle, client }
+    }
+}
+
+impl<R: Runtime<DType = DType>> Transcriber for WhisperWords<'_, R>
 where
     R::Client: TensorOps<R>
         + ScalarOps<R>
@@ -129,7 +153,7 @@ where
         };
         let (_, words) = self
             .bundle
-            .transcribe_words(&self.client, samples, sample_rate as usize, &opts)
+            .transcribe_words(self.client, samples, sample_rate as usize, &opts)
             .map_err(|e| Error::Recognizer {
                 reason: format!(
                     "Whisper checkpoint {} reading {} samples at {sample_rate} Hz: {e}",
@@ -138,6 +162,36 @@ where
                 ),
             })?;
         Ok(words.iter().map(HeardWord::from).collect())
+    }
+}
+
+impl<R: Runtime<DType = DType>> Transcriber for WhisperTranscriber<R>
+where
+    R::Client: TensorOps<R>
+        + ScalarOps<R>
+        + MatmulOps<R>
+        + BinaryOps<R>
+        + ActivationOps<R>
+        + NormalizationOps<R>
+        + ConvOps<R>
+        + ReduceOps<R>
+        + ShapeOps<R>
+        + UnaryOps<R>
+        + ConditionalOps<R>
+        + IndexingOps<R>
+        + StatisticalOps<R>
+        + SortingOps<R>,
+{
+    /// The words Whisper hears in `samples`: [`WhisperWords`] over this
+    /// checkpoint.
+    fn transcribe_words(
+        &mut self,
+        samples: &[f32],
+        sample_rate: u32,
+        language: Option<&str>,
+    ) -> Result<Vec<HeardWord>> {
+        self.words()
+            .transcribe_words(samples, sample_rate, language)
     }
 }
 

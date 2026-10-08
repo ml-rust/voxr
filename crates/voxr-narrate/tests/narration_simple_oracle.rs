@@ -200,6 +200,8 @@ impl Hearing for ScriptedHearing {
         let (model, queue) = match recognizer {
             Recognizer::Default => ("default", &mut self.default),
             Recognizer::Small => ("small", &mut self.small),
+            // The oracle's config names no asr.model.
+            Recognizer::Configured => ("configured", &mut self.default),
         };
         self.calls.push(HeardCall {
             model: model.to_string(),
@@ -308,6 +310,7 @@ fn check_case(fixture: &Fixture, case: &Case) -> Result<()> {
     let work = tmp.path().join("work");
     std::fs::create_dir_all(&work).map_err(io("creating", &work))?;
     let setup = SimpleSetup {
+        asr_model: None,
         out: &out,
         engine: &resolved.engine,
         speed: resolved.speed,

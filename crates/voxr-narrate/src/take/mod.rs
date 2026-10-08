@@ -73,7 +73,10 @@ pub use files::{
     DEFAULT_SEED, PhrasesFile, ReadTakes, ResolvedSeed, TakesFile, chosen_takes, output_text_file,
     phrases_file, read_takes_file, resolve_seed, script_text_file, takes_file, voice_output_file,
 };
-pub use hear::{HeardCheck, Hearing, Recognizer, TranscriberHearing, asr_model, heard_check};
+pub use hear::{
+    DEFAULT_ASR_MODEL, HeardCheck, Hearing, Recognizer, SMALL_ASR_MODEL, TranscriberHearing,
+    asr_model, hear_16k, heard_check,
+};
 pub use join::{JOIN_RATE, JoinPart, JoinedTrack, ShapedTake, join_takes, shape_take};
 pub use join_checks::PartCheck;
 pub use join_heat::{PartHeat, part_heat};

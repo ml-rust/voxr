@@ -120,6 +120,7 @@ pub(super) fn engine_run<R: SpeakRuns + ?Sized>(
         speed,
         one_call: opts.one_call.or(tts.one_call).unwrap_or(false),
         language: opts.language,
+        asr_model: target.asr_model,
     };
     let run = runs.phrases(script, &setup)?;
     Ok(Track {
@@ -177,6 +178,7 @@ fn voxcpm_run<R: SpeakRuns + ?Sized>(
         steps: opts.steps.or(tts.steps).unwrap_or(STEPS),
         hifi: opts.hifi.or(tts.hifi).unwrap_or(false),
         language: opts.language,
+        asr_model: target.asr_model,
         rerolls: opts.reroll,
         lines,
         checkpoint: target.checkpoint,

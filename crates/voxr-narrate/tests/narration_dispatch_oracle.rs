@@ -380,6 +380,7 @@ impl Hearing for ScriptedHearing {
         let model = match recognizer {
             Recognizer::Default => "default",
             Recognizer::Small => "small",
+            Recognizer::Configured => "configured",
         };
         self.calls.push(HeardCall {
             model: model.to_string(),
@@ -492,6 +493,7 @@ fn check_case(case: &Case) -> Result<()> {
         one_call: t.one_call,
     };
     let target = SpeakTarget {
+        asr_model: None,
         out: &out,
         cache_dir: tmp.path(),
         checkpoint: None,

@@ -86,7 +86,7 @@ pub fn speak_phrases<E, H>(
     hearing: &mut H,
 ) -> Result<SimpleRun>
 where
-    E: SpeechEngine,
+    E: SpeechEngine + ?Sized,
     H: Hearing + ?Sized,
 {
     let (voice, default_rate, speed, command) = match setup.engine {
@@ -149,7 +149,7 @@ where
     let duration = samples.len() as f64 / f64::from(rate);
     let heard = heard_check(
         hearing,
-        asr_model(setup.language),
+        asr_model(setup.language, setup.asr_model),
         &pcm16_round_trip(&samples),
         rate,
         &sayable(script)?,
@@ -222,6 +222,7 @@ mod tests {
         })?;
         let out = dir.path().join("voiceover.wav");
         let setup = SimpleSetup {
+            asr_model: None,
             out: &out,
             engine: choice,
             speed: 1.25,

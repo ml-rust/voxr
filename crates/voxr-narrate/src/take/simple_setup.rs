@@ -27,6 +27,9 @@ pub struct SimpleSetup<'a> {
     pub one_call: bool,
     /// The language spoken, which picks the recognizer.
     pub language: Option<&'a str>,
+    /// The user's config `asr.model`: the recognizer heard first in place
+    /// of the language's own ([`asr_model`](super::hear::asr_model)).
+    pub asr_model: Option<&'a str>,
 }
 
 /// The check of the whole voiceover, as the speak command prints it.

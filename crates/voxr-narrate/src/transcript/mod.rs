@@ -31,4 +31,4 @@ pub use transcriber::{
     DEFAULT_LANGUAGE, TranscribeOptions, Transcribed, Transcriber, transcribe_narration,
 };
 #[cfg(feature = "whisper")]
-pub use whisper_transcriber::{WhisperTranscriber, read_take_16k};
+pub use whisper_transcriber::{WhisperTranscriber, WhisperWords, read_take_16k};

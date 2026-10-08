@@ -30,22 +30,36 @@ sha1 = "0.11"
 
 # `HeardWord: From<&WordTiming>`, `WhisperTranscriber` and `read_take_16k`:
 # Whisper word timings and the audio decode that feeds them. Also
-# `stretch_track`: voxr's atempo and resampler.
+# `stretch_track`: voxr's atempo and resampler. Also the engines the
+# adapters drive: Kokoro, VITS and VoxCPM2.
 # A workspace-internal path dependency, off by default so a consumer that
 # only parses scripts and checks speech does not pull in voxr's audio stack.
 voxr = { path = "../voxr", optional = true, default-features = false }
-# `WhisperTranscriber`: the runtime and client a Whisper checkpoint runs on.
+# `WhisperTranscriber` and the VoxCPM2 adapter: the runtime and client a
+# checkpoint runs on.
 numr = { version = "0.7", optional = true }
+# The VoxCPM2 adapter names the model type in the bounds of voxr's engine.
+boostr = { version = "0.3", optional = true, default-features = false }
 
 [dev-dependencies]
 tempfile = "3"
 
 [features]
 default = []
+# Whisper word timings, and the `Hearing` the adapters check takes with.
+# With it, `NarrationRuns`: the `SpeakRuns` over loaded engines.
 whisper = ["dep:voxr", "voxr/whisper", "dep:numr"]
 # `stretch_track` and `resample_48k`: voxr's ffmpeg-exact atempo and
 # resampler, with no voxr feature beyond its default-off set.
 stretch = ["dep:voxr"]
+# `KokoroSpeech`: voxr's Kokoro engine as a speech engine.
+kokoro = ["dep:voxr", "voxr/kokoro"]
+# `VitsSpeech`: voxr's VITS (MMS-TTS) engine as a speech engine.
+vits = ["dep:voxr", "voxr/vits"]
+# `VoxcpmSpeech`: voxr's VoxCPM2 engine as a speech engine.
+voxcpm = ["dep:voxr", "voxr/voxcpm", "dep:numr", "dep:boostr"]
+# The CUDA runtime for Whisper and VoxCPM2.
+cuda = ["dep:voxr", "voxr/cuda", "dep:numr", "numr/cuda"]
 
 [[test]]
 name = "narration_oracle"
@@ -85,6 +99,22 @@ name = "narration_place_oracle"
 
 [[test]]
 name = "narration_dispatch_oracle"
+
+[[test]]
+name = "adapters_kokoro"
+required-features = ["whisper", "kokoro"]
+
+[[test]]
+name = "adapters_vits"
+required-features = ["whisper", "vits"]
+
+[[test]]
+name = "adapters_voxcpm"
+required-features = ["whisper", "voxcpm"]
+
+[[test]]
+name = "adapters_hearing"
+required-features = ["whisper"]
 
 [[example]]
 name = "transcribe_take"

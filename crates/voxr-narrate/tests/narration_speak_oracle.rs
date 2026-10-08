@@ -254,6 +254,7 @@ fn run_one(fixture: &Fixture, scenario: &Scenario, root: &Path, run: &Run) -> Re
         id: fixture.ref_id.clone(),
     });
     let setup = VoxcpmSetup {
+        asr_model: None,
         cache_dir: &cache,
         out: &out,
         voice: &scenario.voice,

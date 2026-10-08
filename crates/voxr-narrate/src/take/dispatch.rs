@@ -288,6 +288,7 @@ mod tests {
         })?;
         let out = dir.path().join("voiceover.wav");
         let target = SpeakTarget {
+            asr_model: None,
             out: &out,
             cache_dir: dir.path(),
             checkpoint: None,

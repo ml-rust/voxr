@@ -29,6 +29,9 @@ pub struct SpeakTarget<'a> {
     /// Why VoxCPM2 is not ready, as the skill's `voxcpmReady().why` words
     /// it, such as `needs an NVIDIA GPU with 8 GB of memory (none found)`.
     pub voxcpm_why: &'a str,
+    /// The user's config `asr.model`: the recognizer heard first in place
+    /// of the language's own ([`asr_model`](super::hear::asr_model)).
+    pub asr_model: Option<&'a str>,
 }
 
 /// The engine runs a speak run goes through. The caller loads the engines.

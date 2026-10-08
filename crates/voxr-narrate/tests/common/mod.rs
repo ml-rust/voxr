@@ -1,7 +1,7 @@
 //! Shared fixtures for the narration oracle tests: JSON fixture loading, the
 //! fixture freshness check, the deterministic test signals, the polish
 //! cases, the pace cases, the transcript fixture and the take oracles'
-//! files.
+//! files. With `whisper`, the real-model fixtures of the adapter tests.
 
 // Each file in `tests/` compiles as its own crate and includes this module
 // whole, so a helper one test crate does not call reads as dead code there.
@@ -15,6 +15,8 @@ use serde_json::Value;
 
 #[cfg(feature = "stretch")]
 pub mod ffmpeg;
+#[cfg(feature = "whisper")]
+pub mod models;
 pub mod pace_cases;
 pub mod polish_cases;
 pub mod signals;

@@ -7,13 +7,23 @@
 //! designed or prepared voice every take clones, a whole VoxCPM2 run from
 //! script to voiceover, the per-phrase run of every other engine, a timed
 //! script's lines placed at their times, the spoken track time-stretched to
-//! a pace, and the skill's WAV files.
+//! a pace, and the skill's WAV files. Also, behind features, the real
+//! engines behind the take loop's seams: Kokoro, VITS and VoxCPM2 as speech
+//! engines, Whisper as the hearing, and the runs a caller hands loaded
+//! models to.
 
 mod error;
 mod js;
 mod js_math;
 mod pattern;
 
+#[cfg(any(
+    feature = "whisper",
+    feature = "kokoro",
+    feature = "vits",
+    feature = "voxcpm"
+))]
+pub mod adapters;
 pub mod check;
 pub mod glitch;
 pub mod polish;
@@ -22,6 +32,13 @@ pub mod text;
 pub mod transcript;
 pub mod wav;
 
+#[cfg(any(
+    feature = "whisper",
+    feature = "kokoro",
+    feature = "vits",
+    feature = "voxcpm"
+))]
+pub use adapters::*;
 pub use check::*;
 pub use error::{Error, Result};
 pub use glitch::*;
