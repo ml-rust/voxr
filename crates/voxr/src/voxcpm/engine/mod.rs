@@ -11,7 +11,12 @@
 //! reaches the model as raw tokens, so a Malay and English code-switched
 //! sentence needs no language switch.
 //!
-//! Every [`SynthRequest`] carries its own seed, or takes the load-time seed.
+//! Every [`SynthRequest`] carries its own seed, guidance scale and solver
+//! steps, or takes the load-time value of each. A buffered request retries
+//! a take that runs on past its words ([`Badcase`]), with fresh noise from
+//! its own seed. Requests with different
+//! guidance or steps never share a generation: each waits for one of its
+//! own.
 //!
 //! Concurrent requests share one generation. Both entry points stay `&self`
 //! and blocking: they resolve their request, queue it and wait, while the
@@ -42,5 +47,5 @@ mod request;
 mod run;
 mod types;
 
-pub use request::{Prompt, PromptSource, Reference, SynthRequest, VoiceSource};
+pub use request::{Badcase, Prompt, PromptSource, Reference, Rendered, SynthRequest, VoiceSource};
 pub use types::{VOICE_EXTENSIONS, VoxCpm2Engine, VoxCpm2RenderClient, ZERO_SHOT_VOICE_ID};

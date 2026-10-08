@@ -106,8 +106,9 @@ pub(super) fn drain<R: Runtime>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::voxcpm::engine::batch::JobVoice;
+    use crate::voxcpm::engine::batch::{JobVoice, test_sampler};
     use crate::voxcpm::engine::reply::Reply;
+    use crate::voxcpm::engine::request::Badcase;
     use boostr::model::audio::voxcpm::model::PadSide;
     use numr::runtime::cpu::CpuRuntime;
     use std::sync::mpsc::channel;
@@ -121,9 +122,13 @@ mod tests {
             voice: JobVoice::ZeroShot,
             prompt: None,
             seed: 0,
+            sampler: test_sampler(10),
             text_token_ids: vec![1, 2],
             max_len: 22,
             seq_len: 2,
+            target_len: 2,
+            badcase: Badcase::default(),
+            attempt: 1,
             reply: Reply::Buffered(tx),
         })
     }

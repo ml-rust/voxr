@@ -1,5 +1,5 @@
 //! The request-level surface: a [`SynthRequest`] names its text, its voice,
-//! its optional continuation prompt and its seed. A [`Reference`] is a voice
+//! its optional continuation prompt, its seed and its sampler settings. A [`Reference`] is a voice
 //! and a [`Prompt`] is a continuation clip, each encoded once from samples
 //! the caller holds and reused across requests. `super::encode` holds the
 //! encode methods.
@@ -120,6 +120,57 @@ impl<R: Runtime> Clone for VoiceSource<'_, R> {
 
 impl<R: Runtime> Copy for VoiceSource<'_, R> {}
 
+/// How a buffered request retries a bad take, as VoxCPM's
+/// `retry_badcase` does.
+///
+/// A take is bad when it generates at least `ratio` patches per token of
+/// the request text: it ran on past its words. A bad take is generated again
+/// with fresh noise, up to `max_attempts` takes in all, and the last take is
+/// kept when every one is bad. `ratio` also sets the patch budget:
+/// `ratio * tokens + 10` patches, capped. A streamed request is never
+/// retried, as upstream never retries one.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Badcase {
+    /// Takes generated at most, the first included. `1` retries none.
+    pub max_attempts: usize,
+    /// Patches per request-text token at which a take is bad.
+    pub ratio: f64,
+}
+
+impl Badcase {
+    /// Upstream's attempts when it retries.
+    pub const MAX_ATTEMPTS: usize = 3;
+    /// Upstream's `retry_badcase_ratio_threshold`.
+    pub const RATIO: f64 = 6.0;
+
+    /// No retry: one take, the budget still read from `ratio`.
+    pub fn no_retry(ratio: f64) -> Self {
+        Self {
+            max_attempts: 1,
+            ratio,
+        }
+    }
+}
+
+/// Upstream `VoxCPM.generate`'s defaults: 3 takes at most, ratio 6.
+impl Default for Badcase {
+    fn default() -> Self {
+        Self {
+            max_attempts: Self::MAX_ATTEMPTS,
+            ratio: Self::RATIO,
+        }
+    }
+}
+
+/// A rendered request: its waveform, and the takes generated to make it.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Rendered {
+    /// The kept take's samples.
+    pub samples: Vec<f32>,
+    /// Takes generated, the kept one included: 1 when the first was good.
+    pub attempts: usize,
+}
+
 /// One synthesis request.
 ///
 /// A style or voice-design prefix is part of `text`: compose it with
@@ -139,6 +190,16 @@ pub struct SynthRequest<'a, R: Runtime> {
     /// [`VoxCpm2SynthOptions::seed`](crate::voxcpm::VoxCpm2SynthOptions::seed)
     /// from load time.
     pub seed: Option<u64>,
+    /// This request's classifier-free guidance scale. `None` takes
+    /// [`VoxCpm2SynthOptions::cfg_value`](crate::voxcpm::VoxCpm2SynthOptions::cfg_value)
+    /// from load time.
+    pub cfg_value: Option<f32>,
+    /// This request's flow-matching solver steps per patch. `None` takes
+    /// [`VoxCpm2SynthOptions::n_timesteps`](crate::voxcpm::VoxCpm2SynthOptions::n_timesteps)
+    /// from load time.
+    pub n_timesteps: Option<usize>,
+    /// How a bad take is retried. Defaults to upstream's 3 takes at ratio 6.
+    pub badcase: Badcase,
 }
 
 impl<'a, R: Runtime> SynthRequest<'a, R> {
@@ -150,6 +211,9 @@ impl<'a, R: Runtime> SynthRequest<'a, R> {
             voice,
             prompt: None,
             seed: None,
+            cfg_value: None,
+            n_timesteps: None,
+            badcase: Badcase::default(),
         }
     }
 
@@ -166,6 +230,27 @@ impl<'a, R: Runtime> SynthRequest<'a, R> {
     pub fn with_seed(self, seed: u64) -> Self {
         Self {
             seed: Some(seed),
+            ..self
+        }
+    }
+
+    /// The same request at guidance scale `cfg_value`.
+    pub fn with_cfg(self, cfg_value: f32) -> Self {
+        Self {
+            cfg_value: Some(cfg_value),
+            ..self
+        }
+    }
+
+    /// The same request retrying bad takes as `badcase` says.
+    pub fn with_badcase(self, badcase: Badcase) -> Self {
+        Self { badcase, ..self }
+    }
+
+    /// The same request at `n_timesteps` solver steps per patch.
+    pub fn with_steps(self, n_timesteps: usize) -> Self {
+        Self {
+            n_timesteps: Some(n_timesteps),
             ..self
         }
     }

@@ -6,11 +6,12 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::Sender;
 
 use crate::error::{Error, Result};
+use crate::voxcpm::engine::request::Rendered;
 
 /// Where one job's output goes.
 pub(super) enum Reply {
-    /// A whole-utterance caller: one message, the samples or the error.
-    Buffered(Sender<Result<Vec<f32>>>),
+    /// A whole-utterance caller: one message, the kept take or the error.
+    Buffered(Sender<Result<Rendered>>),
     /// A streaming caller: one message per decoded chunk, then the sender
     /// drops, which is how the caller sees the end of the row. The caller's
     /// sink is not `Send`, so it stays on the caller's thread and the chunks
@@ -43,21 +44,24 @@ impl Reply {
         !cancelled.load(Ordering::Relaxed) && chunks.send(Ok(samples)).is_ok()
     }
 
-    /// Hand the whole waveform to a buffered caller.
-    pub(super) fn send_samples(&self, samples: Vec<f32>) {
+    /// Hand the whole waveform to a buffered caller, with the takes made.
+    pub(super) fn send_samples(&self, samples: Vec<f32>, attempts: usize) {
         if let Self::Buffered(done) = self {
-            let _ = done.send(Ok(samples));
+            let _ = done.send(Ok(Rendered { samples, attempts }));
         }
     }
 
     /// Report a failure on this row. A caller that already went away is not
     /// an error in turn, so the send result is dropped.
     pub(super) fn fail(&self, err: Error) {
-        let sender = match self {
-            Self::Buffered(done) => done,
-            Self::Streaming { chunks, .. } => chunks,
-        };
-        let _ = sender.send(Err(err));
+        match self {
+            Self::Buffered(done) => {
+                let _ = done.send(Err(err));
+            }
+            Self::Streaming { chunks, .. } => {
+                let _ = chunks.send(Err(err));
+            }
+        }
     }
 }
 
@@ -66,7 +70,7 @@ mod tests {
     use super::*;
     use std::sync::mpsc::{Receiver, channel};
 
-    fn buffered() -> (Reply, Receiver<Result<Vec<f32>>>) {
+    fn buffered() -> (Reply, Receiver<Result<Rendered>>) {
         let (tx, rx) = channel();
         (Reply::Buffered(tx), rx)
     }
@@ -107,9 +111,9 @@ mod tests {
     fn a_buffered_reply_takes_samples_not_chunks() {
         let (reply, rx) = buffered();
         assert!(!reply.send_chunk(vec![1.0]));
-        reply.send_samples(vec![0.5]);
+        reply.send_samples(vec![0.5], 2);
         let got = rx.recv().expect("reply").expect("ok");
-        assert_eq!(got, [0.5]);
+        assert_eq!((got.samples, got.attempts), (vec![0.5], 2));
     }
 
     #[test]

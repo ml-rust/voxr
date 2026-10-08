@@ -45,6 +45,15 @@ pub(super) struct Row<R: Runtime> {
     pub(super) emitted: usize,
 }
 
+impl<R: Runtime> Row<R> {
+    /// Whether this row's finished take, `patches` long, is generated again
+    /// rather than delivered: its caller still waits, and
+    /// [`Job::retries`] says so.
+    pub(super) fn retries(&self, patches: usize) -> bool {
+        self.live && self.job.retries(patches)
+    }
+}
+
 impl<R> EngineInner<R>
 where
     R: Runtime<DType = DType> + 'static,
@@ -52,11 +61,13 @@ where
     VoxCpm2Model<R>: Send + Sync,
     Tensor<R>: Send + Sync,
 {
-    /// Generate every job of one batch together and reply to each.
+    /// Generate every job of one batch together and reply to each, except
+    /// a bad take with attempts left: its next take comes back, for a later
+    /// batch.
     ///
     /// Never propagates: this is the owner thread's top level, so every
     /// failure leaves through the rows' reply channels.
-    pub(super) fn run_batch(&self, jobs: Vec<Job<R>>) {
+    pub(super) fn run_batch(&self, jobs: Vec<Job<R>>) -> Vec<Job<R>> {
         let mut rows = Vec::with_capacity(jobs.len());
         for job in jobs {
             let known = self.reference(&job.voice).map(|_| ());
@@ -70,10 +81,18 @@ where
             }
         }
         if rows.is_empty() {
-            return;
+            return Vec::new();
         }
-        if let Err(err) = self.generate_batch(&mut rows) {
-            fail_all(&rows, err);
+        match self.generate_batch(&mut rows) {
+            Ok(retry) => rows
+                .into_iter()
+                .zip(retry)
+                .filter_map(|(row, again)| again.then(|| row.job.retried()))
+                .collect(),
+            Err(err) => {
+                fail_all(&rows, err);
+                Vec::new()
+            }
         }
     }
 
@@ -104,8 +123,8 @@ where
 
     /// Prefill, generate and decode the whole batch. An error here belongs
     /// to every row; a per-row failure is reported on that row and does not
-    /// return.
-    fn generate_batch(&self, rows: &mut [Row<R>]) -> Result<()> {
+    /// return. Returns, per row, whether its take is generated again.
+    fn generate_batch(&self, rows: &mut [Row<R>]) -> Result<Vec<bool>> {
         let width = batch_width(rows.len());
         let real: Vec<_> = rows.iter().map(|row| row.job.row_options()).collect();
         let max_len = real.iter().map(|row| row.max_len).max().unwrap_or(1);
@@ -117,8 +136,11 @@ where
         // `rows` names every slot's seed, so the load-time seed here is only
         // the loop's fallback and reaches no row.
         let mut options = GenerateOptions::new(max_len, self.options.seed);
-        options.cfm.n_timesteps = self.options.n_timesteps;
-        options.cfm.cfg_value = self.options.cfg_value;
+        // Every row of a batch shares one sampler: the queue batches no
+        // others together.
+        if let Some(row) = rows.first() {
+            row.job.sampler.apply(&mut options);
+        }
         options.min_len = self.options.min_len;
         options.rows = row_options(&real, width);
 
@@ -141,8 +163,7 @@ where
         }
 
         self.drive(&mut state, &options, rows)?;
-        self.deliver(&state, rows);
-        Ok(())
+        Ok(self.deliver(&state, rows))
     }
 
     /// Step the batch to the end, emitting streaming chunks as they become
@@ -211,11 +232,19 @@ where
 
     /// Final reply per row: the whole waveform for a buffered caller, the
     /// tail chunk for a streaming one. A streaming caller sees the end when
-    /// its sender drops with the batch.
-    fn deliver(&self, state: &GenerateState<R>, rows: &mut [Row<R>]) {
-        for (b, row) in rows.iter_mut().enumerate() {
-            self.deliver_row(state, b, row);
-        }
+    /// its sender drops with the batch. A row whose take is retried gets no
+    /// reply here, and is marked `true`.
+    fn deliver(&self, state: &GenerateState<R>, rows: &mut [Row<R>]) -> Vec<bool> {
+        rows.iter_mut()
+            .enumerate()
+            .map(|(b, row)| {
+                if row.retries(state.patch_len[b]) {
+                    return true;
+                }
+                self.deliver_row(state, b, row);
+                false
+            })
+            .collect()
     }
 
     /// Row `b`'s last message: the whole waveform for a buffered caller, the
@@ -241,7 +270,7 @@ where
                 row.emitted = state.patch_len[b];
                 row.job.reply.send_chunk(samples);
             }
-            Ok(samples) => row.job.reply.send_samples(samples),
+            Ok(samples) => row.job.reply.send_samples(samples, row.job.attempt),
             Err(err) => row.job.reply.fail(err),
         }
     }

@@ -1,6 +1,7 @@
 //! Streamed and buffered VoxCPM2 renders of one request are the same
 //! waveform: the concatenation of every `synthesize_stream` chunk equals
-//! `synthesize`'s output bit for bit.
+//! the request's first take bit for bit, which is `synthesize`'s output
+//! when that take is not retried.
 //!
 //! Gated on a real model: set `VOXCPM2_GGUF` to a compressr GGUF that embeds
 //! the VAE and the tokenizer (the test skips when it is unset or the path is
@@ -17,16 +18,16 @@ mod common;
 use std::path::Path;
 use std::sync::Arc;
 
-use common::voxcpm::{gguf_fixture, voices_fixture};
+use common::voxcpm::{Rt, first_take, gguf_fixture, voices_fixture};
 use voxr::TtsEngine;
-use voxr::voxcpm::{VoxCpm2SynthOptions, ZERO_SHOT_VOICE_ID};
+use voxr::voxcpm::{VoxCpm2Engine, VoxCpm2SynthOptions, ZERO_SHOT_VOICE_ID};
 
 const PROMPTS: [&str; 2] = [
     "Selamat pagi, today we test streaming synthesis.",
     "The quick brown fox jumps over the lazy dog, dan kemudian ia tidur di bawah pokok.",
 ];
 
-fn load_engine(gguf: &Path, voices: Option<&Path>, chunk: usize) -> Arc<dyn TtsEngine> {
+fn load_engine(gguf: &Path, voices: Option<&Path>, chunk: usize) -> Arc<VoxCpm2Engine<Rt>> {
     Arc::new(common::voxcpm::load_engine(
         gguf,
         voices,
@@ -37,9 +38,10 @@ fn load_engine(gguf: &Path, voices: Option<&Path>, chunk: usize) -> Arc<dyn TtsE
     ))
 }
 
-/// Render `text` both ways and return `(buffered, streamed chunks)`.
-fn render_both(engine: &dyn TtsEngine, text: &str, voice: &str) -> (Vec<f32>, Vec<Vec<f32>>) {
-    let buffered = engine.synthesize(text, voice, 1.0).expect("synthesize");
+/// Render `text` both ways and return `(first take, streamed chunks)`. A
+/// stream is one take, so the buffered side keeps its first take too.
+fn render_both(engine: &VoxCpm2Engine<Rt>, text: &str, voice: &str) -> (Vec<f32>, Vec<Vec<f32>>) {
+    let buffered = first_take(engine, text, voice);
     let mut chunks: Vec<Vec<f32>> = Vec::new();
     engine
         .synthesize_stream(text, voice, 1.0, &mut |samples: &[f32]| {

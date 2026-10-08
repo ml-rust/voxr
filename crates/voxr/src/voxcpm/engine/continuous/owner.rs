@@ -1,7 +1,13 @@
 //! The owner thread's continuous-batching loop: one persistent
 //! [`GenerateState`], its slot table, and the admit/step/release cycle.
 //! A reference or prompt encode queued meanwhile runs between two steps.
+//!
+//! The seated rows share one [`Sampler`]. A request with another sampler
+//! waits in a held list, and so does every request queued after it, until
+//! the batch empties. The oldest held request then opens the batch again
+//! with its own sampler.
 
+use std::collections::VecDeque;
 use std::sync::mpsc::Receiver;
 
 use numr::dtype::DType;
@@ -13,7 +19,7 @@ use boostr::model::audio::voxcpm::model::{
 };
 
 use crate::error::{Error, Result};
-use crate::voxcpm::engine::batch::{EncodeJob, FREE_ROW, Job, Work, clamp_max_batch};
+use crate::voxcpm::engine::batch::{EncodeJob, FREE_ROW, Job, Sampler, Work, clamp_max_batch};
 use crate::voxcpm::engine::continuous::refuse::{refuse_queue, too_large};
 use crate::voxcpm::engine::continuous::slots::{Slots, drain};
 use crate::voxcpm::engine::queue::{collect_batch, recv_job};
@@ -54,6 +60,10 @@ where
             closed = batch.admit_queued(inner, jobs, &mut serve);
         }
         if !batch.slots.any_occupied() {
+            if let Some(first) = batch.held.pop_front() {
+                batch.cold_start(inner, jobs, first, &mut serve);
+                continue;
+            }
             if closed {
                 return;
             }
@@ -94,13 +104,19 @@ fn slot_capacity<R: Runtime<DType = DType>>(inner: &EngineInner<R>) -> Result<us
 }
 
 /// One persistent batch: the state every slot steps in, the rows seated in
-/// it, and the per-row options the loop reads.
+/// it, the per-row options the loop reads, and the requests waiting for
+/// another sampler.
 struct Batch<R: Runtime<DType = DType>> {
     state: GenerateState<R>,
     slots: Slots<Row<R>>,
     options: GenerateOptions,
     /// Cache positions one slot holds — see [`slot_capacity`].
     capacity: usize,
+    /// The sampler every seated row steps with. `None` while no slot holds
+    /// a row.
+    sampler: Option<Sampler>,
+    /// Requests waiting for the batch to run their sampler, oldest first.
+    held: VecDeque<Job<R>>,
 }
 
 impl<R> Batch<R>
@@ -124,22 +140,25 @@ where
     fn open(inner: &EngineInner<R>, width: usize, capacity: usize) -> Result<Self> {
         // `rows` names every slot's seed, so the load-time seed here is only
         // the loop's fallback and reaches no row.
+        // The first row seated sets the sampler.
         let mut options = GenerateOptions::new(MAX_LEN_CAP, inner.options.seed);
-        options.cfm.n_timesteps = inner.options.n_timesteps;
-        options.cfm.cfg_value = inner.options.cfg_value;
         options.min_len = inner.options.min_len;
         let mut batch = Self {
             state: GenerateState::open(&inner.model, width, capacity)?,
             slots: Slots::new(width),
             options,
             capacity,
+            sampler: None,
+            held: VecDeque::new(),
         };
         batch.refresh_options();
         Ok(batch)
     }
 
     /// Take whatever is queued into the free slots, serving any reference
-    /// encode met on the way. Returns `true` once the queue has closed.
+    /// encode met on the way. A request with another sampler, or any request
+    /// once one is held, goes to the held list. Returns `true` once the
+    /// queue has closed.
     fn admit_queued(
         &mut self,
         inner: &EngineInner<R>,
@@ -148,9 +167,19 @@ where
     ) -> bool {
         let (taken, closed) = drain(jobs, self.slots.free_count(), serve);
         for job in taken {
-            self.seat_next(inner, job);
+            if self.held.is_empty() && self.runs(&job) {
+                self.seat_next(inner, job);
+            } else {
+                self.held.push_back(job);
+            }
         }
         closed
+    }
+
+    /// Whether `job` can step with the seated rows: the batch is empty, or
+    /// runs `job`'s sampler.
+    fn runs(&self, job: &Job<R>) -> bool {
+        self.sampler.is_none_or(|sampler| sampler == job.sampler)
     }
 
     /// Fill an empty batch, starting from the job the thread just blocked
@@ -167,13 +196,19 @@ where
         serve: &mut dyn FnMut(EncodeJob<R>),
     ) {
         let free = self.slots.free_count();
-        for job in collect_batch(jobs, first, inner.options.batch_window, free, serve) {
+        let window = inner.options.batch_window;
+        for job in collect_batch(jobs, first, window, free, serve, &mut self.held) {
             self.seat_next(inner, job);
         }
     }
 
-    /// Seat `job` in the lowest free slot.
+    /// Seat `job` in the lowest free slot. A job whose sampler the batch
+    /// does not run is held instead.
     fn seat_next(&mut self, inner: &EngineInner<R>, job: Job<R>) {
+        if !self.runs(&job) {
+            self.held.push_back(job);
+            return;
+        }
         match self.slots.free() {
             Some(slot) => self.seat(inner, slot, job),
             None => job.reply.fail(Error::ModelError {
@@ -234,6 +269,10 @@ where
         {
             return job.reply.fail(Error::from(err));
         }
+        if self.sampler.is_none() {
+            job.sampler.apply(&mut self.options);
+            self.sampler = Some(job.sampler);
+        }
         self.slots.seat(
             slot,
             Row {
@@ -251,6 +290,9 @@ where
     /// The step covers the prefix of slots holding a request, not the whole
     /// allocation. The retire walk below covers every slot, because the slot
     /// table and the per-row records are sized by the allocation.
+    ///
+    /// A buffered row whose take is bad, with attempts left, is not replied
+    /// to: its next take is seated in the slot it freed.
     ///
     /// A released slot's row is DROPPED here, which drops its reply sender.
     /// That ends a streaming caller's drain loop, whether the row ran to its
@@ -271,24 +313,34 @@ where
                 };
                 inner.pump_row(&mut self.state, slot, row, chunk);
                 let done = !row.live || self.state.finished(slot);
-                if done {
+                let again = done && row.retries(self.state.patch_len[slot]);
+                if done && !again {
                     inner.deliver_row(&self.state, slot, row);
                 }
-                done
+                (done, again)
             };
-            if retire {
-                self.slots.take(slot);
+            if let (true, again) = retire {
+                let row = self.slots.take(slot);
                 self.state.release(client, slot)?;
                 released = true;
+                // A bad take with attempts left takes the slot it freed at
+                // once, with its next seed.
+                if let Some(row) = row.filter(|_| again) {
+                    self.seat(inner, slot, row.job.retried());
+                }
             }
         }
         if released {
             self.refresh_options();
+            if !self.slots.any_occupied() {
+                self.sampler = None;
+            }
         }
         Ok(())
     }
 
-    /// Report `err` on every row still seated and empty the batch.
+    /// Report `err` on every row still seated and every held request, and
+    /// empty the batch.
     fn fail_rows(&mut self, err: &Error) {
         for (_, row) in self.slots.drain_all() {
             if row.live {
@@ -296,6 +348,11 @@ where
                     reason: err.to_string(),
                 });
             }
+        }
+        for job in self.held.drain(..) {
+            job.reply.fail(Error::ModelError {
+                reason: err.to_string(),
+            });
         }
     }
 

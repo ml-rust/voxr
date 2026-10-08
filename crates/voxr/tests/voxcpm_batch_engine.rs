@@ -27,9 +27,9 @@ use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
 
-use common::voxcpm::{WINDOW, assert_bit_identical, gguf_fixture, voices_fixture};
+use common::voxcpm::{Rt, WINDOW, assert_bit_identical, first_take, gguf_fixture, voices_fixture};
 use voxr::TtsEngine;
-use voxr::voxcpm::{VoxCpm2SynthOptions, ZERO_SHOT_VOICE_ID};
+use voxr::voxcpm::{VoxCpm2Engine, VoxCpm2SynthOptions, ZERO_SHOT_VOICE_ID};
 
 /// Three prompts of different length, so the batch is left-padded and the
 /// rows finish at different steps.
@@ -60,7 +60,7 @@ const JOIN_DELAY: Duration = Duration::from_millis(400);
 const JOIN_WIDTH: usize = 4;
 const JOIN_CAPACITY: usize = 1024;
 
-fn load_engine(gguf: &Path, voices: Option<&Path>) -> Arc<dyn TtsEngine> {
+fn load_engine(gguf: &Path, voices: Option<&Path>) -> Arc<VoxCpm2Engine<Rt>> {
     load_engine_with(
         gguf,
         voices,
@@ -76,7 +76,7 @@ fn load_engine_with(
     gguf: &Path,
     voices: Option<&Path>,
     synth: VoxCpm2SynthOptions,
-) -> Arc<dyn TtsEngine> {
+) -> Arc<VoxCpm2Engine<Rt>> {
     Arc::new(common::voxcpm::load_engine(gguf, voices, synth))
 }
 
@@ -181,9 +181,7 @@ fn a_streaming_request_batches_with_buffered_ones() {
         )
     });
 
-    let alone = engine
-        .synthesize(PROMPTS[0], ZERO_SHOT_VOICE_ID, 1.0)
-        .expect("synthesize");
+    let alone = first_take(&engine, PROMPTS[0], ZERO_SHOT_VOICE_ID);
     assert_bit_identical(&streamed, &alone, "streamed row");
     for (i, text) in PROMPTS[1..].iter().enumerate() {
         let alone = engine
@@ -372,8 +370,6 @@ fn a_late_streaming_request_joins_and_its_stream_ends() {
     };
 
     let engine = load_engine(&gguf, voices.as_deref());
-    let alone = engine
-        .synthesize(second, ZERO_SHOT_VOICE_ID, 1.0)
-        .expect("synthesize");
+    let alone = first_take(&engine, second, ZERO_SHOT_VOICE_ID);
     assert_bit_identical(&joined, &alone, "streaming row admitted mid-generation");
 }

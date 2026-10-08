@@ -23,7 +23,7 @@ use common::voxcpm::{
 };
 use voxr::TtsEngine;
 use voxr::voxcpm::{
-    Prompt, Reference, SynthRequest, VoiceSource, VoxCpm2Engine, VoxCpm2SynthOptions,
+    Badcase, Prompt, Reference, SynthRequest, VoiceSource, VoxCpm2Engine, VoxCpm2SynthOptions,
     ZERO_SHOT_VOICE_ID, paren,
 };
 
@@ -182,6 +182,184 @@ fn a_seeded_request_repeats_alone_and_batched() {
         &neighbour_alone,
         "the neighbour batched beside the request",
     );
+}
+
+/// Each request steps with its own guidance and solver steps. A request
+/// naming the load-time values renders what one naming none renders. A
+/// request with other values renders other audio, the same twice, and the
+/// same again while a request with the load-time values is in flight
+/// beside it, with batching held open or torn down after each batch.
+#[test]
+fn a_request_steps_with_its_own_guidance_and_steps() {
+    let Some(gguf) = gguf_fixture() else {
+        eprintln!("VOXCPM2_GGUF unset or absent; skipping");
+        return;
+    };
+    for continuous_batching in [true, false] {
+        let synth = VoxCpm2SynthOptions {
+            seed: LOAD_SEED,
+            batch_window: WINDOW,
+            max_batch: 8,
+            stream_chunk_patches: CHUNK_PATCHES,
+            continuous_batching,
+            ..VoxCpm2SynthOptions::default()
+        };
+        let defaults = (synth.cfg_value, synth.n_timesteps);
+        let engine = common::voxcpm::load_engine(&gguf, None, synth);
+        let label = |what: &str| format!("{what}, continuous batching {continuous_batching}");
+        let plain = SynthRequest::new(TEXT, VoiceSource::ZeroShot).with_seed(SEED_A);
+        let named = plain.with_cfg(defaults.0).with_steps(defaults.1);
+        let own = plain.with_cfg(1.6).with_steps(16);
+
+        let plain_alone = render(&engine, &plain);
+        assert_bit_identical(
+            &render(&engine, &named),
+            &plain_alone,
+            &label("the load-time guidance and steps, named"),
+        );
+        let own_alone = render(&engine, &own);
+        assert_bit_identical(
+            &render(&engine, &own),
+            &own_alone,
+            &label("guidance 1.6 at 16 steps, twice"),
+        );
+        let same = own_alone.len() == plain_alone.len()
+            && own_alone
+                .iter()
+                .zip(&plain_alone)
+                .all(|(x, y)| x.to_bits() == y.to_bits());
+        assert!(
+            !same,
+            "{}",
+            label("guidance 1.6 at 16 steps rendered the defaults")
+        );
+
+        let (own_beside, plain_beside) = std::thread::scope(|scope| {
+            let a = scope.spawn(|| render(&engine, &own));
+            let b = scope.spawn(|| render(&engine, &plain));
+            (
+                a.join().expect("render thread"),
+                b.join().expect("render thread"),
+            )
+        });
+        assert_bit_identical(
+            &own_beside,
+            &own_alone,
+            &label("own sampler beside the defaults"),
+        );
+        assert_bit_identical(
+            &plain_beside,
+            &plain_alone,
+            &label("defaults beside own sampler"),
+        );
+    }
+}
+
+/// A take forced to its patch cap is bad, so it is generated again: three
+/// takes in all, the last kept, each drawn from fresh noise. With retry off
+/// the first take is kept. Both repeat bit for bit, alone and beside a
+/// request in flight, with batching held open or torn down after each batch.
+#[test]
+fn a_take_at_its_patch_cap_is_retried_and_counted() {
+    let Some(gguf) = gguf_fixture() else {
+        eprintln!("VOXCPM2_GGUF unset or absent; skipping");
+        return;
+    };
+    // Ratio 0.05 gives a budget of 10 patches to a text under 20 tokens,
+    // and calls any take of a patch or more bad.
+    const RATIO: f64 = 0.05;
+    const CAP: usize = 10;
+    for continuous_batching in [true, false] {
+        let synth = VoxCpm2SynthOptions {
+            seed: LOAD_SEED,
+            batch_window: WINDOW,
+            max_batch: 8,
+            stream_chunk_patches: CHUNK_PATCHES,
+            continuous_batching,
+            ..VoxCpm2SynthOptions::default()
+        };
+        let engine = common::voxcpm::load_engine(&gguf, None, synth);
+        let label = |what: &str| format!("{what}, continuous batching {continuous_batching}");
+        let plain = SynthRequest::new(TEXT, VoiceSource::ZeroShot).with_seed(SEED_A);
+        let forced = plain.with_badcase(Badcase {
+            max_attempts: 3,
+            ratio: RATIO,
+        });
+        let once = plain.with_badcase(Badcase::no_retry(RATIO));
+        let take = |request: &SynthRequest<'_, Rt>| {
+            engine
+                .render_request_with_attempts(request)
+                .expect("render_request_with_attempts")
+        };
+
+        let retried = take(&forced);
+        assert_eq!(
+            retried.attempts,
+            3,
+            "{}",
+            label("the forced take's attempts")
+        );
+        assert_eq!(
+            retried.samples.len(),
+            CAP * engine.samples_per_patch(),
+            "{}",
+            label("the kept take stopped short of its cap")
+        );
+        let first = take(&once);
+        assert_eq!(first.attempts, 1, "{}", label("a take with retry off"));
+        assert_eq!(first.samples.len(), retried.samples.len());
+        let same = first
+            .samples
+            .iter()
+            .zip(&retried.samples)
+            .all(|(x, y)| x.to_bits() == y.to_bits());
+        assert!(!same, "{}", label("the retry drew the first take's noise"));
+        assert_bit_identical(
+            &take(&forced).samples,
+            &retried.samples,
+            &label("a retried request, twice"),
+        );
+
+        let neighbour = SynthRequest::new(OTHER_TEXT, VoiceSource::ZeroShot).with_seed(SEED_B);
+        let neighbour_alone = render(&engine, &neighbour);
+        let (beside, neighbour_beside) = std::thread::scope(|scope| {
+            let a = scope.spawn(|| take(&forced));
+            let b = scope.spawn(|| render(&engine, &neighbour));
+            (
+                a.join().expect("render thread"),
+                b.join().expect("render thread"),
+            )
+        });
+        assert_eq!(beside.attempts, 3);
+        assert_bit_identical(
+            &beside.samples,
+            &retried.samples,
+            &label("retried beside a neighbour"),
+        );
+        assert_bit_identical(
+            &neighbour_beside,
+            &neighbour_alone,
+            &label("the neighbour of a retry"),
+        );
+    }
+}
+
+/// Zero solver steps and a guidance scale that is not finite are refused
+/// before the request is queued.
+#[test]
+fn a_request_with_zero_steps_or_no_finite_guidance_is_refused() {
+    let Some(gguf) = gguf_fixture() else {
+        eprintln!("VOXCPM2_GGUF unset or absent; skipping");
+        return;
+    };
+    let engine = load_engine(&gguf, None);
+    let plain = SynthRequest::new(TEXT, VoiceSource::ZeroShot);
+    let steps = engine.render_request(&plain.with_steps(0)).unwrap_err();
+    assert!(steps.to_string().contains("n_timesteps"), "{steps}");
+    let cfg = engine
+        .render_request(&plain.with_cfg(f32::NAN))
+        .unwrap_err();
+    assert!(cfg.to_string().contains("cfg_value"), "{cfg}");
 }
 
 /// A reference encoded from a voices-directory file's samples renders what
@@ -347,7 +525,10 @@ fn a_streamed_hifi_render_matches_the_buffered_one() {
     let Some((engine, reference, prompt)) = hifi_fixture() else {
         return;
     };
-    let request = hifi(TEXT, &reference, &prompt).with_seed(SEED_B);
+    // A stream is one take, so the buffered render keeps its first take too.
+    let request = hifi(TEXT, &reference, &prompt)
+        .with_seed(SEED_B)
+        .with_badcase(Badcase::no_retry(Badcase::RATIO));
     let buffered = render(&engine, &request);
     let streamed = stream(&engine, &request).concat();
     assert_bit_identical(&streamed, &buffered, "the streamed Hi-Fi render");

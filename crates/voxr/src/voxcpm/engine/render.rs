@@ -26,7 +26,7 @@ use crate::lang::Lang;
 use crate::tts::{TtsEngine, Voice};
 use crate::voxcpm::engine::batch::Work;
 use crate::voxcpm::engine::reply::Reply;
-use crate::voxcpm::engine::request::{SynthRequest, VoiceSource};
+use crate::voxcpm::engine::request::{Rendered, SynthRequest, VoiceSource};
 use crate::voxcpm::engine::types::{VoxCpm2Engine, VoxCpm2RenderClient, ZERO_SHOT_VOICE_ID};
 
 impl<R> VoxCpm2Engine<R>
@@ -51,6 +51,13 @@ where
     /// with any others. A continuation request's waveform holds only its new
     /// speech, never the prompt clip.
     pub fn render_request(&self, request: &SynthRequest<'_, R>) -> Result<Vec<f32>> {
+        Ok(self.render_request_with_attempts(request)?.samples)
+    }
+
+    /// [`render_request`](Self::render_request), with the takes generated:
+    /// a take that runs on past its words is generated again as the
+    /// request's [`Badcase`](crate::voxcpm::Badcase) says.
+    pub fn render_request_with_attempts(&self, request: &SynthRequest<'_, R>) -> Result<Rendered> {
         let (done, reply) = channel();
         self.submit(Work::Render(self.plan(request, Reply::Buffered(done))?))?;
         reply.recv().map_err(|_| worker_gone())?
@@ -60,10 +67,13 @@ where
     /// chunks into `sink` as the owner thread produces them. The sender
     /// drops when the row ends, which is how the last chunk is recognised.
     ///
+    /// A streamed take is never retried, as upstream streams one take. The
+    /// chunks concatenate to the waveform
+    /// [`render_request`](Self::render_request) returns for its first take,
+    /// so a continuation request streams no prompt audio either.
+    ///
     /// A `sink` error cancels this row and returns at once; the batch runs
-    /// on for the other rows. The chunks concatenate to the waveform
-    /// [`render_request`](Self::render_request) returns, so a continuation
-    /// request streams no prompt audio either.
+    /// on for the other rows.
     pub fn render_request_stream(
         &self,
         request: &SynthRequest<'_, R>,
@@ -104,7 +114,8 @@ where
         }
     }
 
-    /// Whole-utterance render in a voice-table voice at the load-time seed.
+    /// Whole-utterance render in a voice-table voice at the load-time seed,
+    /// a bad take retried as upstream's non-streaming `generate` retries it.
     fn render(&self, text: &str, voice_id: &str) -> Result<Vec<f32>> {
         self.render_request(&SynthRequest::new(text, VoiceSource::Named(voice_id)))
     }
@@ -121,6 +132,11 @@ where
     }
 }
 
+/// `synthesize` retries a bad take ([`Badcase`](crate::voxcpm::Badcase)'s
+/// defaults), as upstream's non-streaming `generate` does.
+/// `synthesize_stream` streams one take and never retries it, as upstream
+/// streams. The chunks therefore concatenate to the request's first take,
+/// which is what `synthesize` returns when that take is not bad.
 impl<R> TtsEngine for VoxCpm2Engine<R>
 where
     R: Runtime<DType = DType> + 'static,

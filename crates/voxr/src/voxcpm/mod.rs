@@ -8,8 +8,8 @@ pub mod options;
 pub mod tokenizer;
 
 pub use engine::{
-    Prompt, PromptSource, Reference, SynthRequest, VOICE_EXTENSIONS, VoiceSource, VoxCpm2Engine,
-    VoxCpm2RenderClient, ZERO_SHOT_VOICE_ID,
+    Badcase, Prompt, PromptSource, Reference, Rendered, SynthRequest, VOICE_EXTENSIONS,
+    VoiceSource, VoxCpm2Engine, VoxCpm2RenderClient, ZERO_SHOT_VOICE_ID,
 };
 pub use options::{VoxCpm2LoadOptions, VoxCpm2SynthOptions};
 pub use tokenizer::{load_tokenizer, normalize_whitespace, paren, tokenize};

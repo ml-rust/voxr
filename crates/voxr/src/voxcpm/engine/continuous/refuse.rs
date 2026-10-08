@@ -47,8 +47,9 @@ pub(super) fn too_large<R: Runtime>(job: &Job<R>, capacity: usize) -> Error {
 mod tests {
     use super::*;
     use crate::error::Result;
-    use crate::voxcpm::engine::batch::{EncodeJob, JobVoice};
+    use crate::voxcpm::engine::batch::{EncodeJob, JobVoice, test_sampler};
     use crate::voxcpm::engine::reply::Reply;
+    use crate::voxcpm::engine::request::{Badcase, Rendered};
     use boostr::model::audio::voxcpm::model::PadSide;
     use numr::runtime::cpu::CpuRuntime;
     use std::sync::mpsc::channel;
@@ -56,16 +57,20 @@ mod tests {
     fn job(
         seq_len: usize,
         max_len: usize,
-    ) -> (Job<CpuRuntime>, std::sync::mpsc::Receiver<Result<Vec<f32>>>) {
+    ) -> (Job<CpuRuntime>, std::sync::mpsc::Receiver<Result<Rendered>>) {
         let (tx, rx) = channel();
         (
             Job {
                 voice: JobVoice::ZeroShot,
                 prompt: None,
                 seed: 0,
+                sampler: test_sampler(10),
                 text_token_ids: vec![1, 2],
                 max_len,
                 seq_len,
+                target_len: 2,
+                badcase: Badcase::default(),
+                attempt: 1,
                 reply: Reply::Buffered(tx),
             },
             rx,

@@ -23,8 +23,10 @@ pub trait TtsEngine: Send + Sync {
     /// Render `text` in `voice` at `speed`, handing the waveform to `sink`
     /// in order, chunk by chunk, as it becomes available.
     ///
-    /// The concatenation of every chunk equals [`TtsEngine::synthesize`]'s
-    /// output for the same request. A `sink` error aborts the render and is
+    /// The concatenation of every chunk equals the first take of the same
+    /// request: [`TtsEngine::synthesize`]'s output whenever that take is
+    /// kept. An engine that retries a bad take in `synthesize`, as VoxCPM2
+    /// does, streams one take and never retries it. A `sink` error aborts the render and is
     /// returned as-is, so a caller whose client went away can stop the
     /// engine mid-utterance. The default renders whole and hands over one
     /// chunk; an engine that can decode incrementally overrides it.

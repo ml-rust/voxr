@@ -1,13 +1,48 @@
 //! Taking work off the owner thread's queue: block for the next render,
 //! gather a batch within the drain window, and serve every reference or
 //! prompt encode met on the way at once, without spending a batch slot on it.
+//! A render whose sampler differs from its batch's goes to a held list.
 
+use std::collections::VecDeque;
 use std::sync::mpsc::{Receiver, RecvTimeoutError};
 use std::time::{Duration, Instant};
 
 use numr::runtime::Runtime;
 
 use crate::voxcpm::engine::batch::{EncodeJob, Job, Work};
+
+/// Takes from `held`, in order, every job whose sampler is `first`'s, until
+/// `batch` holds `max_batch` jobs. The rest stay held in their order.
+fn take_held<R: Runtime>(batch: &mut Vec<Job<R>>, held: &mut VecDeque<Job<R>>, max_batch: usize) {
+    let Some(sampler) = batch.first().map(|job| job.sampler) else {
+        return;
+    };
+    let mut at = 0;
+    while at < held.len() && batch.len() < max_batch {
+        if held[at].sampler == sampler {
+            if let Some(job) = held.remove(at) {
+                batch.push(job);
+            }
+        } else {
+            at += 1;
+        }
+    }
+}
+
+/// Puts `job` in `batch` when the batch runs its sampler and no job with
+/// another sampler waits in `held`. Otherwise it waits in `held`, behind
+/// every job held before it, so no job waits behind later arrivals forever.
+pub(super) fn route<R: Runtime>(job: Job<R>, batch: &mut Vec<Job<R>>, held: &mut VecDeque<Job<R>>) {
+    let joins = held.is_empty()
+        && batch
+            .first()
+            .is_none_or(|first| first.sampler == job.sampler);
+    if joins {
+        batch.push(job);
+    } else {
+        held.push_back(job);
+    }
+}
 
 /// Block for the next render job, serving every encode request that
 /// arrives before it. `None` once the queue closes.
@@ -24,9 +59,11 @@ pub(super) fn recv_job<R: Runtime>(
     }
 }
 
-/// Take `first`, then keep taking queued jobs until the batch is full, the
-/// window expires, or the queue closes. An encode request met on the way is
-/// served at once and takes no slot.
+/// Take `first`, then every held job with its sampler, then keep taking
+/// queued jobs until the batch is full, the window expires, or the queue
+/// closes. An encode request met on the way is served at once and takes no
+/// slot. A queued job goes through [`route`]: one with another sampler, or
+/// any job once one is held, waits in `held` for a later batch.
 ///
 /// The owner thread already blocked on an empty queue to get `first`, so this
 /// is the only wait a request pays beyond its own generation. It ends early
@@ -38,9 +75,11 @@ pub(super) fn collect_batch<R: Runtime>(
     window: Duration,
     max_batch: usize,
     serve: &mut dyn FnMut(EncodeJob<R>),
+    held: &mut VecDeque<Job<R>>,
 ) -> Vec<Job<R>> {
     let mut batch = Vec::with_capacity(max_batch.max(1));
     batch.push(first);
+    take_held(&mut batch, held, max_batch);
     let deadline = Instant::now() + window;
     while batch.len() < max_batch {
         let now = Instant::now();
@@ -48,7 +87,7 @@ pub(super) fn collect_batch<R: Runtime>(
             break;
         }
         match jobs.recv_timeout(deadline - now) {
-            Ok(Work::Render(job)) => batch.push(job),
+            Ok(Work::Render(job)) => route(job, &mut batch, held),
             Ok(Work::Encode(encode)) => serve(encode),
             Err(RecvTimeoutError::Timeout | RecvTimeoutError::Disconnected) => break,
         }
@@ -60,8 +99,9 @@ pub(super) fn collect_batch<R: Runtime>(
 mod tests {
     use super::*;
     use crate::error::Result;
-    use crate::voxcpm::engine::batch::JobVoice;
+    use crate::voxcpm::engine::batch::{JobVoice, test_sampler};
     use crate::voxcpm::engine::reply::Reply;
+    use crate::voxcpm::engine::request::Badcase;
     use boostr::model::audio::voxcpm::model::PadSide;
     use numr::runtime::cpu::CpuRuntime;
     use numr::tensor::Tensor;
@@ -71,18 +111,27 @@ mod tests {
     type TestWork = Work<CpuRuntime>;
 
     fn render() -> TestWork {
+        Work::Render(job_at(0, 10))
+    }
+
+    /// A job at `seed` whose sampler runs `steps` steps.
+    fn job_at(seed: u64, steps: usize) -> TestJob {
         // In the engine the job's owner keeps the receiver alive. Here
         // nothing reads it, so it is dropped.
         let (tx, _rx) = channel();
-        Work::Render(TestJob {
+        TestJob {
             voice: JobVoice::ZeroShot,
             prompt: None,
-            seed: 0,
+            seed,
+            sampler: test_sampler(steps),
             text_token_ids: vec![1, 2],
             max_len: 22,
             seq_len: 2,
+            target_len: 2,
+            badcase: Badcase::default(),
+            attempt: 1,
             reply: Reply::Buffered(tx),
-        })
+        }
     }
 
     fn encode() -> (TestWork, Receiver<Result<Tensor<CpuRuntime>>>) {
@@ -95,6 +144,61 @@ mod tests {
             }),
             rx,
         )
+    }
+
+    fn held() -> VecDeque<TestJob> {
+        VecDeque::new()
+    }
+
+    fn seeds(batch: &[TestJob]) -> Vec<u64> {
+        batch.iter().map(|job| job.seed).collect()
+    }
+
+    /// A job with another sampler waits in the held list, and so does every
+    /// job queued after it. The next batch opens with the held job and takes
+    /// the held jobs that share its sampler.
+    #[test]
+    fn a_job_with_another_sampler_waits_for_its_own_batch() {
+        let (tx, rx) = channel();
+        tx.send(Work::Render(job_at(1, 10))).expect("queue");
+        tx.send(Work::Render(job_at(2, 16))).expect("queue");
+        tx.send(Work::Render(job_at(3, 10))).expect("queue");
+        tx.send(Work::Render(job_at(4, 16))).expect("queue");
+        drop(tx);
+        let mut served = 0;
+        let mut held = held();
+        let first = first_job(&rx, &mut served);
+        let window = Duration::from_secs(30);
+        let batch = collect_batch(&rx, first, window, 8, &mut |_| {}, &mut held);
+        assert_eq!(seeds(&batch), [1]);
+        assert_eq!(
+            held.iter().map(|job| job.seed).collect::<Vec<_>>(),
+            [2, 3, 4]
+        );
+
+        let first = held.pop_front().expect("a held job");
+        let batch = collect_batch(&rx, first, window, 8, &mut |_| {}, &mut held);
+        assert_eq!(seeds(&batch), [2, 4]);
+        assert_eq!(held.iter().map(|job| job.seed).collect::<Vec<_>>(), [3]);
+    }
+
+    /// Held jobs with the batch's sampler join it up to the cap, in order.
+    #[test]
+    fn held_jobs_join_up_to_the_cap() {
+        let (tx, rx) = channel::<TestWork>();
+        drop(tx);
+        let mut held: VecDeque<TestJob> =
+            [job_at(2, 10), job_at(3, 16), job_at(4, 10), job_at(5, 10)].into();
+        let batch = collect_batch(
+            &rx,
+            job_at(1, 10),
+            Duration::ZERO,
+            3,
+            &mut |_| {},
+            &mut held,
+        );
+        assert_eq!(seeds(&batch), [1, 2, 4]);
+        assert_eq!(held.iter().map(|job| job.seed).collect::<Vec<_>>(), [3, 5]);
     }
 
     /// Take the first render off the queue, counting the encodes served
@@ -146,7 +250,7 @@ mod tests {
         let first = first_job(&rx, &mut served);
         let window = Duration::from_millis(50);
         let started = Instant::now();
-        let batch = collect_batch(&rx, first, window, 8, &mut |_| served += 1);
+        let batch = collect_batch(&rx, first, window, 8, &mut |_| served += 1, &mut held());
         assert_eq!(batch.len(), 3);
         assert_eq!(served, 1, "the encode was served, not batched");
         assert!(started.elapsed() >= window, "ended the window early");
@@ -162,7 +266,14 @@ mod tests {
         let mut served = 0;
         let first = first_job(&rx, &mut served);
         let started = Instant::now();
-        let batch = collect_batch(&rx, first, Duration::from_secs(30), 2, &mut |_| {});
+        let batch = collect_batch(
+            &rx,
+            first,
+            Duration::from_secs(30),
+            2,
+            &mut |_| {},
+            &mut held(),
+        );
         assert_eq!(batch.len(), 2, "the cap holds");
         assert!(
             started.elapsed() < Duration::from_secs(5),
@@ -180,7 +291,14 @@ mod tests {
         let mut served = 0;
         let first = first_job(&rx, &mut served);
         let started = Instant::now();
-        let batch = collect_batch(&rx, first, Duration::from_secs(30), 8, &mut |_| {});
+        let batch = collect_batch(
+            &rx,
+            first,
+            Duration::from_secs(30),
+            8,
+            &mut |_| {},
+            &mut held(),
+        );
         assert_eq!(batch.len(), 1);
         assert!(
             started.elapsed() < Duration::from_secs(5),
@@ -198,7 +316,14 @@ mod tests {
         let mut served = 0;
         let first = first_job(&rx, &mut served);
         let started = Instant::now();
-        let batch = collect_batch(&rx, first, Duration::from_secs(30), 1, &mut |_| {});
+        let batch = collect_batch(
+            &rx,
+            first,
+            Duration::from_secs(30),
+            1,
+            &mut |_| {},
+            &mut held(),
+        );
         assert_eq!(batch.len(), 1);
         assert!(
             started.elapsed() < Duration::from_secs(5),
@@ -215,7 +340,7 @@ mod tests {
         let first = first_job(&rx, &mut served);
         let window = Duration::from_millis(20);
         let started = Instant::now();
-        let batch = collect_batch(&rx, first, window, 8, &mut |_| {});
+        let batch = collect_batch(&rx, first, window, 8, &mut |_| {}, &mut held());
         let waited = started.elapsed();
         assert_eq!(batch.len(), 1);
         assert!(waited >= window, "returned before the window: {waited:?}");

@@ -93,6 +93,16 @@ pub fn load_engine(
     }
 }
 
+/// `text` in voice `voice` at the load-time seed, one take: what a stream
+/// of the same request concatenates to. `synthesize` may retry the take, a
+/// stream never does, so a stream is compared against this.
+pub fn first_take(engine: &VoxCpm2Engine<Rt>, text: &str, voice: &str) -> Vec<f32> {
+    use voxr::voxcpm::{Badcase, SynthRequest, VoiceSource};
+    let request = SynthRequest::new(text, VoiceSource::Named(voice))
+        .with_badcase(Badcase::no_retry(Badcase::RATIO));
+    engine.render_request(&request).expect("first take")
+}
+
 /// The file behind voice `id`, found the way the engine lists voices: an
 /// audio file in `dir` whose stem is `id`.
 pub fn voice_file(dir: &Path, id: &str) -> PathBuf {

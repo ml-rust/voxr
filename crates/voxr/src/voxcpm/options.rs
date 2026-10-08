@@ -8,9 +8,10 @@ use std::time::Duration;
 /// pipeline's verified values.
 #[derive(Debug, Clone)]
 pub struct VoxCpm2SynthOptions {
-    /// Flow-matching solver steps per patch.
+    /// Flow-matching solver steps per patch, for a request that names
+    /// none.
     pub n_timesteps: usize,
-    /// Classifier-free guidance scale.
+    /// Classifier-free guidance scale, for a request that names none.
     pub cfg_value: f32,
     /// Patches during which the stop token is ignored.
     pub min_len: usize,
