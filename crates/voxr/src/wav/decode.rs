@@ -264,7 +264,8 @@ pub(crate) fn scale(value: f64, full_scale: f64) -> f32 {
     (value / full_scale).clamp(-1.0, 1.0) as f32
 }
 
-/// Downmix interleaved samples to mono by averaging channels.
+/// Downmix interleaved samples to mono by averaging channels: each frame's
+/// sum, left to right, divided by the channel count, as numpy's `mean` does.
 ///
 /// Returns the input unchanged when `channels == 1`. Returns
 /// [`Error::InvalidArgument`] when `channels` is 0 or `samples.len()` is not
@@ -289,10 +290,10 @@ pub fn to_mono(samples: &[f32], channels: u16) -> Result<Vec<f32>> {
             ),
         });
     }
-    let scale = 1.0f32 / channels as f32;
+    let count = channels as f32;
     Ok(samples
         .chunks_exact(channels)
-        .map(|frame| frame.iter().sum::<f32>() * scale)
+        .map(|frame| frame.iter().sum::<f32>() / count)
         .collect())
 }
 

@@ -47,6 +47,7 @@ use rubato::{
 };
 
 use crate::error::{Error, Result};
+use crate::resample::math::gcd;
 
 use crate::wav::decode::{WavData, to_mono};
 
@@ -86,16 +87,6 @@ fn bad(arg: &'static str, reason: String) -> Error {
     Error::InvalidArgument { arg, reason }
 }
 
-fn gcd(a: u32, b: u32) -> u32 {
-    let (mut a, mut b) = (a, b);
-    while b != 0 {
-        let t = a % b;
-        a = b;
-        b = t;
-    }
-    a
-}
-
 /// Number of output samples for `in_len` input samples: `ceil(in_len * to / from)`.
 ///
 /// Computed in `u64` so a long recording at a high ratio cannot wrap.
@@ -118,9 +109,9 @@ fn output_len(in_len: usize, from_rate: u32, to_rate: u32) -> Result<usize> {
 
 /// Reject a rate pair whose reduced ratio has a term above [`MAX_RATIO_TERM`].
 fn check_ratio(from_rate: u32, to_rate: u32) -> Result<()> {
-    let divisor = gcd(from_rate, to_rate).max(1);
-    let up = (to_rate / divisor) as u64;
-    let down = (from_rate / divisor) as u64;
+    let divisor = gcd(u64::from(from_rate), u64::from(to_rate)).max(1);
+    let up = u64::from(to_rate) / divisor;
+    let down = u64::from(from_rate) / divisor;
     if up.max(down) > MAX_RATIO_TERM {
         return Err(bad(
             "from_rate",
@@ -158,7 +149,8 @@ fn sinc_len(taps_per_phase: usize, from_rate: u32, to_rate: u32) -> Result<usize
 /// alignment the ratio allows.
 fn best_lead(early: f64, from_rate: u32, to_rate: u32) -> usize {
     let ratio = to_rate as f64 / from_rate as f64;
-    let period = (from_rate / gcd(from_rate, to_rate).max(1)) as usize;
+    let period =
+        (u64::from(from_rate) / gcd(u64::from(from_rate), u64::from(to_rate)).max(1)) as usize;
     let first = (early.max(0.0) / ratio).ceil() as usize + 1;
     let miss = |lead: usize| {
         let x = lead as f64 * ratio - early;

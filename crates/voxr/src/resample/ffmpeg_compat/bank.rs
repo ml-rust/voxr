@@ -29,6 +29,7 @@
 use std::f64::consts::PI;
 
 use crate::error::{Error, Result};
+use crate::resample::math::{bessel_i0, gcd};
 
 /// Filter length, in input samples, at a cutoff factor of 1.
 const FILTER_SIZE: f64 = 32.0;
@@ -146,39 +147,9 @@ fn phase_row(plan: &Plan, k: u64) -> Vec<f64> {
         .collect()
 }
 
-/// The modified Bessel function of the first kind, order 0, by its power
-/// series. The series converges for every finite `x`.
-fn bessel_i0(x: f64) -> f64 {
-    let q = x * x / 4.0;
-    let mut term = 1.0;
-    let mut sum = 1.0;
-    let mut k = 1.0;
-    while term > sum * 1e-18 {
-        term *= q / (k * k);
-        sum += term;
-        k += 1.0;
-    }
-    sum
-}
-
-fn gcd(a: u64, b: u64) -> u64 {
-    let (mut a, mut b) = (a, b);
-    while b != 0 {
-        (a, b) = (b, a % b);
-    }
-    a
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn bessel_i0_matches_known_values() {
-        assert_eq!(bessel_i0(0.0), 1.0);
-        assert!((bessel_i0(1.0) - 1.266_065_877_752_008_4).abs() < 1e-15);
-        assert!((bessel_i0(9.0) / 1_093.588_354_511_374_6 - 1.0).abs() < 1e-14);
-    }
 
     #[test]
     fn upsampling_keeps_the_full_band() -> Result<()> {

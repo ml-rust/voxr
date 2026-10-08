@@ -5,14 +5,18 @@
 //! - [`resample_like_ffmpeg`]: the output of ffmpeg's default audio resampler
 //!   (`-ar N`), sample for sample.
 //! - [`to_mono_like_ffmpeg`]: the mono mix of ffmpeg's `-ac 1`.
+//! - [`resample_like_librosa`]: the output of librosa's default resampler.
 
 mod ffmpeg_compat;
+mod librosa_compat;
+mod math;
 mod sinc;
 
 pub use ffmpeg_compat::{
     ffmpeg_default_layout, ffmpeg_resampled_len, resample_interleaved_like_ffmpeg,
     resample_like_ffmpeg, to_mono_like_ffmpeg,
 };
+pub use librosa_compat::{librosa_output_len, resample_like_librosa};
 pub use sinc::{
     DEFAULT_TAPS_PER_PHASE, MAX_FILTER_TAPS, resample, resample_with_taps, to_mono_at_rate,
 };

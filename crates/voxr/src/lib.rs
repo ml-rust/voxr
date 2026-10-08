@@ -68,9 +68,9 @@ pub use lang::{Lang, LangTag};
 pub use pitch::{PitchOptions, PitchTrack, estimate_pitch};
 pub use quality::{TakeQuality, measure_quality};
 pub use resample::{
-    DEFAULT_TAPS_PER_PHASE, MAX_FILTER_TAPS, ffmpeg_default_layout, ffmpeg_resampled_len, resample,
-    resample_interleaved_like_ffmpeg, resample_like_ffmpeg, resample_with_taps, to_mono_at_rate,
-    to_mono_like_ffmpeg,
+    DEFAULT_TAPS_PER_PHASE, MAX_FILTER_TAPS, ffmpeg_default_layout, ffmpeg_resampled_len,
+    librosa_output_len, resample, resample_interleaved_like_ffmpeg, resample_like_ffmpeg,
+    resample_like_librosa, resample_with_taps, to_mono_at_rate, to_mono_like_ffmpeg,
 };
 pub use spectral::{SpectralDistance, multi_resolution_stft_distance, snr_db};
 pub use stretch::{MAX_TEMPO, MIN_TEMPO, PcmSample, atempo, atempo_interleaved, atempo_pcm16};
