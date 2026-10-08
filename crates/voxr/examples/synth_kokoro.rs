@@ -59,7 +59,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("synthesizing ...");
     let start = std::time::Instant::now();
-    let waveform = model.synthesize_cpu(&client, &token_ids, &voice_row, 1)?;
+    let waveform = model.synthesize_cpu(&client, &token_ids, &voice_row, 1.0)?;
     let elapsed = start.elapsed();
 
     let samples: Vec<f32> = waveform.contiguous()?.to_vec();

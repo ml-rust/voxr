@@ -190,21 +190,60 @@ fn engine_error(e: crate::error::Error) -> TtsError {
     }
 }
 
-/// Default Kokoro voice catalog (a representative subset). These match the
-/// canonical Kokoro voice ids so configuration files referencing them remain
-/// valid once voice packs are loaded.
+/// Kokoro-82M's English voices, in the order `kokoro-js` lists them: the
+/// `a*` American and `b*` British voice packs the misaki G2P speaks.
+pub const KOKORO_VOICES: [&str; 28] = [
+    "af_heart",
+    "af_alloy",
+    "af_aoede",
+    "af_bella",
+    "af_jessica",
+    "af_kore",
+    "af_nicole",
+    "af_nova",
+    "af_river",
+    "af_sarah",
+    "af_sky",
+    "am_adam",
+    "am_echo",
+    "am_eric",
+    "am_fenrir",
+    "am_liam",
+    "am_michael",
+    "am_onyx",
+    "am_puck",
+    "am_santa",
+    "bf_emma",
+    "bf_isabella",
+    "bm_george",
+    "bm_lewis",
+    "bf_alice",
+    "bf_lily",
+    "bm_daniel",
+    "bm_fable",
+];
+
+/// The Kokoro voice catalog: every id in [`KOKORO_VOICES`], in its order.
+/// An `a*` voice is American English and a `b*` voice British English, and
+/// its name is the id after the underscore, capitalized.
 pub fn default_kokoro_voices() -> Vec<Voice> {
-    vec![
-        Voice::new("af_alloy", Lang::EnUs, "Alloy"),
-        Voice::new("af_nova", Lang::EnUs, "Nova"),
-        Voice::new("af_bella", Lang::EnUs, "Bella"),
-        Voice::new("am_adam", Lang::EnUs, "Adam"),
-        Voice::new("am_michael", Lang::EnUs, "Michael"),
-        Voice::new("bf_alice", Lang::EnGb, "Alice"),
-        Voice::new("bf_emma", Lang::EnGb, "Emma"),
-        Voice::new("bm_daniel", Lang::EnGb, "Daniel"),
-        Voice::new("bm_george", Lang::EnGb, "George"),
-    ]
+    KOKORO_VOICES
+        .iter()
+        .map(|&id| {
+            let lang = if id.starts_with('b') {
+                Lang::EnGb
+            } else {
+                Lang::EnUs
+            };
+            let name = id.split_once('_').map_or(id, |(_, name)| name);
+            let mut chars = name.chars();
+            let name: String = chars
+                .next()
+                .map(|c| c.to_uppercase().chain(chars).collect())
+                .unwrap_or_default();
+            Voice::new(id, lang, name)
+        })
+        .collect()
 }
 
 #[cfg(test)]
@@ -240,8 +279,12 @@ mod tests {
     #[test]
     fn default_catalog_has_known_voices() {
         let voices = default_kokoro_voices();
+        assert_eq!(voices.len(), KOKORO_VOICES.len());
+        assert_eq!(voices[0].id, "af_heart");
+        assert_eq!(voices[0].display_name, "Heart");
         assert!(voices.iter().any(|v| v.id == "af_nova"));
-        assert!(voices.iter().any(|v| v.id == "bm_george"));
+        let george = voices.iter().find(|v| v.id == "bm_george");
+        assert!(george.is_some_and(|v| v.lang == Lang::EnGb && v.display_name == "George"));
     }
 
     /// A zero-shot voice (VoxCPM2's [`ZERO_SHOT_VOICE_ID`], mirrored here as

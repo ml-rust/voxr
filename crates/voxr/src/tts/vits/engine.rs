@@ -91,8 +91,22 @@ impl VitsEngine {
     /// Render `text` in `voice` (must be this engine's one voice id) at
     /// `speed` (`1.0` is the checkpoint's natural pace; maps directly onto
     /// [`VitsSynthOptions::speaking_rate`] — VITS already inverts it
-    /// internally when scaling durations).
+    /// internally when scaling durations). The noise draws from the seed
+    /// [`with_seed`](Self::with_seed) fixed, else the model's default.
     pub fn synthesize(&self, text: &str, voice: &str, speed: f32) -> Result<Vec<f32>> {
+        self.synthesize_seeded(text, voice, speed, self.seed)
+    }
+
+    /// [`synthesize`](Self::synthesize) with the noise drawn from `seed`
+    /// for this call alone. `None` keeps the model's default (`0`). The
+    /// same text, speed and seed render the same samples.
+    pub fn synthesize_seeded(
+        &self,
+        text: &str,
+        voice: &str,
+        speed: f32,
+        seed: Option<u64>,
+    ) -> Result<Vec<f32>> {
         if voice != self.voice.id {
             return Err(Error::InvalidArgument {
                 arg: "voice",
@@ -131,7 +145,7 @@ impl VitsEngine {
 
         let mut opts: VitsSynthOptions = self.model.default_synth_options();
         opts.speaking_rate = speed as f64;
-        if let Some(seed) = self.seed {
+        if let Some(seed) = seed {
             opts.seed = seed;
         }
 

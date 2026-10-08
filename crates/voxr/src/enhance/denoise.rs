@@ -28,7 +28,7 @@
 //! [`DenoiseOptions::freq_smooth_bins`] for the measurement that decided it.
 
 use crate::error::{Error, Result};
-use boostr::model::audio::stft::{IStftOptions, IStftPadding, StftOptions, istft, stft};
+use boostr::model::audio::stft::{CenterPad, IStftOptions, IStftPadding, StftOptions, istft, stft};
 use numr::runtime::cpu::{CpuClient, CpuDevice, CpuRuntime};
 use numr::tensor::Tensor;
 
@@ -191,6 +191,7 @@ fn run(samples: &[f32], noise_clip: Option<&[f32]>, opts: DenoiseOptions) -> Res
         n_fft: opts.n_fft,
         hop_length: opts.hop_length,
         center: true,
+        pad: CenterPad::Zeros,
     };
 
     let analyze = |sig: &[f32]| -> Result<Analysis> {

@@ -12,7 +12,7 @@
 //! resolutions; there is no batching to keep this work on a GPU client for.
 
 use crate::error::{Error, Result};
-use boostr::model::audio::stft::{StftOptions, stft};
+use boostr::model::audio::stft::{CenterPad, StftOptions, stft};
 use numr::runtime::cpu::{CpuClient, CpuDevice, CpuRuntime};
 use numr::tensor::Tensor;
 
@@ -165,6 +165,7 @@ pub fn multi_resolution_stft_distance(
             n_fft,
             hop_length: n_fft / 4,
             center: true,
+            pad: CenterPad::Zeros,
         };
         let window = Tensor::<CpuRuntime>::from_slice(&hann_window_f64(n_fft), &[n_fft], &device)?;
         let (mag_a, _) = stft(&client, &wave_a, &window, opts)?;

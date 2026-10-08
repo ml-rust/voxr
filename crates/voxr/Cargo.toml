@@ -158,6 +158,10 @@ name = "kokoro_pipeline_oracle"
 required-features = ["kokoro"]
 
 [[test]]
+name = "kokoro_audio_parity"
+required-features = ["kokoro"]
+
+[[test]]
 name = "spacy_tokenizer_oracle"
 required-features = ["spacy-tokenizer"]
 

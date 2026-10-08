@@ -14,10 +14,13 @@
 //! `NotImplemented` exactly as it always did.
 
 use crate::error::{Error, Result};
-use crate::kokoro::g2p::{Dialect, KokoroG2p, phonemes_to_input_ids};
+use crate::kokoro::g2p::{Dialect, KokoroG2p, KokoroG2pModels, phonemes_to_input_ids};
 use crate::kokoro::voice::VoiceResolver;
-use boostr::model::audio::kokoro::{KokoroModelV2, KokoroPhonemeVocab, select_voice_style};
-use numr::runtime::cpu::{CpuClient, CpuRuntime};
+use boostr::model::audio::kokoro::{
+    KokoroModelV2, KokoroPhonemeVocab, load_kokoro_v2, select_voice_style,
+};
+use numr::runtime::Runtime;
+use numr::runtime::cpu::{CpuClient, CpuDevice, CpuRuntime};
 use numr::tensor::Tensor;
 use std::path::Path;
 use std::sync::Arc;
@@ -28,11 +31,65 @@ pub struct KokoroEngine {
     pub resolver: VoiceResolver,
     pub client: Arc<CpuClient>,
     pub device: Arc<<CpuRuntime as numr::runtime::Runtime>::Device>,
-    pub min_frames_per_phoneme: u32,
     pub g2p: KokoroG2p,
 }
 
 impl KokoroEngine {
+    /// Loads a Kokoro model directory on the CPU:
+    ///
+    /// ```text
+    /// DIR/
+    ///   config.json     KokoroConfig, its "vocab" the phoneme → id map
+    ///   vocab.json      optional phoneme → id map, read before config.json's
+    ///   weights         .safetensors (one file or shards) or .pth
+    ///   voices/         optional voice packs, searched before the defaults
+    ///   g2p/tagger/     spaCy tagger, required (KokoroG2pModels::resolve)
+    ///   g2p/oov/        optional out-of-vocabulary fallback
+    /// ```
+    ///
+    /// `g2p` overrides the G2P models; `None` resolves them from `dir`.
+    /// Errors name the file that failed to load.
+    pub fn from_dir(dir: &Path, g2p: Option<KokoroG2pModels>) -> Result<Self> {
+        let device = Arc::new(CpuDevice::new());
+        let client = Arc::new(CpuRuntime::default_client(&device));
+        let model = load_kokoro_v2::<CpuRuntime, _>(client.as_ref(), dir, device.as_ref())
+            .map_err(|e| Error::ModelError {
+                reason: format!("loading Kokoro weights from {}: {e}", dir.display()),
+            })?;
+        let vocab_json = dir.join("vocab.json");
+        let vocab_source = if vocab_json.exists() {
+            vocab_json
+        } else {
+            dir.join("config.json")
+        };
+        let vocab =
+            KokoroPhonemeVocab::from_json_file(&vocab_source).map_err(|e| Error::ModelError {
+                reason: format!(
+                    "loading the phoneme vocab from {}: {e}",
+                    vocab_source.display()
+                ),
+            })?;
+        let voices_dir = dir.join("voices");
+        let resolver = if voices_dir.is_dir() {
+            VoiceResolver::new().with_asset_dir(&voices_dir)
+        } else {
+            VoiceResolver::new()
+        };
+        let g2p = match g2p {
+            Some(models) => models,
+            None => KokoroG2pModels::resolve(dir, None, None)?,
+        }
+        .load()?;
+        Ok(Self {
+            model,
+            vocab,
+            resolver,
+            client,
+            device,
+            g2p,
+        })
+    }
+
     /// Run the full text-to-waveform pipeline.
     ///
     /// * `text` — UTF-8 input text. Split into reference-Kokoro-compatible
@@ -42,8 +99,10 @@ impl KokoroEngine {
     ///   directory) or absolute path. See [`VoiceResolver::resolve_path`].
     ///   Its id's first character selects the G2P dialect: `a` = American
     ///   English, `b` = British English; any other prefix errs.
-    /// * `speed` — duration multiplier; `1.0` is natural pace, >1 faster,
-    ///   <1 slower. Applied by dividing the raw durations.
+    /// * `speed` — pace; `1.0` is natural pace, >1 faster, <1 slower. It
+    ///   divides each phoneme's predicted duration, as reference Kokoro's
+    ///   `speed` does, so the audio is never time-stretched. Errs unless it
+    ///   is finite and positive.
     ///
     /// Returns f32 samples at the model's sample rate.
     pub fn synthesize(&self, text: &str, voice_spec: &str, speed: f32) -> Result<Vec<f32>> {
@@ -53,6 +112,12 @@ impl KokoroEngine {
                 reason: "input text must not be empty".into(),
             });
         }
+        if !(speed.is_finite() && speed > 0.0) {
+            return Err(Error::InvalidArgument {
+                arg: "speed",
+                reason: format!("expected a finite positive pace such as 1.0, got {speed}"),
+            });
+        }
 
         // 1. Dialect from the voice id, G2P + chunk the text.
         let dialect = Dialect::from_voice_id(voice_id(voice_spec))?;
@@ -60,10 +125,6 @@ impl KokoroEngine {
 
         // 2. Resolve + load the voice pack once; each chunk picks its own row.
         let voice_pack = self.resolver.load::<CpuRuntime>(voice_spec, &self.device)?;
-
-        let floor = ((self.min_frames_per_phoneme as f32) / speed.max(0.1))
-            .round()
-            .max(1.0) as u32;
 
         let mut waveform = Vec::new();
         for chunk in &chunks {
@@ -83,7 +144,7 @@ impl KokoroEngine {
 
             let chunk_waveform =
                 self.model
-                    .synthesize_cpu(&self.client, &token_ids, &voice_row, floor)?;
+                    .synthesize_cpu(&self.client, &token_ids, &voice_row, speed)?;
             waveform.extend(chunk_waveform.contiguous()?.to_vec::<f32>());
         }
 

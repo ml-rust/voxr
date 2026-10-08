@@ -69,7 +69,9 @@ pub use resample::{
 pub use spectral::{SpectralDistance, multi_resolution_stft_distance, snr_db};
 pub use stretch::{MAX_TEMPO, MIN_TEMPO, PcmSample, atempo, atempo_interleaved, atempo_pcm16};
 #[cfg(feature = "tts")]
-pub use tts::{SynthesizeOptions, TtsBundle, TtsEngine, TtsError, Voice, default_kokoro_voices};
+pub use tts::{
+    KOKORO_VOICES, SynthesizeOptions, TtsBundle, TtsEngine, TtsError, Voice, default_kokoro_voices,
+};
 #[cfg(feature = "voxcpm")]
 pub use tts_eval::{F0Stats, TimbreProxy, TimbreScorer, timbre_proxy};
 #[cfg(feature = "whisper")]
