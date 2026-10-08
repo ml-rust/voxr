@@ -3,7 +3,7 @@
 
 use crate::check::{HeardWord, StrayPause, Verdict, check_speech, stray_pauses};
 use crate::error::Result;
-use crate::pattern::starts_with_en;
+use crate::pattern::{starts_with_en, utf16_len, utf16_prefix};
 use crate::transcript::{TranscribeOptions, Transcribed, Transcriber, transcribe_narration};
 
 /// The heard words are clipped to this many UTF-16 code units.
@@ -106,9 +106,8 @@ pub struct HeardCheck {
 
 /// `t.length > n ? t.slice(0, n) + '…' : t`, over UTF-16 code units.
 fn clip(text: &str, n: usize) -> String {
-    let units: Vec<u16> = text.encode_utf16().collect();
-    if units.len() > n {
-        let mut out = String::from_utf16_lossy(&units[..n]);
+    if utf16_len(text) > n {
+        let mut out = utf16_prefix(text, n);
         out.push('…');
         out
     } else {

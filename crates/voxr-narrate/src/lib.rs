@@ -5,8 +5,9 @@
 //! the take loop's cache keys, file names and take-record files, and its
 //! pick of each part's best take through a speech engine and a judge, the
 //! designed or prepared voice every take clones, a whole VoxCPM2 run from
-//! script to voiceover, the per-phrase run of every other engine, and the
-//! skill's WAV files.
+//! script to voiceover, the per-phrase run of every other engine, a timed
+//! script's lines placed at their times, the spoken track time-stretched to
+//! a pace, and the skill's WAV files.
 
 mod error;
 mod js;
@@ -28,4 +29,6 @@ pub use polish::*;
 pub use take::*;
 pub use text::*;
 pub use transcript::*;
-pub use wav::{f32_wav, pcm16_round_trip, pcm16_wav, read_wav, read_wav_file};
+pub use wav::{
+    f32_wav, pcm16_round_trip, pcm16_wav, pcm16_wav_raw, probed_duration, read_wav, read_wav_file,
+};

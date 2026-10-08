@@ -13,4 +13,5 @@ mod js;
 pub(crate) use compiled::{Patterns, collapse};
 pub(crate) use js::{
     group, is_space, number, replace_all, replace_all_with, split, starts_with_en, trim, utf16_len,
+    utf16_prefix,
 };

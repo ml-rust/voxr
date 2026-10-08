@@ -29,7 +29,8 @@ biquad = "0.6"
 sha1 = "0.11"
 
 # `HeardWord: From<&WordTiming>`, `WhisperTranscriber` and `read_take_16k`:
-# Whisper word timings and the audio decode that feeds them.
+# Whisper word timings and the audio decode that feeds them. Also
+# `stretch_track`: voxr's atempo and resampler.
 # A workspace-internal path dependency, off by default so a consumer that
 # only parses scripts and checks speech does not pull in voxr's audio stack.
 voxr = { path = "../voxr", optional = true, default-features = false }
@@ -42,6 +43,9 @@ tempfile = "3"
 [features]
 default = []
 whisper = ["dep:voxr", "voxr/whisper", "dep:numr"]
+# `stretch_track` and `resample_48k`: voxr's ffmpeg-exact atempo and
+# resampler, with no voxr feature beyond its default-off set.
+stretch = ["dep:voxr"]
 
 [[test]]
 name = "narration_oracle"
@@ -75,6 +79,9 @@ name = "narration_review_oracle"
 
 [[test]]
 name = "narration_simple_oracle"
+
+[[test]]
+name = "narration_place_oracle"
 
 [[example]]
 name = "transcribe_take"

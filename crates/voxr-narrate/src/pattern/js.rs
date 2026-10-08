@@ -35,6 +35,13 @@ pub(crate) fn utf16_len(s: &str) -> usize {
     s.encode_utf16().count()
 }
 
+/// `s.slice(0, n)`: the first `n` UTF-16 code units of `s`. A surrogate
+/// pair cut in half leaves U+FFFD where JavaScript keeps a lone surrogate.
+pub(crate) fn utf16_prefix(s: &str, n: usize) -> String {
+    let units: Vec<u16> = s.encode_utf16().take(n).collect();
+    String::from_utf16_lossy(&units)
+}
+
 /// A language tag beginning `en`, case-insensitive over ASCII (`/^en/i`):
 /// the prefix English speech and narration checks read by.
 pub(crate) fn starts_with_en(s: &str) -> bool {
@@ -194,5 +201,13 @@ mod tests {
         assert!(number("inf").is_nan());
         assert!(number("nan").is_nan());
         assert!(number("12abc").is_nan());
+    }
+
+    #[test]
+    fn utf16_prefix_counts_code_units() {
+        assert_eq!(utf16_prefix("abc", 5), "abc");
+        assert_eq!(utf16_prefix("abcd", 2), "ab");
+        assert_eq!(utf16_prefix("a🎙b", 3), "a🎙");
+        assert_eq!(utf16_prefix("a🎙b", 2), "a\u{FFFD}");
     }
 }

@@ -30,41 +30,32 @@ const PCM16_READ: f32 = 1.0 / 32768.0;
 /// samples overflow the header's 32-bit sizes, and the skill's writer
 /// throws on them too.
 pub fn pcm16_wav(x: &[f32], rate: u32) -> Result<Vec<u8>> {
-    let too_long = || Error::InvalidArgument {
-        arg: "x",
-        reason: format!(
-            "{} samples do not fit a WAV header's 32-bit sizes. Split the audio into shorter files",
-            x.len()
-        ),
-    };
-    let data = u32::try_from(x.len())
-        .ok()
-        .and_then(|n| n.checked_mul(2))
-        .ok_or_else(too_long)?;
-    let riff = data.checked_add(36).ok_or_else(too_long)?;
-    let byte_rate = rate.checked_mul(2).ok_or_else(|| Error::InvalidArgument {
-        arg: "rate",
-        reason: format!(
-            "a rate of {rate} Hz overflows the WAV header's byte rate. Pass a rate under 2^31 Hz"
-        ),
-    })?;
-    let mut out = Vec::with_capacity(HEADER + x.len() * 2);
-    out.extend_from_slice(b"RIFF");
-    out.extend_from_slice(&riff.to_le_bytes());
-    out.extend_from_slice(b"WAVEfmt ");
-    out.extend_from_slice(&16u32.to_le_bytes());
-    out.extend_from_slice(&FORMAT_PCM.to_le_bytes());
-    out.extend_from_slice(&1u16.to_le_bytes());
-    out.extend_from_slice(&rate.to_le_bytes());
-    out.extend_from_slice(&byte_rate.to_le_bytes());
-    out.extend_from_slice(&2u16.to_le_bytes());
-    out.extend_from_slice(&16u16.to_le_bytes());
-    out.extend_from_slice(b"data");
-    out.extend_from_slice(&data.to_le_bytes());
-    for v in pcm16_like_js(x) {
+    pcm16_wav_raw(&pcm16_like_js(x), rate)
+}
+
+/// A mono 16-bit WAV of the 16-bit values `x` at `rate` Hz, behind the
+/// 44-byte header [`pcm16_wav`] writes. More than 2^31 samples overflow the
+/// header's 32-bit sizes.
+pub fn pcm16_wav_raw(x: &[i16], rate: u32) -> Result<Vec<u8>> {
+    let mut out = mono_header(x.len(), rate, FORMAT_PCM, 2)?;
+    for v in x {
         out.extend_from_slice(&v.to_le_bytes());
     }
     Ok(out)
+}
+
+/// The duration ffprobe reports for a WAV of `frames` frames at `rate` Hz
+/// (`-show_entries format=duration`), read back as a number: the length
+/// rounded to whole microseconds, a half rounded up. A rate of 0 gives 0.
+pub fn probed_duration(frames: usize, rate: u32) -> f64 {
+    if rate == 0 {
+        return 0.0;
+    }
+    let rate = u128::from(rate);
+    let micros = (frames as u128 * 1_000_000 + rate / 2) / rate;
+    // ffprobe prints `%f`: the whole seconds and six decimals.
+    let text = format!("{}.{:06}", micros / 1_000_000, micros % 1_000_000);
+    text.parse().unwrap_or(f64::NAN)
 }
 
 /// A mono 32-bit float WAV of `x` at `rate` Hz, behind a 44-byte header.
@@ -72,40 +63,50 @@ pub fn pcm16_wav(x: &[f32], rate: u32) -> Result<Vec<u8>> {
 ///
 /// More than 2^30 samples overflow the header's 32-bit sizes.
 pub fn f32_wav(x: &[f32], rate: u32) -> Result<Vec<u8>> {
+    let mut out = mono_header(x.len(), rate, FORMAT_FLOAT, 4)?;
+    for v in x {
+        out.extend_from_slice(&v.to_le_bytes());
+    }
+    Ok(out)
+}
+
+/// The 44-byte header of a mono WAV holding `len` samples of `width` bytes
+/// each, in format `format` at `rate` Hz. The returned buffer has room for
+/// the samples after it.
+fn mono_header(len: usize, rate: u32, format: u16, width: u16) -> Result<Vec<u8>> {
     let too_long = || Error::InvalidArgument {
         arg: "x",
         reason: format!(
-            "{} samples do not fit a WAV header's 32-bit sizes. Split the audio into shorter files",
-            x.len()
+            "{len} samples do not fit a WAV header's 32-bit sizes. Split the audio into shorter files"
         ),
     };
-    let data = u32::try_from(x.len())
+    let data = u32::try_from(len)
         .ok()
-        .and_then(|n| n.checked_mul(4))
+        .and_then(|n| n.checked_mul(u32::from(width)))
         .ok_or_else(too_long)?;
     let riff = data.checked_add(36).ok_or_else(too_long)?;
-    let byte_rate = rate.checked_mul(4).ok_or_else(|| Error::InvalidArgument {
-        arg: "rate",
-        reason: format!(
-            "a rate of {rate} Hz overflows the WAV header's byte rate. Pass a rate under 2^30 Hz"
-        ),
-    })?;
-    let mut out = Vec::with_capacity(HEADER + x.len() * 4);
+    let byte_rate = rate
+        .checked_mul(u32::from(width))
+        .ok_or_else(|| Error::InvalidArgument {
+            arg: "rate",
+            reason: format!(
+                "a rate of {rate} Hz overflows the WAV header's byte rate. Pass a rate under {} Hz",
+                u32::MAX / u32::from(width) + 1
+            ),
+        })?;
+    let mut out = Vec::with_capacity(HEADER + data as usize);
     out.extend_from_slice(b"RIFF");
     out.extend_from_slice(&riff.to_le_bytes());
     out.extend_from_slice(b"WAVEfmt ");
     out.extend_from_slice(&16u32.to_le_bytes());
-    out.extend_from_slice(&FORMAT_FLOAT.to_le_bytes());
+    out.extend_from_slice(&format.to_le_bytes());
     out.extend_from_slice(&1u16.to_le_bytes());
     out.extend_from_slice(&rate.to_le_bytes());
     out.extend_from_slice(&byte_rate.to_le_bytes());
-    out.extend_from_slice(&4u16.to_le_bytes());
-    out.extend_from_slice(&32u16.to_le_bytes());
+    out.extend_from_slice(&width.to_le_bytes());
+    out.extend_from_slice(&(width * 8).to_le_bytes());
     out.extend_from_slice(b"data");
     out.extend_from_slice(&data.to_le_bytes());
-    for v in x {
-        out.extend_from_slice(&v.to_le_bytes());
-    }
     Ok(out)
 }
 
@@ -229,6 +230,24 @@ mod tests {
         // 0.5 rounds up to 16384, -0.5 to -16383, 1.5 clamps to 32767.
         assert_eq!(&bytes[44..], &[0x00, 0x40, 0x01, 0xC0, 0xFF, 0x7F]);
         Ok(())
+    }
+
+    #[test]
+    fn raw_values_are_written_as_they_are() -> Result<()> {
+        let bytes = pcm16_wav_raw(&[16384, -16384, i16::MIN], 24000)?;
+        assert_eq!(bytes[..HEADER], pcm16_wav(&[0.0; 3], 24000)?[..HEADER]);
+        assert_eq!(&bytes[HEADER..], &[0x00, 0x40, 0x00, 0xC0, 0x00, 0x80]);
+        Ok(())
+    }
+
+    #[test]
+    fn probed_durations_round_to_microseconds() {
+        assert_eq!(probed_duration(74113, 48000), 1.544021);
+        // 1.5345625 s: the half microsecond rounds up.
+        assert_eq!(probed_duration(73659, 48000), 1.534563);
+        assert_eq!(probed_duration(48000, 48000), 1.0);
+        assert_eq!(probed_duration(0, 48000), 0.0);
+        assert_eq!(probed_duration(5, 0), 0.0);
     }
 
     #[test]

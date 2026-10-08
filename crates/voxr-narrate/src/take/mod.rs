@@ -11,7 +11,8 @@
 //! cache on disk, and a whole VoxCPM2 run from script to voiceover. Also
 //! which engine, model, voice and speed a run resolves to speak with, and
 //! the per-phrase run of every other engine, the user's TTS command among
-//! them.
+//! them. Also a timed script's lines placed at their times, and, with the
+//! `stretch` feature, the spoken track time-stretched to a pace.
 
 pub mod anchor;
 pub mod anchor_files;
@@ -28,6 +29,7 @@ pub mod join_heat;
 pub mod judge;
 pub mod pace;
 pub mod pick;
+pub mod place;
 pub mod seed;
 pub mod simple;
 pub mod simple_setup;
@@ -38,6 +40,8 @@ pub mod speak_step;
 pub mod split;
 pub mod step;
 pub mod store;
+#[cfg(feature = "stretch")]
+pub mod stretch;
 
 pub use anchor::{
     ANCHOR_RATE, AnchorStep, DesignSetup, DesignedVoice, OPENING_WORDS, SLOWER, design_voice,
@@ -71,6 +75,10 @@ pub use pace::{
     sounding, syllables,
 };
 pub use pick::{ATTEMPTS, PickSetup, RETRY_STEP, TakeLoop};
+pub use place::{
+    CueUnits, LINE_GAP, PLACE_RATE, PlacedTrack, TIMING_SLACK, UNPLACED_PROBLEM, cue_script,
+    place_on_times,
+};
 pub use seed::text_seed;
 pub use simple::speak_phrases;
 pub use simple_setup::{SimpleRun, SimpleSetup, SimpleStep, WholeCheck, check_kokoro_voice};
@@ -81,3 +89,7 @@ pub use speak_step::SpeakStep;
 pub use split::{BestTakes, SPLIT_ROUNDS, break_up};
 pub use step::{PartTake, TakeStep};
 pub use store::{FileStore, TakeKeys};
+#[cfg(feature = "stretch")]
+pub use stretch::{
+    STRETCH_RATE, StretchedTrack, resample_48k, stretch_checks, stretch_phrases, stretch_track,
+};
