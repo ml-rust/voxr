@@ -13,7 +13,7 @@ use std::path::{Path, PathBuf};
 
 use super::anchor::{ANCHOR_RATE, AnchorStep};
 use super::anchor_files::{
-    AnchorSetup, clone_file, copy_voice_beside, designed_anchor, write_whole_with,
+    AnchorSetup, OUT_NEXT, clone_file, copy_voice_beside, designed_anchor, write_whole_with,
 };
 use super::cache::{anchor_key, prepared_reference_key};
 use super::engine::{CloneReference, SpeechEngine, TakeJudge, VoiceSource};
@@ -32,9 +32,6 @@ use crate::wav::{pcm16_wav, read_wav_file};
 /// The most words one take of a whole script holds before it splits at a
 /// sentence end.
 pub const WHOLE_MAX: usize = 700;
-
-/// The next action an error writing beside the output names.
-const OUT_NEXT: &str = "Check the output directory exists, is writable and has free space";
 
 /// The voice every part clones.
 struct Voice {
@@ -298,6 +295,7 @@ mod tests {
             rerolls,
             lines,
             checkpoint: None,
+            device: None,
         }
     }
 

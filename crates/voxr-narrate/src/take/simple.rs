@@ -4,7 +4,7 @@
 //! file is heard back once. These engines keep no per-phrase takes, so a
 //! failed check is reported, never retried.
 
-use super::anchor_files::write_whole_with;
+use super::anchor_files::{OUT_NEXT, write_whole_with};
 use super::engine::{SpeakRequest, SpeechEngine, VoiceSource};
 use super::files::DEFAULT_SEED;
 use super::hear::{Hearing, asr_model, heard_check};
@@ -24,11 +24,10 @@ const MODEL_RATE: u32 = 16000;
 const COMMAND_RATE: u32 = 48000;
 /// Decimals of a phrase span's times.
 const SPAN_DECIMALS: usize = 3;
-/// VoxCPM2's guidance and steps. The engines here read neither.
-const CFG: f64 = 1.6;
-const STEPS: u32 = 16;
-/// The next action an error writing the voiceover names.
-const OUT_NEXT: &str = "Check the output directory exists, is writable and has free space";
+/// VoxCPM2's guidance and steps when nothing sets them. The engines here
+/// read neither.
+pub(super) const CFG: f64 = 1.6;
+pub(super) const STEPS: u32 = 16;
 
 /// `new Float32Array(Math.round(pause * rate))`: the silence after a
 /// phrase, in samples.
@@ -247,6 +246,8 @@ mod tests {
     fn command() -> EngineChoice {
         EngineChoice::Command {
             command: "tts {text} {out}".to_string(),
+            voice: String::new(),
+            reference: String::new(),
         }
     }
 

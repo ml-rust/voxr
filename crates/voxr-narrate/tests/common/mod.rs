@@ -13,6 +13,8 @@ use std::process::Command;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 
+#[cfg(feature = "stretch")]
+pub mod ffmpeg;
 pub mod pace_cases;
 pub mod polish_cases;
 pub mod signals;

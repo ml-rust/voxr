@@ -83,6 +83,9 @@ name = "narration_simple_oracle"
 [[test]]
 name = "narration_place_oracle"
 
+[[test]]
+name = "narration_dispatch_oracle"
+
 [[example]]
 name = "transcribe_take"
 required-features = ["whisper"]

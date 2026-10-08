@@ -12,13 +12,18 @@
 //! which engine, model, voice and speed a run resolves to speak with, and
 //! the per-phrase run of every other engine, the user's TTS command among
 //! them. Also a timed script's lines placed at their times, and, with the
-//! `stretch` feature, the spoken track time-stretched to a pace.
+//! `stretch` feature, the spoken track time-stretched to a pace. Also a
+//! whole speak run from script to voiceover, which picks the branch: one
+//! engine run, a time-stretch, or a timed placement.
 
 pub mod anchor;
 pub mod anchor_files;
 mod anchor_step;
 pub mod cache;
 pub mod command;
+pub mod dispatch;
+mod dispatch_run;
+pub mod dispatch_setup;
 pub mod engine;
 pub mod engine_choice;
 pub mod files;
@@ -34,6 +39,7 @@ pub mod seed;
 pub mod simple;
 pub mod simple_setup;
 pub mod speak;
+pub mod speak_opts;
 pub mod speak_resolve;
 pub mod speak_setup;
 pub mod speak_step;
@@ -56,6 +62,8 @@ pub use cache::{
     take_key, voice_design_file, voice_file, voice_transcript_file,
 };
 pub use command::{CommandEngine, OUT_FILE, TEXT_FILE, command_line, shell_quote};
+pub use dispatch::speak_script;
+pub use dispatch_setup::{ScriptChecks, ScriptStep, SpeakRuns, SpeakTarget, SpokenScript};
 pub use engine::{
     CloneReference, Graded, SpeakRequest, SpeechEngine, Take, TakeJudge, TakeSpec, TakeStore,
     VoiceSource,
@@ -83,7 +91,8 @@ pub use seed::text_seed;
 pub use simple::speak_phrases;
 pub use simple_setup::{SimpleRun, SimpleSetup, SimpleStep, WholeCheck, check_kokoro_voice};
 pub use speak::{WHOLE_MAX, speak_voxcpm};
-pub use speak_resolve::{EngineChoice, SpeakOpts, SpeakResolution, TtsConfig, resolve_speak};
+pub use speak_opts::{SpeakOpts, TtsConfig};
+pub use speak_resolve::{EngineChoice, SpeakResolution, resolve_speak};
 pub use speak_setup::{VoiceReference, VoxcpmRun, VoxcpmSetup};
 pub use speak_step::SpeakStep;
 pub use split::{BestTakes, SPLIT_ROUNDS, break_up};

@@ -101,7 +101,7 @@ impl EngineChoice {
         match self {
             Self::Voxcpm { voice } if voice.is_empty() => "VoxCPM2".to_string(),
             Self::Voxcpm { voice } => format!("VoxCPM2 {voice}"),
-            Self::Command { command } => format!("command: {command}"),
+            Self::Command { command, .. } => format!("command: {command}"),
             Self::Kokoro { voice, .. } => format!("Kokoro ({voice})"),
             Self::Model { model } => model.clone(),
         }

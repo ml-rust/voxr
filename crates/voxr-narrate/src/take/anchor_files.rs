@@ -65,6 +65,10 @@ pub(crate) fn write_whole(path: &Path, bytes: &[u8]) -> Result<()> {
     )
 }
 
+/// The next action an error writing the voiceover names.
+pub(crate) const OUT_NEXT: &str =
+    "Check the output directory exists, is writable and has free space";
+
 /// Writes `bytes` to `path` whole: through a `.part` file beside it,
 /// renamed over `path` once written. `next` is the action an error names.
 pub(crate) fn write_whole_with(path: &Path, bytes: &[u8], next: &str) -> Result<()> {

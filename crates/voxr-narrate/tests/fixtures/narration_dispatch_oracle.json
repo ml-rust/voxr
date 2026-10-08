@@ -1,0 +1,1526 @@
+{
+ "cases": [
+  {
+   "name": "no engine named, VoxCPM2 not ready: Kokoro, tags stripped",
+   "script": "[laughing] The river runs north.\nIt turns east [sigh] at the hill.",
+   "opts": {
+    "reroll": []
+   },
+   "tts": {},
+   "ready": false,
+   "why": "needs an NVIDIA GPU with 8 GB of memory (none found)",
+   "hear": [
+    {
+     "words": [
+      {
+       "text": "The",
+       "start": 0,
+       "end": 0.4
+      },
+      {
+       "text": "river",
+       "start": 0.5,
+       "end": 0.9
+      },
+      {
+       "text": "runs",
+       "start": 1,
+       "end": 1.4
+      },
+      {
+       "text": "north.",
+       "start": 1.5,
+       "end": 1.9
+      },
+      {
+       "text": "It",
+       "start": 2,
+       "end": 2.4
+      },
+      {
+       "text": "turns",
+       "start": 2.5,
+       "end": 2.9
+      },
+      {
+       "text": "east",
+       "start": 3,
+       "end": 3.4
+      },
+      {
+       "text": "at",
+       "start": 3.5,
+       "end": 3.9
+      },
+      {
+       "text": "the",
+       "start": 4,
+       "end": 4.4
+      },
+      {
+       "text": "hill.",
+       "start": 4.5,
+       "end": 4.9
+      }
+     ],
+     "looped": false
+    }
+   ],
+   "resampled": false,
+   "calls": [
+    {
+     "text": "The river runs north.",
+     "voice": "af_heart",
+     "speed": 1,
+     "rate": 24000,
+     "n": 7200,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 7200,
+       "amp": 0.00002,
+       "seed": 11
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 6720,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    },
+    {
+     "text": "It turns east at the hill.",
+     "voice": "af_heart",
+     "speed": 1,
+     "rate": 24000,
+     "n": 9600,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 9600,
+       "amp": 0.00002,
+       "seed": 12
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 9120,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    }
+   ],
+   "commands": [],
+   "voxcpm": null,
+   "messages": [
+    "speak: only VoxCPM2 voices tags like [laughing] or [sigh]. This engine speaks the script without them."
+   ],
+   "heard": [
+    {
+     "model": "default",
+     "language": null,
+     "samples": "f0113b9f"
+    }
+   ],
+   "out": {
+    "length": 27600,
+    "pcm": "7f86a64a"
+   },
+   "error": null,
+   "result": "{\"duration\":1.15,\"phrases\":[{\"text\":\"The river runs north.\",\"start\":0,\"end\":0.3},{\"text\":\"It turns east at the hill.\",\"start\":0.75,\"end\":1.15}],\"engine\":\"Kokoro (af_heart)\",\"checks\":[{\"at\":0,\"text\":\"The river runs north. It turns east at the hill.\",\"ok\":true,\"heard\":\"The river runs north. It turns east at the hill.\",\"why\":\"\",\"doubt\":[],\"pauses\":[]}],\"problems\":[]}"
+  },
+  {
+   "name": "no engine named, VoxCPM2 ready: every VoxCPM2 option, tags kept, speed unused",
+   "script": "[sigh] The river runs north.\n\nIt turns east.",
+   "opts": {
+    "reroll": [
+     1
+    ],
+    "voice": "(warm, low)",
+    "style": "(calm)",
+    "speed": 0.8,
+    "seed": 11,
+    "cfg": 2,
+    "steps": 10,
+    "hifi": true,
+    "language": "en"
+   },
+   "tts": {
+    "seed": 5
+   },
+   "ready": true,
+   "why": "",
+   "hear": [],
+   "resampled": false,
+   "calls": [],
+   "commands": [],
+   "voxcpm": {
+    "script": "[sigh] The river runs north.\n\nIt turns east.",
+    "opts": {
+     "voice": "(warm, low)",
+     "reference": "",
+     "style": "(calm)",
+     "hifi": true,
+     "cfg": 2,
+     "steps": 10,
+     "device": null,
+     "seed": 11,
+     "configSeed": 5,
+     "language": "en",
+     "reroll": [
+      1
+     ],
+     "lines": false
+    },
+    "n": 48000,
+    "ops": [
+     {
+      "kind": "noise",
+      "start": 0,
+      "len": 48000,
+      "amp": 0.00002,
+      "seed": 31
+     },
+     {
+      "kind": "tone",
+      "hz": "200",
+      "start": 0,
+      "len": 24000,
+      "amp": 0.3,
+      "attack": 240,
+      "release": 240
+     }
+    ],
+    "result": "{\"duration\":1,\"phrases\":[{\"text\":\"The river runs north. It turns east.\",\"start\":0,\"end\":0.5}],\"voiceFile\":\"<dir>/out.voice.wav\",\"checks\":[{\"at\":0,\"text\":\"The river runs north. It turns east.\",\"ok\":true,\"heard\":\"[sigh] The river runs north. It turns east.\",\"why\":\"\",\"seed\":7,\"doubt\":[],\"heat\":0,\"pauses\":[],\"clicks\":[]}],\"problems\":[]}"
+   },
+   "messages": [],
+   "heard": [],
+   "out": {
+    "length": 48000,
+    "pcm": "19acfaf5"
+   },
+   "error": null,
+   "result": "{\"duration\":1,\"phrases\":[{\"text\":\"The river runs north. It turns east.\",\"start\":0,\"end\":0.5}],\"voiceFile\":\"<dir>/out.voice.wav\",\"checks\":[{\"at\":0,\"text\":\"The river runs north. It turns east.\",\"ok\":true,\"heard\":\"[sigh] The river runs north. It turns east.\",\"why\":\"\",\"seed\":7,\"doubt\":[],\"heat\":0,\"pauses\":[],\"clicks\":[]}],\"problems\":[],\"engine\":\"VoxCPM2 (warm, low)\"}"
+  },
+  {
+   "name": "a reference picks VoxCPM2, a device runs it where it is not ready, config options",
+   "script": "Herds come back to graze.",
+   "opts": {
+    "reroll": [],
+    "reference": "<dir>/ref.wav",
+    "device": "cpu"
+   },
+   "tts": {
+    "style": "(slow)",
+    "cfg": 1.8,
+    "steps": 12,
+    "hifi": false
+   },
+   "ready": false,
+   "why": "needs an NVIDIA GPU with 8 GB of memory (none found)",
+   "hear": [],
+   "resampled": false,
+   "calls": [],
+   "commands": [],
+   "voxcpm": {
+    "script": "Herds come back to graze.",
+    "opts": {
+     "voice": "",
+     "reference": "<dir>/ref.wav",
+     "style": "(slow)",
+     "hifi": false,
+     "cfg": 1.8,
+     "steps": 12,
+     "device": "cpu",
+     "seed": null,
+     "configSeed": null,
+     "language": null,
+     "reroll": [],
+     "lines": false
+    },
+    "n": 48000,
+    "ops": [
+     {
+      "kind": "noise",
+      "start": 0,
+      "len": 48000,
+      "amp": 0.00002,
+      "seed": 31
+     },
+     {
+      "kind": "tone",
+      "hz": "200",
+      "start": 0,
+      "len": 24000,
+      "amp": 0.3,
+      "attack": 240,
+      "release": 240
+     }
+    ],
+    "result": "{\"duration\":1,\"phrases\":[{\"text\":\"Herds come back to graze.\",\"start\":0,\"end\":0.5}],\"voiceFile\":null,\"checks\":[{\"at\":0,\"text\":\"Herds come back to graze.\",\"ok\":true,\"heard\":\"Herds come back to graze.\",\"why\":\"\",\"seed\":7,\"doubt\":[],\"heat\":0,\"pauses\":[],\"clicks\":[]}],\"problems\":[]}"
+   },
+   "messages": [],
+   "heard": [],
+   "out": {
+    "length": 48000,
+    "pcm": "19acfaf5"
+   },
+   "error": null,
+   "result": "{\"duration\":1,\"phrases\":[{\"text\":\"Herds come back to graze.\",\"start\":0,\"end\":0.5}],\"voiceFile\":null,\"checks\":[{\"at\":0,\"text\":\"Herds come back to graze.\",\"ok\":true,\"heard\":\"Herds come back to graze.\",\"why\":\"\",\"seed\":7,\"doubt\":[],\"heat\":0,\"pauses\":[],\"clicks\":[]}],\"problems\":[],\"engine\":\"VoxCPM2\"}"
+  },
+  {
+   "name": "VoxCPM2 not ready and no device",
+   "script": "Herds come back to graze.",
+   "opts": {
+    "reroll": [],
+    "engine": "voxcpm"
+   },
+   "tts": {},
+   "ready": false,
+   "why": "needs an NVIDIA GPU with 8 GB of memory (none found)",
+   "hear": [],
+   "resampled": false,
+   "calls": [],
+   "commands": [],
+   "voxcpm": null,
+   "messages": [],
+   "heard": [],
+   "out": null,
+   "error": "speak --engine voxcpm needs an NVIDIA GPU with 8 GB of memory (none found). Use the default Kokoro engine, another TTS with --command, or --device cpu (very slow).",
+   "result": null
+  },
+  {
+   "name": "a command at 1.25 is time-stretched",
+   "script": "The river runs north.\nIt turns east at the hill.",
+   "opts": {
+    "reroll": [],
+    "command": "tts --say {text} --out {out} --voice {voice} --ref {reference}",
+    "speed": 1.25,
+    "voice": "Ann"
+   },
+   "tts": {},
+   "ready": false,
+   "why": "needs an NVIDIA GPU with 8 GB of memory (none found)",
+   "hear": [
+    {
+     "words": [
+      {
+       "text": "The",
+       "start": 0,
+       "end": 0.4
+      },
+      {
+       "text": "river",
+       "start": 0.5,
+       "end": 0.9
+      },
+      {
+       "text": "runs",
+       "start": 1,
+       "end": 1.4
+      },
+      {
+       "text": "north.",
+       "start": 1.5,
+       "end": 1.9
+      },
+      {
+       "text": "It",
+       "start": 2,
+       "end": 2.4
+      },
+      {
+       "text": "turns",
+       "start": 2.5,
+       "end": 2.9
+      },
+      {
+       "text": "east",
+       "start": 3,
+       "end": 3.4
+      },
+      {
+       "text": "at",
+       "start": 3.5,
+       "end": 3.9
+      },
+      {
+       "text": "the",
+       "start": 4,
+       "end": 4.4
+      },
+      {
+       "text": "hill.",
+       "start": 4.5,
+       "end": 4.9
+      }
+     ],
+     "looped": false
+    }
+   ],
+   "resampled": false,
+   "calls": [
+    {
+     "text": "The river runs north.",
+     "voice": null,
+     "speed": null,
+     "rate": 48000,
+     "n": 7200,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 7200,
+       "amp": 0.00002,
+       "seed": 11
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 6720,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    },
+    {
+     "text": "It turns east at the hill.",
+     "voice": null,
+     "speed": null,
+     "rate": 48000,
+     "n": 9600,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 9600,
+       "amp": 0.00002,
+       "seed": 12
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 9120,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    }
+   ],
+   "commands": [
+    {
+     "template": "tts --say {text} --out {out} --voice {voice} --ref {reference}",
+     "voice": "Ann",
+     "reference": "",
+     "oneCall": false
+    }
+   ],
+   "voxcpm": null,
+   "messages": [
+    "tts command: 1/2 phrases",
+    "tts command: 2/2 phrases"
+   ],
+   "heard": [
+    {
+     "model": "default",
+     "language": null,
+     "samples": "3cd2c39f"
+    }
+   ],
+   "out": {
+    "length": 30803,
+    "pcm": "1387231e"
+   },
+   "error": null,
+   "result": "{\"duration\":0.641729,\"phrases\":[{\"text\":\"The river runs north.\",\"start\":0,\"end\":0.12},{\"text\":\"It turns east at the hill.\",\"start\":0.48,\"end\":0.64}],\"engine\":\"command: tts --say {text} --out {out} --voice {voice} --ref {reference}\",\"checks\":[{\"at\":0,\"text\":\"The river runs north. It turns east at the hill.\",\"ok\":true,\"heard\":\"The river runs north. It turns east at the hill.\",\"why\":\"\",\"doubt\":[],\"pauses\":[]}],\"problems\":[]}"
+  },
+  {
+   "name": "Kokoro at 0.8 sets its own speed",
+   "script": "The river runs north. It turns east.",
+   "opts": {
+    "reroll": [],
+    "engine": "kokoro",
+    "speed": 0.8,
+    "voice": "bm_george"
+   },
+   "tts": {},
+   "ready": false,
+   "why": "needs an NVIDIA GPU with 8 GB of memory (none found)",
+   "hear": [
+    {
+     "words": [
+      {
+       "text": "The",
+       "start": 0,
+       "end": 0.4
+      },
+      {
+       "text": "river",
+       "start": 0.5,
+       "end": 0.9
+      },
+      {
+       "text": "runs",
+       "start": 1,
+       "end": 1.4
+      },
+      {
+       "text": "north.",
+       "start": 1.5,
+       "end": 1.9
+      },
+      {
+       "text": "It",
+       "start": 2,
+       "end": 2.4
+      },
+      {
+       "text": "turns",
+       "start": 2.5,
+       "end": 2.9
+      },
+      {
+       "text": "east.",
+       "start": 3,
+       "end": 3.4
+      }
+     ],
+     "looped": false
+    }
+   ],
+   "resampled": false,
+   "calls": [
+    {
+     "text": "The river runs north.",
+     "voice": "bm_george",
+     "speed": 0.8,
+     "rate": 24000,
+     "n": 9000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 9000,
+       "amp": 0.00002,
+       "seed": 11
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 8520,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    },
+    {
+     "text": "It turns east.",
+     "voice": "bm_george",
+     "speed": 0.8,
+     "rate": 24000,
+     "n": 7500,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 7500,
+       "amp": 0.00002,
+       "seed": 12
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 7020,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    }
+   ],
+   "commands": [],
+   "voxcpm": null,
+   "messages": [],
+   "heard": [
+    {
+     "model": "default",
+     "language": null,
+     "samples": "67c10652"
+    }
+   ],
+   "out": {
+    "length": 23700,
+    "pcm": "8a427bb1"
+   },
+   "error": null,
+   "result": "{\"duration\":0.9875,\"phrases\":[{\"text\":\"The river runs north.\",\"start\":0,\"end\":0.375},{\"text\":\"It turns east.\",\"start\":0.675,\"end\":0.988}],\"engine\":\"Kokoro (bm_george)\",\"checks\":[{\"at\":0,\"text\":\"The river runs north. It turns east.\",\"ok\":true,\"heard\":\"The river runs north. It turns east.\",\"why\":\"\",\"doubt\":[],\"pauses\":[]}],\"problems\":[]}"
+  },
+  {
+   "name": "engine kokoro with a command is never stretched",
+   "script": "The river runs north.",
+   "opts": {
+    "reroll": [],
+    "engine": "kokoro",
+    "command": "tts --say {text} --out {out} --voice {voice} --ref {reference}",
+    "speed": 0.8
+   },
+   "tts": {},
+   "ready": false,
+   "why": "needs an NVIDIA GPU with 8 GB of memory (none found)",
+   "hear": [
+    {
+     "words": [
+      {
+       "text": "The",
+       "start": 0,
+       "end": 0.4
+      },
+      {
+       "text": "river",
+       "start": 0.5,
+       "end": 0.9
+      },
+      {
+       "text": "runs",
+       "start": 1,
+       "end": 1.4
+      },
+      {
+       "text": "north.",
+       "start": 1.5,
+       "end": 1.9
+      }
+     ],
+     "looped": false
+    }
+   ],
+   "resampled": false,
+   "calls": [
+    {
+     "text": "The river runs north.",
+     "voice": null,
+     "speed": null,
+     "rate": 48000,
+     "n": 7200,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 7200,
+       "amp": 0.00002,
+       "seed": 11
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 6720,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    }
+   ],
+   "commands": [
+    {
+     "template": "tts --say {text} --out {out} --voice {voice} --ref {reference}",
+     "voice": "",
+     "reference": "",
+     "oneCall": false
+    }
+   ],
+   "voxcpm": null,
+   "messages": [],
+   "heard": [
+    {
+     "model": "default",
+     "language": null,
+     "samples": "9531b718"
+    }
+   ],
+   "out": {
+    "length": 7200,
+    "pcm": "ca636971"
+   },
+   "error": null,
+   "result": "{\"duration\":0.15,\"phrases\":[{\"text\":\"The river runs north.\",\"start\":0,\"end\":0.15}],\"engine\":\"command: tts --say {text} --out {out} --voice {voice} --ref {reference}\",\"checks\":[{\"at\":0,\"text\":\"The river runs north.\",\"ok\":true,\"heard\":\"The river runs north.\",\"why\":\"\",\"doubt\":[],\"pauses\":[]}],\"problems\":[]}"
+  },
+  {
+   "name": "a model at the config speed 1.5 is time-stretched",
+   "script": "Fish swim upstream.\nBirds fly south.",
+   "opts": {
+    "reroll": []
+   },
+   "tts": {
+    "model": "facebook/mms-tts-eng",
+    "speed": 1.5
+   },
+   "ready": false,
+   "why": "needs an NVIDIA GPU with 8 GB of memory (none found)",
+   "hear": [
+    {
+     "words": [
+      {
+       "text": "Fish",
+       "start": 0,
+       "end": 0.4
+      },
+      {
+       "text": "swim",
+       "start": 0.5,
+       "end": 0.9
+      },
+      {
+       "text": "upstream.",
+       "start": 1,
+       "end": 1.4
+      },
+      {
+       "text": "Birds",
+       "start": 1.5,
+       "end": 1.9
+      },
+      {
+       "text": "fly",
+       "start": 2,
+       "end": 2.4
+      },
+      {
+       "text": "south.",
+       "start": 2.5,
+       "end": 2.9
+      }
+     ],
+     "looped": false
+    }
+   ],
+   "resampled": true,
+   "calls": [
+    {
+     "text": "Fish swim upstream.",
+     "voice": null,
+     "speed": null,
+     "rate": 16000,
+     "n": 6000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 6000,
+       "amp": 0.00002,
+       "seed": 11
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 5520,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    },
+    {
+     "text": "Birds fly south.",
+     "voice": null,
+     "speed": null,
+     "rate": 16000,
+     "n": 6000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 6000,
+       "amp": 0.00002,
+       "seed": 12
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 5520,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    }
+   ],
+   "commands": [],
+   "voxcpm": null,
+   "messages": [],
+   "heard": [
+    {
+     "model": "default",
+     "language": null,
+     "samples": "1170e217"
+    }
+   ],
+   "out": {
+    "length": 38721,
+    "pcm": "f7a78948"
+   },
+   "error": null,
+   "result": "{\"duration\":0.806688,\"phrases\":[{\"text\":\"Fish swim upstream.\",\"start\":0,\"end\":0.25},{\"text\":\"Birds fly south.\",\"start\":0.55,\"end\":0.8}],\"engine\":\"facebook/mms-tts-eng\",\"checks\":[{\"at\":0,\"text\":\"Fish swim upstream. Birds fly south.\",\"ok\":true,\"heard\":\"Fish swim upstream. Birds fly south.\",\"why\":\"\",\"doubt\":[],\"pauses\":[]}],\"problems\":[]}"
+  },
+  {
+   "name": "timed lines placed, one late, one over its slot",
+   "script": "The river runs north.\nIt turns east. Then south.\nDone.",
+   "opts": {
+    "reroll": [],
+    "command": "tts --say {text} --out {out} --voice {voice} --ref {reference}",
+    "cues": [
+     {
+      "start": 0.5,
+      "end": null,
+      "text": "The river runs north."
+     },
+     {
+      "start": 0.6,
+      "end": 0.9,
+      "text": "It turns east. Then south."
+     },
+     {
+      "start": 4,
+      "end": 4.02,
+      "text": "Done."
+     }
+    ]
+   },
+   "tts": {},
+   "ready": false,
+   "why": "needs an NVIDIA GPU with 8 GB of memory (none found)",
+   "hear": [
+    {
+     "words": [
+      {
+       "text": "The",
+       "start": 0,
+       "end": 0.4
+      },
+      {
+       "text": "river",
+       "start": 0.5,
+       "end": 0.9
+      },
+      {
+       "text": "runs",
+       "start": 1,
+       "end": 1.4
+      },
+      {
+       "text": "north.",
+       "start": 1.5,
+       "end": 1.9
+      },
+      {
+       "text": "It",
+       "start": 2,
+       "end": 2.4
+      },
+      {
+       "text": "turns",
+       "start": 2.5,
+       "end": 2.9
+      },
+      {
+       "text": "east.",
+       "start": 3,
+       "end": 3.4
+      },
+      {
+       "text": "Then",
+       "start": 3.5,
+       "end": 3.9
+      },
+      {
+       "text": "south.",
+       "start": 4,
+       "end": 4.4
+      },
+      {
+       "text": "Done.",
+       "start": 4.5,
+       "end": 4.9
+      }
+     ],
+     "looped": false
+    }
+   ],
+   "resampled": false,
+   "calls": [
+    {
+     "text": "The river runs north.",
+     "voice": null,
+     "speed": null,
+     "rate": 48000,
+     "n": 7200,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 7200,
+       "amp": 0.00002,
+       "seed": 11
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 6720,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    },
+    {
+     "text": "It turns east.",
+     "voice": null,
+     "speed": null,
+     "rate": 48000,
+     "n": 6000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 6000,
+       "amp": 0.00002,
+       "seed": 12
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 5520,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    },
+    {
+     "text": "Then south.",
+     "voice": null,
+     "speed": null,
+     "rate": 48000,
+     "n": 4800,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 4800,
+       "amp": 0.00002,
+       "seed": 13
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 4320,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    },
+    {
+     "text": "Done.",
+     "voice": null,
+     "speed": null,
+     "rate": 48000,
+     "n": 3600,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 3600,
+       "amp": 0.00002,
+       "seed": 14
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 3120,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    }
+   ],
+   "commands": [
+    {
+     "template": "tts --say {text} --out {out} --voice {voice} --ref {reference}",
+     "voice": "",
+     "reference": "",
+     "oneCall": false
+    }
+   ],
+   "voxcpm": null,
+   "messages": [
+    "tts command: 1/4 phrases",
+    "tts command: 2/4 phrases",
+    "tts command: 3/4 phrases",
+    "tts command: 4/4 phrases"
+   ],
+   "heard": [
+    {
+     "model": "default",
+     "language": null,
+     "samples": "a946ff29"
+    }
+   ],
+   "out": {
+    "length": 195600,
+    "pcm": "29952aa4"
+   },
+   "error": null,
+   "result": "{\"duration\":4.075,\"phrases\":[{\"text\":\"The river runs north.\",\"start\":0.5,\"end\":0.65},{\"text\":\"It turns east.\",\"start\":0.9,\"end\":1.025},{\"text\":\"Then south.\",\"start\":1.325,\"end\":1.425},{\"text\":\"Done.\",\"start\":4,\"end\":4.075}],\"engine\":\"command: tts --say {text} --out {out} --voice {voice} --ref {reference}\",\"checks\":[{\"at\":0,\"text\":\"The river runs north. It turns east. Then south. Done.\",\"ok\":true,\"heard\":\"The river runs north. It turns east. Then south. Done.\",\"why\":\"\",\"doubt\":[],\"pauses\":[]}],\"problems\":[],\"timing\":[\"line 2 (\\\"It turns east. Then south.\\\") starts at 0.90s, 0.30s after its 0.6s mark: the line before runs long.\",\"line 3 (\\\"Done.\\\") runs 0.06s past its slot (4-4.02s): shorten it, or give it more time.\"]}"
+  },
+  {
+   "name": "timed lines with a one-call command from the config",
+   "script": "The river runs north.\nIt turns east.",
+   "opts": {
+    "reroll": [],
+    "cues": [
+     {
+      "start": 0,
+      "end": null,
+      "text": "The river runs north."
+     },
+     {
+      "start": 3,
+      "end": null,
+      "text": "It turns east."
+     }
+    ]
+   },
+   "tts": {
+    "command": "tts --say {text} --out {out} --voice {voice} --ref {reference}",
+    "oneCall": true,
+    "reference": "conf.wav"
+   },
+   "ready": false,
+   "why": "needs an NVIDIA GPU with 8 GB of memory (none found)",
+   "hear": [
+    {
+     "words": [
+      {
+       "text": "The",
+       "start": 0,
+       "end": 0.4
+      },
+      {
+       "text": "river",
+       "start": 0.5,
+       "end": 0.9
+      },
+      {
+       "text": "runs",
+       "start": 1,
+       "end": 1.4
+      },
+      {
+       "text": "north.",
+       "start": 1.5,
+       "end": 1.9
+      },
+      {
+       "text": "It",
+       "start": 2,
+       "end": 2.4
+      },
+      {
+       "text": "turns",
+       "start": 2.5,
+       "end": 2.9
+      },
+      {
+       "text": "east.",
+       "start": 3,
+       "end": 3.4
+      }
+     ],
+     "looped": false
+    }
+   ],
+   "resampled": false,
+   "calls": [
+    {
+     "text": "The river runs north. It turns east.",
+     "voice": null,
+     "speed": null,
+     "rate": 48000,
+     "n": 10800,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 10800,
+       "amp": 0.00002,
+       "seed": 11
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 10320,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    }
+   ],
+   "commands": [
+    {
+     "template": "tts --say {text} --out {out} --voice {voice} --ref {reference}",
+     "voice": "",
+     "reference": "conf.wav",
+     "oneCall": true
+    }
+   ],
+   "voxcpm": null,
+   "messages": [],
+   "heard": [
+    {
+     "model": "default",
+     "language": null,
+     "samples": "1facbb13"
+    }
+   ],
+   "out": {
+    "length": 10800,
+    "pcm": "68f559a4"
+   },
+   "error": null,
+   "result": "{\"duration\":0.225,\"engine\":\"command: tts --say {text} --out {out} --voice {voice} --ref {reference}\",\"checks\":[{\"at\":0,\"text\":\"The river runs north. It turns east.\",\"ok\":true,\"heard\":\"The river runs north. It turns east.\",\"why\":\"\",\"doubt\":[],\"pauses\":[]}],\"problems\":[\"This engine speaks the script in one piece, so its lines cannot be placed at their times. Run the command without --one-call, or use Kokoro, VoxCPM2 or --model.\"]}"
+  },
+  {
+   "name": "timed lines stretched at 0.8",
+   "script": "The river runs north.\nIt turns east.",
+   "opts": {
+    "reroll": [],
+    "command": "tts --say {text} --out {out} --voice {voice} --ref {reference}",
+    "speed": 0.8,
+    "cues": [
+     {
+      "start": 0,
+      "end": null,
+      "text": "The river runs north."
+     },
+     {
+      "start": 2.5,
+      "end": null,
+      "text": "It turns east."
+     }
+    ]
+   },
+   "tts": {},
+   "ready": false,
+   "why": "needs an NVIDIA GPU with 8 GB of memory (none found)",
+   "hear": [
+    {
+     "words": [
+      {
+       "text": "The",
+       "start": 0,
+       "end": 0.4
+      },
+      {
+       "text": "river",
+       "start": 0.5,
+       "end": 0.9
+      },
+      {
+       "text": "runs",
+       "start": 1,
+       "end": 1.4
+      },
+      {
+       "text": "north.",
+       "start": 1.5,
+       "end": 1.9
+      },
+      {
+       "text": "It",
+       "start": 2,
+       "end": 2.4
+      },
+      {
+       "text": "turns",
+       "start": 2.5,
+       "end": 2.9
+      },
+      {
+       "text": "east.",
+       "start": 3,
+       "end": 3.4
+      }
+     ],
+     "looped": false
+    }
+   ],
+   "resampled": false,
+   "calls": [
+    {
+     "text": "The river runs north.",
+     "voice": null,
+     "speed": null,
+     "rate": 48000,
+     "n": 7200,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 7200,
+       "amp": 0.00002,
+       "seed": 11
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 6720,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    },
+    {
+     "text": "It turns east.",
+     "voice": null,
+     "speed": null,
+     "rate": 48000,
+     "n": 6000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 6000,
+       "amp": 0.00002,
+       "seed": 12
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 5520,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    }
+   ],
+   "commands": [
+    {
+     "template": "tts --say {text} --out {out} --voice {voice} --ref {reference}",
+     "voice": "",
+     "reference": "",
+     "oneCall": false
+    }
+   ],
+   "voxcpm": null,
+   "messages": [
+    "tts command: 1/2 phrases",
+    "tts command: 2/2 phrases"
+   ],
+   "heard": [
+    {
+     "model": "default",
+     "language": null,
+     "samples": "2ab2c326"
+    }
+   ],
+   "out": {
+    "length": 127429,
+    "pcm": "b56ee411"
+   },
+   "error": null,
+   "result": "{\"duration\":2.6547708333333335,\"phrases\":[{\"text\":\"The river runs north.\",\"start\":0,\"end\":0.187},{\"text\":\"It turns east.\",\"start\":2.5,\"end\":2.656}],\"engine\":\"command: tts --say {text} --out {out} --voice {voice} --ref {reference}\",\"checks\":[{\"at\":0,\"text\":\"The river runs north. It turns east.\",\"ok\":true,\"heard\":\"The river runs north. It turns east.\",\"why\":\"\",\"doubt\":[],\"pauses\":[]}],\"problems\":[],\"timing\":[]}"
+  },
+  {
+   "name": "timed lines with VoxCPM2, a line apiece",
+   "script": "[sigh] One here. Two there.\nLast line.",
+   "opts": {
+    "reroll": [],
+    "engine": "voxcpm",
+    "voice": "(bright)",
+    "cues": [
+     {
+      "start": 0,
+      "end": null,
+      "text": "[sigh] One here. Two there."
+     },
+     {
+      "start": 3,
+      "end": null,
+      "text": "Last line."
+     }
+    ]
+   },
+   "tts": {},
+   "ready": true,
+   "why": "",
+   "hear": [],
+   "resampled": false,
+   "calls": [],
+   "commands": [],
+   "voxcpm": {
+    "script": "[sigh] One here. Two there.\nLast line.",
+    "opts": {
+     "voice": "(bright)",
+     "reference": "",
+     "style": "",
+     "hifi": false,
+     "cfg": 1.6,
+     "steps": 16,
+     "device": null,
+     "seed": null,
+     "configSeed": null,
+     "language": null,
+     "reroll": [],
+     "lines": true
+    },
+    "n": 96000,
+    "ops": [
+     {
+      "kind": "noise",
+      "start": 0,
+      "len": 96000,
+      "amp": 0.00002,
+      "seed": 31
+     },
+     {
+      "kind": "tone",
+      "hz": "200",
+      "start": 0,
+      "len": 24000,
+      "amp": 0.3,
+      "attack": 240,
+      "release": 240
+     },
+     {
+      "kind": "tone",
+      "hz": "200",
+      "start": 48000,
+      "len": 24000,
+      "amp": 0.3,
+      "attack": 240,
+      "release": 240
+     }
+    ],
+    "result": "{\"duration\":2,\"phrases\":[{\"text\":\"One here. Two there.\",\"start\":0,\"end\":0.5},{\"text\":\"Last line.\",\"start\":1,\"end\":1.5}],\"voiceFile\":\"<dir>/out.voice.wav\",\"checks\":[{\"at\":0,\"text\":\"One here. Two there.\",\"ok\":true,\"heard\":\"[sigh] One here. Two there.\",\"why\":\"\",\"seed\":7,\"doubt\":[],\"heat\":0,\"pauses\":[],\"clicks\":[]},{\"at\":1,\"text\":\"Last line.\",\"ok\":true,\"heard\":\"Last line.\",\"why\":\"\",\"seed\":7,\"doubt\":[],\"heat\":0,\"pauses\":[],\"clicks\":[]}],\"problems\":[]}"
+   },
+   "messages": [],
+   "heard": [],
+   "out": {
+    "length": 168000,
+    "pcm": "045be840"
+   },
+   "error": null,
+   "result": "{\"duration\":3.5,\"phrases\":[{\"text\":\"One here. Two there.\",\"start\":0,\"end\":0.5},{\"text\":\"Last line.\",\"start\":3,\"end\":3.5}],\"voiceFile\":\"<dir>/out.voice.wav\",\"checks\":[{\"at\":0,\"text\":\"One here. Two there.\",\"ok\":true,\"heard\":\"[sigh] One here. Two there.\",\"why\":\"\",\"seed\":7,\"doubt\":[],\"heat\":0,\"pauses\":[],\"clicks\":[]},{\"at\":1,\"text\":\"Last line.\",\"ok\":true,\"heard\":\"Last line.\",\"why\":\"\",\"seed\":7,\"doubt\":[],\"heat\":0,\"pauses\":[],\"clicks\":[]}],\"problems\":[],\"engine\":\"VoxCPM2 (bright)\",\"timing\":[]}"
+  },
+  {
+   "name": "timed lines with Kokoro, tags stripped from the lines",
+   "script": "[laughing] The river runs north.\nIt turns east.",
+   "opts": {
+    "reroll": [],
+    "engine": "kokoro",
+    "cues": [
+     {
+      "start": 0.25,
+      "end": null,
+      "text": "[laughing] The river runs north."
+     },
+     {
+      "start": 3,
+      "end": null,
+      "text": "It turns east."
+     }
+    ]
+   },
+   "tts": {},
+   "ready": false,
+   "why": "needs an NVIDIA GPU with 8 GB of memory (none found)",
+   "hear": [
+    {
+     "words": [
+      {
+       "text": "The",
+       "start": 0,
+       "end": 0.4
+      },
+      {
+       "text": "river",
+       "start": 0.5,
+       "end": 0.9
+      },
+      {
+       "text": "runs",
+       "start": 1,
+       "end": 1.4
+      },
+      {
+       "text": "north.",
+       "start": 1.5,
+       "end": 1.9
+      },
+      {
+       "text": "It",
+       "start": 2,
+       "end": 2.4
+      },
+      {
+       "text": "turns",
+       "start": 2.5,
+       "end": 2.9
+      },
+      {
+       "text": "east.",
+       "start": 3,
+       "end": 3.4
+      }
+     ],
+     "looped": false
+    }
+   ],
+   "resampled": true,
+   "calls": [
+    {
+     "text": "The river runs north.",
+     "voice": "af_heart",
+     "speed": 1,
+     "rate": 24000,
+     "n": 7200,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 7200,
+       "amp": 0.00002,
+       "seed": 11
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 6720,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    },
+    {
+     "text": "It turns east.",
+     "voice": "af_heart",
+     "speed": 1,
+     "rate": 24000,
+     "n": 6000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 6000,
+       "amp": 0.00002,
+       "seed": 12
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 240,
+       "len": 5520,
+       "amp": 0.3,
+       "attack": 240,
+       "release": 240
+      }
+     ]
+    }
+   ],
+   "commands": [],
+   "voxcpm": null,
+   "messages": [
+    "speak: only VoxCPM2 voices tags like [laughing] or [sigh]. This engine speaks the script without them."
+   ],
+   "heard": [
+    {
+     "model": "default",
+     "language": null,
+     "samples": "45b93b26"
+    }
+   ],
+   "out": {
+    "length": 156000,
+    "pcm": "097dca7c"
+   },
+   "error": null,
+   "result": "{\"duration\":3.25,\"phrases\":[{\"text\":\"The river runs north.\",\"start\":0.25,\"end\":0.55},{\"text\":\"It turns east.\",\"start\":3,\"end\":3.25}],\"engine\":\"Kokoro (af_heart)\",\"checks\":[{\"at\":0,\"text\":\"The river runs north. It turns east.\",\"ok\":true,\"heard\":\"The river runs north. It turns east.\",\"why\":\"\",\"doubt\":[],\"pauses\":[]}],\"problems\":[],\"timing\":[]}"
+  },
+  {
+   "name": "an engine the skill does not run",
+   "script": "Hello there.",
+   "opts": {
+    "reroll": [],
+    "engine": "piper"
+   },
+   "tts": {},
+   "ready": false,
+   "why": "needs an NVIDIA GPU with 8 GB of memory (none found)",
+   "hear": [],
+   "resampled": false,
+   "calls": [],
+   "commands": [],
+   "voxcpm": null,
+   "messages": [],
+   "heard": [],
+   "out": null,
+   "error": "speak --engine \"piper\": use kokoro or voxcpm, or --model / --command for other engines.",
+   "result": null
+  },
+  {
+   "name": "a speed out of range",
+   "script": "Hello there.",
+   "opts": {
+    "reroll": [],
+    "command": "tts --say {text} --out {out} --voice {voice} --ref {reference}",
+    "speed": 2.5
+   },
+   "tts": {},
+   "ready": false,
+   "why": "needs an NVIDIA GPU with 8 GB of memory (none found)",
+   "hear": [],
+   "resampled": false,
+   "calls": [],
+   "commands": [],
+   "voxcpm": null,
+   "messages": [],
+   "heard": [],
+   "out": null,
+   "error": "speak --speed 2.5: use 0.5 to 2 (0.9 is 10% slower).",
+   "result": null
+  }
+ ]
+}

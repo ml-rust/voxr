@@ -21,7 +21,7 @@ fn is_question(text: &str) -> bool {
 /// A part's hottest sentence.
 #[derive(Debug, Clone, PartialEq)]
 pub struct PartHeat {
-    /// The highest [`heat`] of the part's sentences, questions aside, to 2
+    /// The highest [`heat()`] of the part's sentences, questions aside, to 2
     /// decimals. 0 when no sentence reads over 0.
     pub heat: f64,
     /// That sentence's script text. `None` when no sentence reads over 0.

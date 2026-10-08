@@ -88,7 +88,7 @@ pub struct DesignedVoice {
     /// The opening, as the script writes it.
     pub opening: String,
     /// The words the reference says: the opening after
-    /// [`say`](crate::text::say). Hi-Fi cloning clones with it.
+    /// [`say`]. Hi-Fi cloning clones with it.
     pub transcript: String,
     /// The design as first spoken, repaired: the `.design.wav` copy.
     pub design: Vec<f32>,

@@ -1,54 +1,17 @@
 //! The engine, model, voice and speed resolution at the top of the
-//! skill's `speak()`, ported as a pure function: the config fallbacks, the
+//! skill's `speak()` as a pure function: the config fallbacks, the
 //! invalid `--engine` and `--speed` errors, and the tag-strip notice
-//! decision. [`super::engine_choice::default_engine`] is the piece that
-//! picks an engine when none is named.
+//! decision, and whether the speed is a time-stretch.
+//! [`super::engine_choice::default_engine`] is the piece that picks an
+//! engine when none is named.
 
 use super::engine_choice::{
     DEFAULT_VOICE, DefaultEngineOpts, Engine, KOKORO_MODEL, default_engine, truthy,
 };
+use super::place::CueUnits;
+use super::speak_opts::{SpeakOpts, TtsConfig};
 use crate::error::{Error, Result};
 use crate::pattern::Patterns;
-
-/// A run's own choices, before config fallback. `stretched` and `lines`
-/// gate only whether a stripped-tags notice logs; they change nothing else
-/// here.
-#[derive(Debug, Clone, Copy, Default)]
-pub struct SpeakOpts<'a> {
-    /// `--engine`.
-    pub engine: Option<&'a str>,
-    /// `--command`.
-    pub command: Option<&'a str>,
-    /// `--model`.
-    pub model: Option<&'a str>,
-    /// `--voice`.
-    pub voice: Option<&'a str>,
-    /// A recording to clone.
-    pub reference: Option<&'a str>,
-    /// The script's language.
-    pub language: Option<&'a str>,
-    /// `--speed`.
-    pub speed: Option<f64>,
-    /// This call is a recursive one already stretched for speed.
-    pub stretched: bool,
-    /// The script is a timed one, split into lines.
-    pub lines: bool,
-}
-
-/// The `"tts"` block of the user's config, read once per run.
-#[derive(Debug, Clone, Copy, Default)]
-pub struct TtsConfig<'a> {
-    /// A configured engine.
-    pub engine: Option<&'a str>,
-    /// A configured command template.
-    pub command: Option<&'a str>,
-    /// A configured model.
-    pub model: Option<&'a str>,
-    /// A configured voice.
-    pub voice: Option<&'a str>,
-    /// A configured speed.
-    pub speed: Option<f64>,
-}
 
 /// The engine and its own settings [`resolve_speak`] ends up with.
 #[derive(Debug, Clone, PartialEq)]
@@ -62,6 +25,10 @@ pub enum EngineChoice {
     Command {
         /// The command template, with its `{text}`/`{out}`/… placeholders.
         command: String,
+        /// The command's `{voice}`: `opts.voice ?? tts.voice ?? ''`.
+        voice: String,
+        /// The command's `{reference}`: `opts.reference ?? tts.reference ?? ''`.
+        reference: String,
     },
     /// Kokoro-82M, through `kokoro-js`.
     Kokoro {
@@ -92,6 +59,36 @@ pub struct SpeakResolution {
     /// [`strip_tags`](Self::strip_tags) is set, and this is not a
     /// recursive stretched or per-line call: the skill logs a notice.
     pub log_tag_notice: bool,
+    /// The skill's `kokoroEngine`: Kokoro sets its own speed, so the track
+    /// is never time-stretched. Set for `--engine kokoro` even when a
+    /// `--command` speaks instead.
+    pub kokoro_engine: bool,
+}
+
+impl SpeakResolution {
+    /// The engine is VoxCPM2, which is never time-stretched and speaks a
+    /// timed script's lines apart.
+    pub fn voxcpm(&self) -> bool {
+        matches!(self.engine, EngineChoice::Voxcpm { .. })
+    }
+
+    /// The run speaks at speed 1 and is time-stretched to
+    /// [`speed`](Self::speed) after: the speed is not 1, the run is not
+    /// already a stretched one, and the engine is neither VoxCPM2 nor
+    /// Kokoro.
+    pub fn stretches(&self, stretched: bool) -> bool {
+        self.speed != 1.0 && !stretched && !self.voxcpm() && !self.kokoro_engine
+    }
+
+    /// How a timed script's line counts its spoken spans: one per line for
+    /// VoxCPM2, one per phrase for every other engine.
+    pub fn units(&self) -> CueUnits {
+        if self.voxcpm() {
+            CueUnits::Lines
+        } else {
+            CueUnits::Phrases
+        }
+    }
 }
 
 /// `opts.engine ?? (opts.command || opts.model ? null : tts.engine)`: the
@@ -112,9 +109,8 @@ fn effective_engine<'a>(
 }
 
 /// The engine, speed and tag decision `speak()` resolves before it makes
-/// any audio, minus the branches that run an engine or recurse to
-/// time-stretch or place timed cues (those stay with the take loop; this
-/// only decides which one to run).
+/// any audio. [`speak_script`](super::speak_script) runs the branch it
+/// picks: the engine, the time-stretch, or the timed placement.
 pub fn resolve_speak(
     script: &str,
     opts: &SpeakOpts<'_>,
@@ -193,9 +189,11 @@ pub fn resolve_speak(
             .or(tts.voice)
             .unwrap_or(DEFAULT_VOICE)
             .to_string();
-        if let Some(cmd) = cmd {
+        if let Some(cmd) = cmd.filter(|c| !c.is_empty()) {
             EngineChoice::Command {
                 command: cmd.to_string(),
+                voice: opts.voice.or(tts.voice).unwrap_or("").to_string(),
+                reference: opts.reference.or(tts.reference).unwrap_or("").to_string(),
             }
         } else if model.to_lowercase().contains("kokoro") {
             EngineChoice::Kokoro { model, voice }
@@ -203,11 +201,14 @@ pub fn resolve_speak(
             EngineChoice::Model { model }
         }
     };
+    let kokoro_engine =
+        effective == Some("kokoro") || matches!(choice, EngineChoice::Kokoro { .. });
     Ok(SpeakResolution {
         engine: choice,
         speed,
         strip_tags,
         log_tag_notice,
+        kokoro_engine,
     })
 }
 
@@ -283,7 +284,9 @@ mod tests {
         assert_eq!(
             r.engine,
             EngineChoice::Command {
-                command: "piper --out {out} --text {text}".to_string()
+                command: "piper --out {out} --text {text}".to_string(),
+                voice: String::new(),
+                reference: String::new(),
             }
         );
         Ok(())
@@ -376,6 +379,27 @@ mod tests {
             "",
         )?;
         assert!(matches!(r.engine, EngineChoice::Kokoro { .. }));
+        Ok(())
+    }
+
+    #[test]
+    fn an_empty_command_is_no_command_and_engine_kokoro_never_stretches() -> Result<()> {
+        let o = SpeakOpts {
+            command: Some(""),
+            speed: Some(0.8),
+            ..SpeakOpts::default()
+        };
+        let r = resolve_speak("Hello.", &o, &TtsConfig::default(), false, "")?;
+        assert!(matches!(r.engine, EngineChoice::Kokoro { .. }));
+        let o = SpeakOpts {
+            engine: Some("kokoro"),
+            command: Some("tts {text} {out}"),
+            speed: Some(0.8),
+            ..SpeakOpts::default()
+        };
+        let r = resolve_speak("Hello.", &o, &TtsConfig::default(), false, "")?;
+        assert!(matches!(r.engine, EngineChoice::Command { .. }));
+        assert!(r.kokoro_engine && !r.stretches(false));
         Ok(())
     }
 }

@@ -78,6 +78,9 @@ pub struct VoxcpmSetup<'a> {
     /// The VoxCPM2 checkpoint on disk. `None` when the model downloads
     /// first; cache keys then fall back to [`VOXCPM`](super::cache::VOXCPM).
     pub checkpoint: Option<&'a str>,
+    /// The device asked for, such as `cpu`. The caller's engine runs on it.
+    /// Set, it lets VoxCPM2 run on a machine where it is not ready.
+    pub device: Option<&'a str>,
 }
 
 /// A finished VoxCPM2 run.

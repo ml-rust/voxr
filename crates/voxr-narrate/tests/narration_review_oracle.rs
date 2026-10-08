@@ -180,6 +180,7 @@ fn speak_opts(input: &Value) -> SpeakOpts<'_> {
         speed: case_speed(opts),
         stretched: opts["stretched"].as_bool().unwrap_or(false),
         lines: opts["lines"].as_bool().unwrap_or(false),
+        ..SpeakOpts::default()
     }
 }
 
@@ -191,6 +192,7 @@ fn tts_config(input: &Value) -> TtsConfig<'_> {
         model: text(tts, "model"),
         voice: text(tts, "voice"),
         speed: tts["speed"].as_f64(),
+        ..TtsConfig::default()
     }
 }
 
@@ -247,7 +249,7 @@ fn check_resolve_case(case: &Value) {
                 assert_eq!(want["branch"], "voxcpm", "case {case}");
                 assert_eq!(Some(voice.as_str()), want["voice"].as_str(), "case {case}");
             }
-            EngineChoice::Command { command } => {
+            EngineChoice::Command { command, .. } => {
                 assert_eq!(want["branch"], "command", "case {case}");
                 assert_eq!(
                     Some(command.as_str()),

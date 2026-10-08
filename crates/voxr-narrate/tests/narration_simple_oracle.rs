@@ -294,8 +294,7 @@ fn check_case(fixture: &Fixture, case: &Case) -> Result<()> {
             reference: o.reference.as_deref(),
             language: o.language.as_deref(),
             speed: o.speed,
-            stretched: false,
-            lines: false,
+            ..SpeakOpts::default()
         },
         &TtsConfig::default(),
         false,
@@ -322,7 +321,7 @@ fn check_case(fixture: &Fixture, case: &Case) -> Result<()> {
     };
     let voices: Vec<&str> = fixture.voices.iter().map(String::as_str).collect();
     let (result, made) = match &resolved.engine {
-        EngineChoice::Command { command } => {
+        EngineChoice::Command { command, .. } => {
             let made = Cell::new(0);
             let mut engine = command_engine(case, command, &work, &made);
             let result = speak_phrases(&case.script, &setup, &mut engine, &mut hearing);

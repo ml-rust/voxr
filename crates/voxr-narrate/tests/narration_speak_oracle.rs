@@ -268,6 +268,7 @@ fn run_one(fixture: &Fixture, scenario: &Scenario, root: &Path, run: &Run) -> Re
         rerolls: &run.reroll,
         lines: false,
         checkpoint: Some(fixture.checkpoint.as_str()),
+        device: None,
     };
     let mut engine = Engine {
         scenario,
