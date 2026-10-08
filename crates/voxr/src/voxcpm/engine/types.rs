@@ -8,6 +8,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::mpsc::Sender;
 use std::thread::JoinHandle;
 
+use crate::voxcpm::tokenizer::VoxCpm2Tokenizer;
 use numr::dtype::DType;
 use numr::ops::{
     ActivationOps, BinaryOps, CompareOps, ConditionalOps, HostCopyOps, IndexingOps, RandomOps,
@@ -15,7 +16,6 @@ use numr::ops::{
 };
 use numr::runtime::Runtime;
 use numr::tensor::Tensor;
-use splintr::AnyTokenizer;
 
 use boostr::model::audio::voxcpm::VoxCpmClient;
 use boostr::model::audio::voxcpm::model::{LoraAdapterReport, VoxCpm2Model};
@@ -111,7 +111,7 @@ pub(super) struct EncodedVoice<R: Runtime> {
 pub(super) struct EngineInner<R: Runtime<DType = DType>> {
     pub(super) model: VoxCpm2Model<R>,
     pub(super) client: Arc<R::Client>,
-    pub(super) tokenizer: AnyTokenizer,
+    pub(super) tokenizer: VoxCpm2Tokenizer,
     pub(super) voices: BTreeMap<String, EncodedVoice<R>>,
     pub(super) options: VoxCpm2SynthOptions,
     pub(super) adapter: Option<LoraAdapterReport>,

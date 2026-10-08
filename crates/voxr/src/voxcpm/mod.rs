@@ -12,4 +12,6 @@ pub use engine::{
     VoiceSource, VoxCpm2Engine, VoxCpm2RenderClient, ZERO_SHOT_VOICE_ID,
 };
 pub use options::{VoxCpm2LoadOptions, VoxCpm2SynthOptions};
-pub use tokenizer::{load_tokenizer, normalize_whitespace, paren, tokenize};
+pub use tokenizer::{
+    VoxCpm2Tokenizer, is_blank, load_tokenizer, normalize_whitespace, paren, request_ids, tokenize,
+};

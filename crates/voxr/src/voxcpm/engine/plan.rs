@@ -27,7 +27,7 @@ use crate::voxcpm::engine::request::{Badcase, PromptSource, SynthRequest, VoiceS
 use crate::voxcpm::engine::types::{
     MAX_LEN_CAP, VoxCpm2Engine, VoxCpm2RenderClient, ZERO_SHOT_VOICE_ID,
 };
-use crate::voxcpm::tokenizer::{normalize_whitespace, tokenize};
+use crate::voxcpm::tokenizer::{is_blank, request_ids};
 
 /// A request's continuation prompt, checked against this engine.
 struct ResolvedPrompt<'a, R: Runtime> {
@@ -59,27 +59,17 @@ where
             .prompt
             .map(|prompt| self.resolve_prompt(prompt))
             .transpose()?;
-        let target = normalize_whitespace(request.text);
-        if target.is_empty() {
+        if is_blank(request.text) {
             return Err(Error::InvalidArgument {
                 arg: "text",
                 reason: "input text must not be empty".into(),
             });
         }
-        let tokenizer = &self.inner.tokenizer;
-        let (mut text_token_ids, target_len) = match &prompt {
-            None => {
-                let ids = tokenize(tokenizer, &target);
-                let len = ids.len();
-                (ids, len)
-            }
-            // The reference implementation normalizes the request text only;
-            // the transcript joins it unchanged.
-            Some(prompt) => (
-                tokenizer.encode_raw(&format!("{}{target}", prompt.text)),
-                tokenize(tokenizer, &target).len(),
-            ),
-        };
+        let (mut text_token_ids, target_len) = request_ids(
+            &self.inner.tokenizer,
+            request.text,
+            prompt.as_ref().map(|prompt| prompt.text),
+        );
         text_token_ids.push(AUDIO_START_ID);
 
         // Upstream's budget: `int(tokens * ratio + 10)` patches, capped. A
@@ -176,7 +166,7 @@ where
                     .into(),
             });
         }
-        if normalize_whitespace(prompt.text).is_empty() {
+        if is_blank(prompt.text) {
             return Err(Error::InvalidArgument {
                 arg: "prompt_text",
                 reason: format!(

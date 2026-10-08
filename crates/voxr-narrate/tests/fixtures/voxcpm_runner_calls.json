@@ -1,0 +1,378 @@
+[
+ {
+  "name": "design with a description",
+  "calls": [
+   {
+    "request": {
+     "text": "The opening words of the script.",
+     "seed": 7,
+     "delivery": null,
+     "style": null,
+     "voice": "A calm male narrator",
+     "prompt_text": null,
+     "anchored": false
+    },
+    "seed": 7,
+    "generate": {
+     "cfg_value": 2.0,
+     "inference_timesteps": 10,
+     "text": "(A calm male narrator)The opening words of the script."
+    }
+   }
+  ]
+ },
+ {
+  "name": "design with a wrapped description, then clones",
+  "calls": [
+   {
+    "request": {
+     "text": "The opening words.",
+     "seed": 7,
+     "delivery": null,
+     "style": "relaxed",
+     "voice": " (warm, low) ",
+     "prompt_text": null,
+     "anchored": false
+    },
+    "seed": 7,
+    "generate": {
+     "cfg_value": 2.0,
+     "inference_timesteps": 10,
+     "text": "(warm, low)The opening words."
+    }
+   },
+   {
+    "request": {
+     "text": "A second part.",
+     "seed": 8,
+     "delivery": null,
+     "style": "relaxed",
+     "voice": " (warm, low) ",
+     "prompt_text": null,
+     "anchored": true
+    },
+    "seed": 8,
+    "generate": {
+     "cfg_value": 2.0,
+     "inference_timesteps": 10,
+     "reference_wav_path": "<anchor>",
+     "text": "(relaxed)A second part."
+    }
+   },
+   {
+    "request": {
+     "text": "A question?",
+     "seed": 9,
+     "delivery": "(asking)",
+     "style": "relaxed",
+     "voice": " (warm, low) ",
+     "prompt_text": null,
+     "anchored": true
+    },
+    "seed": 9,
+    "generate": {
+     "cfg_value": 2.0,
+     "inference_timesteps": 10,
+     "reference_wav_path": "<anchor>",
+     "text": "(asking)A question?"
+    }
+   }
+  ]
+ },
+ {
+  "name": "design without a description",
+  "calls": [
+   {
+    "request": {
+     "text": "The model picks its own voice.",
+     "seed": 11,
+     "delivery": null,
+     "style": null,
+     "voice": null,
+     "prompt_text": null,
+     "anchored": false
+    },
+    "seed": 11,
+    "generate": {
+     "cfg_value": 2.0,
+     "inference_timesteps": 10,
+     "text": "The model picks its own voice."
+    }
+   }
+  ]
+ },
+ {
+  "name": "design without a description, with a style",
+  "calls": [
+   {
+    "request": {
+     "text": "The style waits for the clones.",
+     "seed": 12,
+     "delivery": "(asking)",
+     "style": "relaxed",
+     "voice": null,
+     "prompt_text": null,
+     "anchored": false
+    },
+    "seed": 12,
+    "generate": {
+     "cfg_value": 2.0,
+     "inference_timesteps": 10,
+     "text": "The style waits for the clones."
+    }
+   },
+   {
+    "request": {
+     "text": "Now it applies.",
+     "seed": 13,
+     "delivery": null,
+     "style": "relaxed",
+     "voice": null,
+     "prompt_text": null,
+     "anchored": true
+    },
+    "seed": 13,
+    "generate": {
+     "cfg_value": 2.0,
+     "inference_timesteps": 10,
+     "reference_wav_path": "<anchor>",
+     "text": "(relaxed)Now it applies."
+    }
+   }
+  ]
+ },
+ {
+  "name": "reference spoken again slower",
+  "calls": [
+   {
+    "request": {
+     "text": "The opening words.",
+     "seed": 8,
+     "delivery": "(calm, natural tone, speaking slowly)",
+     "style": null,
+     "voice": null,
+     "prompt_text": null,
+     "anchored": true
+    },
+    "seed": 8,
+    "generate": {
+     "cfg_value": 2.0,
+     "inference_timesteps": 10,
+     "reference_wav_path": "<reference>",
+     "text": "(calm, natural tone, speaking slowly)The opening words."
+    }
+   }
+  ]
+ },
+ {
+  "name": "clone with a style",
+  "calls": [
+   {
+    "request": {
+     "text": "Plain part.",
+     "seed": 100,
+     "delivery": null,
+     "style": "relaxed, explaining",
+     "voice": null,
+     "prompt_text": null,
+     "anchored": true
+    },
+    "seed": 100,
+    "generate": {
+     "cfg_value": 1.6,
+     "inference_timesteps": 16,
+     "reference_wav_path": "<reference>",
+     "text": "(relaxed, explaining)Plain part."
+    }
+   },
+   {
+    "request": {
+     "text": "Noted part.",
+     "seed": 101,
+     "delivery": "(asking)",
+     "style": "relaxed, explaining",
+     "voice": null,
+     "prompt_text": null,
+     "anchored": true
+    },
+    "seed": 101,
+    "generate": {
+     "cfg_value": 1.6,
+     "inference_timesteps": 16,
+     "reference_wav_path": "<reference>",
+     "text": "(asking)Noted part."
+    }
+   },
+   {
+    "request": {
+     "text": "Bare note.",
+     "seed": 102,
+     "delivery": " asking ",
+     "style": "relaxed, explaining",
+     "voice": null,
+     "prompt_text": null,
+     "anchored": true
+    },
+    "seed": 102,
+    "generate": {
+     "cfg_value": 1.6,
+     "inference_timesteps": 16,
+     "reference_wav_path": "<reference>",
+     "text": "( asking )Bare note."
+    }
+   },
+   {
+    "request": {
+     "text": "Empty note.",
+     "seed": 103,
+     "delivery": "",
+     "style": "relaxed, explaining",
+     "voice": null,
+     "prompt_text": null,
+     "anchored": true
+    },
+    "seed": 103,
+    "generate": {
+     "cfg_value": 1.6,
+     "inference_timesteps": 16,
+     "reference_wav_path": "<reference>",
+     "text": "(relaxed, explaining)Empty note."
+    }
+   }
+  ]
+ },
+ {
+  "name": "clone with a wrapped style",
+  "calls": [
+   {
+    "request": {
+     "text": "Calm part.",
+     "seed": 5,
+     "delivery": null,
+     "style": "  (calm)  ",
+     "voice": null,
+     "prompt_text": null,
+     "anchored": true
+    },
+    "seed": 5,
+    "generate": {
+     "cfg_value": 2.0,
+     "inference_timesteps": 10,
+     "reference_wav_path": "<reference>",
+     "text": "(calm)Calm part."
+    }
+   }
+  ]
+ },
+ {
+  "name": "clone without a style",
+  "calls": [
+   {
+    "request": {
+     "text": "No style at all.",
+     "seed": 6,
+     "delivery": null,
+     "style": null,
+     "voice": null,
+     "prompt_text": null,
+     "anchored": true
+    },
+    "seed": 6,
+    "generate": {
+     "cfg_value": 2.0,
+     "inference_timesteps": 10,
+     "reference_wav_path": "<reference>",
+     "text": "No style at all."
+    }
+   }
+  ]
+ },
+ {
+  "name": "hifi with a style",
+  "calls": [
+   {
+    "request": {
+     "text": "Hi-Fi part.",
+     "seed": 1007,
+     "delivery": null,
+     "style": "(relaxed)",
+     "voice": null,
+     "prompt_text": "The words the reference says.",
+     "anchored": true
+    },
+    "seed": 1007,
+    "generate": {
+     "cfg_value": 2.0,
+     "inference_timesteps": 10,
+     "prompt_text": "The words the reference says.",
+     "prompt_wav_path": "<reference>",
+     "reference_wav_path": "<reference>",
+     "text": "Hi-Fi part."
+    }
+   },
+   {
+    "request": {
+     "text": "Noted Hi-Fi part.",
+     "seed": 1008,
+     "delivery": "(asking)",
+     "style": "(relaxed)",
+     "voice": null,
+     "prompt_text": "The words the reference says.",
+     "anchored": true
+    },
+    "seed": 1008,
+    "generate": {
+     "cfg_value": 2.0,
+     "inference_timesteps": 10,
+     "reference_wav_path": "<reference>",
+     "text": "(asking)Noted Hi-Fi part."
+    }
+   },
+   {
+    "request": {
+     "text": "Empty-noted Hi-Fi part.",
+     "seed": 1009,
+     "delivery": "",
+     "style": "(relaxed)",
+     "voice": null,
+     "prompt_text": "The words the reference says.",
+     "anchored": true
+    },
+    "seed": 1009,
+    "generate": {
+     "cfg_value": 2.0,
+     "inference_timesteps": 10,
+     "prompt_text": "The words the reference says.",
+     "prompt_wav_path": "<reference>",
+     "reference_wav_path": "<reference>",
+     "text": "Empty-noted Hi-Fi part."
+    }
+   }
+  ]
+ },
+ {
+  "name": "hifi without a style",
+  "calls": [
+   {
+    "request": {
+     "text": "Only Hi-Fi.",
+     "seed": 3,
+     "delivery": null,
+     "style": null,
+     "voice": null,
+     "prompt_text": "Exact transcript.",
+     "anchored": true
+    },
+    "seed": 3,
+    "generate": {
+     "cfg_value": 2.0,
+     "inference_timesteps": 10,
+     "prompt_text": "Exact transcript.",
+     "prompt_wav_path": "<reference>",
+     "reference_wav_path": "<reference>",
+     "text": "Only Hi-Fi."
+    }
+   }
+  ]
+ }
+]

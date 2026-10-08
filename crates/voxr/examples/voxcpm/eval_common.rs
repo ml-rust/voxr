@@ -33,7 +33,7 @@ use numr::ops::{
 };
 use numr::runtime::Runtime;
 use numr::tensor::Tensor;
-use splintr::AnyTokenizer;
+use voxr::voxcpm::VoxCpm2Tokenizer;
 use voxr::voxcpm::{normalize_whitespace, tokenize};
 use voxr::{decode_audio, extension_hint, to_mono_at_rate};
 
@@ -292,7 +292,7 @@ pub fn load_wav_16k(path: &Path) -> Result<Vec<f32>, Box<dyn std::error::Error>>
 pub fn build_prefill_and_target<R, C>(
     model: &VoxCpm2Model<R>,
     client: &C,
-    tokenizer: &AnyTokenizer,
+    tokenizer: &VoxCpm2Tokenizer,
     row: &ManifestRow,
     max_patches: usize,
 ) -> Result<(PrefillState<R>, Tensor<R>), Box<dyn std::error::Error>>
@@ -375,7 +375,7 @@ pub struct EvalRow<'a, R: Runtime> {
 pub fn build_eval_batch<'a, R, C>(
     model: &VoxCpm2Model<R>,
     client: &C,
-    tokenizer: &AnyTokenizer,
+    tokenizer: &VoxCpm2Tokenizer,
     eval_source_rows: &[&'a ManifestRow],
     max_patches: usize,
 ) -> Result<Vec<EvalRow<'a, R>>, Box<dyn std::error::Error>>
@@ -438,7 +438,7 @@ pub fn score_eval_batch<R, C>(
     model: &VoxCpm2Model<R>,
     generator: &PatchGenerator<'_, R>,
     client: &C,
-    tokenizer: &AnyTokenizer,
+    tokenizer: &VoxCpm2Tokenizer,
     eval_batch: &[EvalRow<'_, R>],
     max_patches: usize,
     lambda_stop: f64,

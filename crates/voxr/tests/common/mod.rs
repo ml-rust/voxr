@@ -18,6 +18,15 @@ use serde::de::DeserializeOwned;
 #[cfg(feature = "voxcpm")]
 pub mod voxcpm;
 
+/// The skill-parity fixtures and agreement measures of
+/// `voxcpm_skill_parity`.
+#[cfg(feature = "voxcpm")]
+pub mod voxcpm_skill;
+
+/// The recording and decoder checks of `voxcpm_skill_parity`.
+#[cfg(feature = "voxcpm")]
+pub mod voxcpm_skill_checks;
+
 pub const RATE: u32 = 48_000;
 
 /// A deterministic pseudo-random hiss in `[-amp, amp]`.

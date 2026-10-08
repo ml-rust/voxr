@@ -35,8 +35,9 @@ fn runner_paren(note: &str) -> String {
 ///   the part's delivery through the runner's `paren`, unstripped, as
 ///   `paren(s.get('style', ''))` reads it. An empty delivery falls back to
 ///   the run's style, stripped first, as `paren(a.style.strip())` reads it.
-/// - The model's own voice speaks `paren(design.strip()) + text`. Without a
-///   design, the note prefixes the text as for a clone.
+/// - The model's own voice speaks `paren(design.strip()) + text`, the text
+///   alone without a design. A delivery note and the run's style never
+///   apply: the runner designs from `--voice` only.
 ///
 /// An empty delivery or transcript counts as none, as Python's truth test
 /// reads it.
@@ -54,10 +55,8 @@ pub fn voxcpm_text<'r, H>(request: &SpeakRequest<'r, H>) -> VoxcpmText<'r> {
             text: request.text.to_string(),
             hifi: Some(t),
         },
-        VoiceSource::Own {
-            design: Some(design),
-        } if !paren(design).is_empty() => VoxcpmText {
-            text: format!("{}{}", paren(design), request.text),
+        VoiceSource::Own { design } => VoxcpmText {
+            text: format!("{}{}", design.map_or_else(String::new, paren), request.text),
             hifi: None,
         },
         _ => VoxcpmText {
@@ -160,6 +159,10 @@ mod tests {
             ("(young woman, warm)Hello there.".to_string(), None)
         );
         let r = request(own(None), None, None);
+        assert_eq!(text(&r), ("Hello there.".to_string(), None));
+        let r = request(own(Some("warm")), Some("(asking)"), Some("(calm)"));
+        assert_eq!(text(&r), ("(warm)Hello there.".to_string(), None));
+        let r = request(own(None), Some("(asking)"), Some("(calm)"));
         assert_eq!(text(&r), ("Hello there.".to_string(), None));
         let r = request(VoiceSource::Named { name: "amir" }, None, Some("(calm)"));
         assert_eq!(text(&r), ("(calm)Hello there.".to_string(), None));

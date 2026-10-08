@@ -120,6 +120,10 @@ name = "adapters_voxcpm"
 required-features = ["whisper", "voxcpm"]
 
 [[test]]
+name = "voxcpm_runner_oracle"
+required-features = ["voxcpm"]
+
+[[test]]
 name = "adapters_hearing"
 required-features = ["whisper"]
 

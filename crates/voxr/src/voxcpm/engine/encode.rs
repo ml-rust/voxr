@@ -17,7 +17,7 @@ use numr::tensor::Tensor;
 use boostr::model::audio::voxcpm::model::{PadSide, VoxCpm2Model};
 
 use crate::error::{Error, Result};
-use crate::resample::resample;
+use crate::resample::resample_like_librosa;
 use crate::voxcpm::engine::batch::{EncodeJob, Work};
 use crate::voxcpm::engine::render::worker_gone;
 use crate::voxcpm::engine::request::{Prompt, Reference};
@@ -36,8 +36,10 @@ where
     /// `samples` is mono PCM at `sample_rate`. It is resampled to the
     /// encoder's rate here, on the caller's thread, with the resampler the
     /// voices directory goes through at load. The same samples therefore
-    /// encode to the same tensor a voices-directory file does. The encode
-    /// right-pads the clip to whole patches.
+    /// encode to the same tensor a voices-directory file does. A file read
+    /// with [`decode_audio_like_ffmpeg`](crate::decode_audio_like_ffmpeg)
+    /// gives the samples the voices directory and `librosa.load` read. The
+    /// encode right-pads the clip to whole patches.
     ///
     /// The encode itself runs on the owner thread. This call blocks until
     /// the owner thread reaches it: after the running batch, or after the
@@ -131,8 +133,10 @@ where
     }
 }
 
-/// `samples` at `sample_rate`, resampled to the encoder's rate. `what` names
-/// the recording in the error for an empty clip.
+/// `samples` at `sample_rate`, resampled to the encoder's rate the way the
+/// reference's `librosa.load(path, sr=16000)` resamples, by
+/// [`resample_like_librosa`]. `what` names the recording in the error for an
+/// empty clip.
 fn to_encoder_rate(samples: &[f32], sample_rate: u32, what: &str) -> Result<Vec<f32>> {
     if samples.is_empty() {
         return Err(Error::InvalidArgument {
@@ -143,7 +147,7 @@ fn to_encoder_rate(samples: &[f32], sample_rate: u32, what: &str) -> Result<Vec<
             ),
         });
     }
-    resample(samples, sample_rate, REF_RATE)
+    resample_like_librosa(samples, sample_rate, REF_RATE)
 }
 
 /// Block for one queued encode's tensor. A closed channel means the owner

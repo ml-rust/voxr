@@ -120,7 +120,9 @@ pub fn voice_file(dir: &Path, id: &str) -> PathBuf {
         .unwrap_or_else(|| panic!("no audio file for voice {id:?} in {}", dir.display()))
 }
 
-/// Voice `id`'s recording in `dir` as mono PCM, with its sample rate.
+/// Voice `id`'s recording in `dir` as mono PCM, with its sample rate, read
+/// as the engine reads a voices-directory file: integer PCM over
+/// `2^(bits - 1)`, then the channel mean.
 pub fn voice_samples(dir: &Path, id: &str) -> (Vec<f32>, u32) {
     let path = voice_file(dir, id);
     let bytes = std::fs::read(&path).expect("read voice file");
@@ -128,8 +130,8 @@ pub fn voice_samples(dir: &Path, id: &str) -> (Vec<f32>, u32) {
         .file_name()
         .and_then(|n| n.to_str())
         .and_then(voxr::extension_hint);
-    let data = voxr::decode_audio(&bytes, hint).expect("decode voice file");
-    let mono = voxr::resample::to_mono_at_rate(&data, data.sample_rate).expect("downmix");
+    let data = voxr::decode_audio_like_ffmpeg(&bytes, hint).expect("decode voice file");
+    let mono = voxr::to_mono(&data.samples, data.channels).expect("downmix");
     (mono, data.sample_rate)
 }
 

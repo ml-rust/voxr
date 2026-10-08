@@ -18,17 +18,12 @@
 //!
 //! ## Why `ids_plain`, never `ids_expanded`
 //!
-//! The reference model calls `tokenizer.tokenize` + `convert_tokens_to_ids`
-//! directly, which never invokes the `TemplateProcessing` post-processor
-//! (that only runs under `encode()`/`__call__`, confirmed by the fixture
-//! script: `encode(text0) == [bos_id] + ids_plain(text0)` exactly) and never
-//! runs `VoxCPM2Tokenizer._expand_ids`'s CJK multi-character split (that is a
-//! separate wrapper the reference model does not use). So `ids_plain` is the
-//! ground truth this gate checks against, for every text including the CJK
-//! one. `ids_expanded` differs from `ids_plain` ONLY for the CJK text (index
-//! 6, `cjk_multichar_split`) and this port deliberately does not implement
-//! that split (see `voxr::voxcpm::tokenizer` doc comments),
-//! so index 6 is asserted to match `ids_plain`, not `ids_expanded`.
+//! This gate checks splintr alone: `VoxCpm2Tokenizer::splintr`'s
+//! `encode_raw` against the file's declared pipeline, `ids_plain`, for every
+//! text. The reference model's own ids add the multi-character Han split
+//! and the leading-space rule on top. `VoxCpm2Tokenizer::ids` applies both,
+//! and the `voxcpm_skill_parity` test gates them against the reference
+//! `text_tokenizer`.
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
@@ -100,20 +95,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             record.label
         );
 
-        let got_u32 = tokenizer.encode_raw(&record.text);
+        let got_u32 = tokenizer.splintr().encode_raw(&record.text);
         let got: Vec<i64> = got_u32.iter().map(|&id| i64::from(id)).collect();
 
         let pass = check_ids(&record.label, &record.text, &got, &want);
         ok &= pass;
-
-        if record.label == "cjk_multichar_split" {
-            println!(
-                "  note: {} is deliberately checked against ids_plain, not \
-                 ids_expanded -- the CJK multi-character split is out of \
-                 scope for this port (see module docs)",
-                record.label
-            );
-        }
 
         // A future post-processor regression (accidentally routing through
         // `encode` instead of `encode_raw`) would prepend BOS id 1 to every

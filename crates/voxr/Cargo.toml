@@ -150,6 +150,10 @@ name = "voxcpm_stream_parity"
 required-features = ["voxcpm"]
 
 [[test]]
+name = "voxcpm_skill_parity"
+required-features = ["voxcpm"]
+
+[[test]]
 name = "voxcpm_request"
 required-features = ["voxcpm"]
 

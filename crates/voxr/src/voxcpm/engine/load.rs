@@ -13,9 +13,9 @@ use boostr::model::audio::voxcpm::VoxCpm2Weights;
 use boostr::model::audio::voxcpm::model::VoxCpm2Model;
 use boostr::quant::ScheduleTuning;
 
-use crate::decode::{decode_audio, extension_hint};
+use crate::decode::{decode_audio_like_ffmpeg, extension_hint};
 use crate::error::{Error, Result};
-use crate::resample::to_mono_at_rate;
+use crate::resample::resample_like_librosa;
 use crate::voxcpm::engine::batch::spawn_worker;
 use crate::voxcpm::engine::types::{
     EncodedVoice, EngineInner, REF_RATE, VOICE_EXTENSIONS, VoxCpm2Engine, VoxCpm2RenderClient,
@@ -23,6 +23,7 @@ use crate::voxcpm::engine::types::{
 };
 use crate::voxcpm::options::VoxCpm2LoadOptions;
 use crate::voxcpm::tokenizer::load_tokenizer;
+use crate::wav::to_mono;
 
 impl<R> VoxCpm2Engine<R>
 where
@@ -193,7 +194,10 @@ fn list_voice_files(dir: &Path) -> Result<Vec<(String, PathBuf)>> {
     Ok(voices)
 }
 
-/// Decode one reference recording to mono at the encoder's rate.
+/// Decode one reference recording to mono at the encoder's rate, as the
+/// reference's `librosa.load(path, sr=16000, mono=True)` does: integer PCM
+/// scaled by `2^(bits - 1)` as libsndfile reads it, the channel mean, then
+/// [`resample_like_librosa`].
 fn load_reference_16k(path: &Path) -> Result<Vec<f32>> {
     let bytes = std::fs::read(path).map_err(|e| Error::ModelError {
         reason: format!("reading voice {}: {e}", path.display()),
@@ -202,8 +206,9 @@ fn load_reference_16k(path: &Path) -> Result<Vec<f32>> {
         .file_name()
         .and_then(|n| n.to_str())
         .and_then(extension_hint);
-    let data = decode_audio(&bytes, hint)?;
-    to_mono_at_rate(&data, REF_RATE)
+    let data = decode_audio_like_ffmpeg(&bytes, hint)?;
+    let mono = to_mono(&data.samples, data.channels)?;
+    resample_like_librosa(&mono, data.sample_rate, REF_RATE)
 }
 
 #[cfg(test)]
