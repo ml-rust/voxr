@@ -5,11 +5,12 @@
 //! samples, files, directories, voices, or text pipelines belongs here.
 //!
 //! Always compiled: RIFF/WAVE in and out ([`wav`]), the polyphase
-//! [`resample`]r, the reference-take [`enhance`] chain, [`pitch`], [`quality`],
-//! two-signal [`spectral`] distance, the `atempo`-compatible tempo
-//! [`stretch`], ASR [`eval`] metrics, the signal and
-//! summary halves of the [`tts_eval`] quality gate, and the [`Lang`] tag a
-//! voice carries. Feature gates add the compressed-audio [`decode`]rs, the
+//! [`resample`]rs (general, and ffmpeg-exact), the reference-take
+//! [`enhance`] chain, [`pitch`], [`quality`], two-signal [`spectral`]
+//! distance, the `atempo`-compatible tempo [`stretch`], ASR [`eval`]
+//! metrics, the signal and summary halves of the [`tts_eval`] quality gate,
+//! and the [`Lang`] tag a voice carries. Feature gates add the
+//! compressed-audio [`decode`]rs, the
 //! misaki G2P backend ([`g2p`]), the spaCy `en_core_web_sm` tokenizer and
 //! tagger, the [`tts`] surface, the [`kokoro`] and [`voxcpm`]
 //! engines, the [`whisper`] bundle, the [`vad`] segmenter, [`corpus`]
@@ -62,7 +63,8 @@ pub use lang::{Lang, LangTag};
 pub use pitch::{PitchOptions, PitchTrack, estimate_pitch};
 pub use quality::{TakeQuality, measure_quality};
 pub use resample::{
-    DEFAULT_TAPS_PER_PHASE, MAX_FILTER_TAPS, resample, resample_with_taps, to_mono_at_rate,
+    DEFAULT_TAPS_PER_PHASE, MAX_FILTER_TAPS, ffmpeg_resampled_len, resample,
+    resample_interleaved_like_ffmpeg, resample_like_ffmpeg, resample_with_taps, to_mono_at_rate,
 };
 pub use spectral::{SpectralDistance, multi_resolution_stft_distance, snr_db};
 pub use stretch::{MAX_TEMPO, MIN_TEMPO, PcmSample, atempo, atempo_interleaved, atempo_pcm16};

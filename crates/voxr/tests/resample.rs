@@ -83,7 +83,7 @@ fn above_nyquist_content_is_rejected_not_folded() {
     assert!(
         rejection < -40.0,
         "alias at 1 kHz is {folded} ({rejection:.1} dB relative to the kept 7 kHz tone \
-         at {kept}); a naive decimator scores about 0 dB"
+         at {kept}); a naive decimator does not attenuate it"
     );
     // Nothing else survives either: the whole 15 kHz tone is gone.
     let leftover = rms(stop_window);
@@ -207,4 +207,39 @@ fn invalid_rates_and_oversized_filters_are_rejected() {
     let text = format!("{err}");
     assert!(text.contains("44100"), "{text}");
     assert!(text.contains("16001"), "{text}");
+}
+
+/// Catches a constant time offset and a corrupted start: a 300 Hz tone must
+/// come out in phase with the same tone sampled at the output rate, from the
+/// first full filter length onward.
+#[test]
+fn output_sits_at_the_documented_input_time() {
+    for (from, to) in [
+        (24_000, 48_000),
+        (16_000, 48_000),
+        (22_050, 48_000),
+        (44_100, 48_000),
+        (48_000, 16_000),
+        (44_100, 16_000),
+    ] {
+        let x = tone(300.0, from, from as usize * 2);
+        let y = resample(&x, from, to).expect("resample");
+        let ideal = tone(300.0, to, y.len());
+        // Skip the zero-padded edges; keep everything after one filter length.
+        let edge = to as usize / 100;
+        let (a, b) = (&ideal[edge..y.len() - edge], &y[edge..y.len() - edge]);
+        let err: f64 = a
+            .iter()
+            .zip(b)
+            .map(|(&p, &q)| f64::from(p - q).powi(2))
+            .sum();
+        let sig: f64 = a.iter().map(|&p| f64::from(p).powi(2)).sum();
+        let snr = 10.0 * (sig / err).log10();
+        // The bound admits the table's residual offset of 1/128 input sample
+        // and rejects a whole output sample of offset.
+        assert!(
+            snr > 55.0,
+            "{from} -> {to}: SNR {snr:.1} dB against the ideal tone"
+        );
+    }
 }

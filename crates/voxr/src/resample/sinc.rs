@@ -1,4 +1,4 @@
-//! Sample-rate conversion for mono `f32` audio.
+//! General windowed-sinc sample-rate conversion for mono `f32` audio.
 //!
 //! Recorded corpora arrive at 44.1 or 48 kHz; [`boostr::model::audio::neucodec`] and the mel
 //! front-end demand 16 kHz. [`resample`] is that missing link: a windowed-sinc
@@ -28,9 +28,15 @@
 //! # Edges
 //!
 //! Input outside `0..samples.len()` reads as zero, and rubato's group delay is
-//! trimmed so output sample `m` sits at input time `m * from_rate / to_rate`.
-//! The first and last few dozen output samples therefore ramp in and out over
-//! the filter's half-width instead of holding steady amplitude. For speech
+//! removed so output sample `m` sits at input time `m * from_rate / to_rate`.
+//! rubato's filter delays its output by `points * ratio / 2 - 1 - ratio /
+//! OVERSAMPLING` output frames, where `points` is the rounded sinc length and
+//! `ratio` is `to_rate / from_rate`. rubato itself trims
+//! `floor(points * ratio / 2)` frames, which leaves its output early. Leading
+//! zeros, chosen to land the delay closest to a whole frame, and a trim of
+//! that whole frame count correct this. The remaining offset is at most
+//! `1 / OVERSAMPLING` input samples, early. The first and last output samples
+//! therefore ramp in and out over the filter's half-width instead of holding steady amplitude. For speech
 //! corpora that region is leading and trailing silence; callers that need exact
 //! edge amplitude must pad the signal themselves before calling.
 
@@ -146,6 +152,23 @@ fn sinc_len(taps_per_phase: usize, from_rate: u32, to_rate: u32) -> Result<usize
     Ok(len as usize)
 }
 
+/// The count of leading zeros whose `lead * to_rate / from_rate` output
+/// frames, less `early`, lands nearest a whole frame. The search covers one
+/// period of the reduced ratio's input term, so it finds the closest
+/// alignment the ratio allows.
+fn best_lead(early: f64, from_rate: u32, to_rate: u32) -> usize {
+    let ratio = to_rate as f64 / from_rate as f64;
+    let period = (from_rate / gcd(from_rate, to_rate).max(1)) as usize;
+    let first = (early.max(0.0) / ratio).ceil() as usize + 1;
+    let miss = |lead: usize| {
+        let x = lead as f64 * ratio - early;
+        (x - x.round()).abs()
+    };
+    (first..first + period.max(1))
+        .min_by(|&a, &b| miss(a).total_cmp(&miss(b)))
+        .unwrap_or(first)
+}
+
 /// Resample mono f32 samples from `from_rate` to `to_rate`.
 ///
 /// Uses [`DEFAULT_TAPS_PER_PHASE`]; see [`resample_with_taps`] for the rest of
@@ -214,12 +237,27 @@ pub fn resample_with_taps(
     let mut resampler =
         Async::<f32>::new_sinc(ratio, 1.0, &params, CHUNK_FRAMES, 1, FixedAsync::Input)
             .map_err(|e| failed("build the resampler", &e))?;
-    let input = InterleavedSlice::new(samples, 1, samples.len())
+    // rubato trims `floor(points * ratio / 2)` output frames, more than the
+    // filter's true delay (see the module docs), so its output runs early by
+    // `early` frames. Zeros before the input give back `lead * ratio` frames,
+    // and trimming `skip` of them leaves the rest of that error under half a
+    // frame. Zeros after the input keep the output long enough.
+    let points = sinc_len.next_multiple_of(8) as f64;
+    let delay = points * ratio / 2.0 - 1.0 - ratio / OVERSAMPLING as f64;
+    let early = resampler.output_delay() as f64 - delay;
+    let lead = best_lead(early, from_rate, to_rate);
+    let skip = (lead as f64 * ratio - early).round().max(0.0) as usize;
+    let tail = (2.0 / ratio).ceil() as usize + 1;
+    let mut padded = vec![0.0f32; lead];
+    padded.extend_from_slice(samples);
+    padded.resize(lead + samples.len() + tail, 0.0);
+    let input = InterleavedSlice::new(&padded, 1, padded.len())
         .map_err(|e| failed("wrap the input", &e))?;
     let mut out = resampler
-        .process_all(&input, samples.len(), None)
+        .process_all(&input, padded.len(), None)
         .map_err(|e| failed("resample", &e))?
         .take_data();
+    out.drain(..skip.min(out.len()));
     // rubato sizes the output as `ceil(ratio * len)` in f64, which can land one
     // past the exact integer ceiling when the product is a whole number.
     out.resize(out_len, 0.0);

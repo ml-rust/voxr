@@ -28,7 +28,7 @@ splintr = { version = "0.20", features = ["vocab-whisper"] }
 hound = "3.5"
 # Windowed-sinc sample-rate conversion behind `resample`. No default
 # features: the FFT resampler and its realfft dependency go unused.
-rubato = { version = "5", default-features = false }
+rubato = { version = "5.0.1", default-features = false }
 # RBJ cookbook biquads: the enhance pipeline's high-pass and shelves, and
 # the K-weighting stages behind `enhance::loudness`.
 biquad = "0.6"
