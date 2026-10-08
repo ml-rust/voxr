@@ -2,25 +2,24 @@
 //! a 44-byte header, written with the skill's own rounding, and read back
 //! as ffmpeg decodes them.
 //!
-//! voxr's WAV writer rounds a half away from zero and scales in `f32`, so
-//! its bytes differ from the skill's on some samples ([`pcm16_like_js`]).
-//! A cache file shared with the skill, and a prepared reference's content
-//! hash, need the skill's bytes exactly.
+//! voxr writes every file. Its `f32` PCM16 encoder rounds a half away from
+//! zero and scales in `f32`, so its bytes differ from the skill's on some
+//! samples ([`pcm16_like_js`]). A cache file shared with the skill, and a
+//! prepared reference's content hash, need the skill's bytes exactly, so
+//! this module rounds as the skill does and hands voxr the 16-bit values.
+//!
+//! The reader stays here: it decodes 16-bit samples as `v / 32768`, as
+//! ffmpeg does, where voxr's decoder scales by `i16::MAX`. It also reads a
+//! data chunk cut short up to the end of the bytes, as ffmpeg does.
 
 use std::path::Path;
+
+use voxr::wav::{FORMAT_EXTENSIBLE, FORMAT_IEEE_FLOAT, FORMAT_PCM};
 
 use crate::error::{Error, Result, file_error};
 use crate::polish::pcm16_like_js;
 use crate::take::Take;
 
-/// Bytes of the header [`pcm16_wav`] writes.
-const HEADER: usize = 44;
-/// `WAVE_FORMAT_PCM`.
-const FORMAT_PCM: u16 = 1;
-/// `WAVE_FORMAT_IEEE_FLOAT`.
-const FORMAT_FLOAT: u16 = 3;
-/// `WAVE_FORMAT_EXTENSIBLE`: the format code sits in the sub-format.
-const FORMAT_EXTENSIBLE: u16 = 0xFFFE;
 /// A 16-bit value `v` decodes as `v / 32768`, as ffmpeg's `s16` to `flt`.
 const PCM16_READ: f32 = 1.0 / 32768.0;
 
@@ -28,20 +27,16 @@ const PCM16_READ: f32 = 1.0 / 32768.0;
 ///
 /// Each sample is written as [`pcm16_like_js`] rounds it. More than 2^31
 /// samples overflow the header's 32-bit sizes, and the skill's writer
-/// throws on them too.
+/// throws on them too. A rate of 0 is refused.
 pub fn pcm16_wav(x: &[f32], rate: u32) -> Result<Vec<u8>> {
     pcm16_wav_raw(&pcm16_like_js(x), rate)
 }
 
 /// A mono 16-bit WAV of the 16-bit values `x` at `rate` Hz, behind the
 /// 44-byte header [`pcm16_wav`] writes. More than 2^31 samples overflow the
-/// header's 32-bit sizes.
+/// header's 32-bit sizes. A rate of 0 is refused.
 pub fn pcm16_wav_raw(x: &[i16], rate: u32) -> Result<Vec<u8>> {
-    let mut out = mono_header(x.len(), rate, FORMAT_PCM, 2)?;
-    for v in x {
-        out.extend_from_slice(&v.to_le_bytes());
-    }
-    Ok(out)
+    voxr::wav::encode_wav_pcm16_values(x, rate).map_err(written)
 }
 
 /// The duration ffprobe reports for a WAV of `frames` frames at `rate` Hz
@@ -61,53 +56,21 @@ pub fn probed_duration(frames: usize, rate: u32) -> f64 {
 /// A mono 32-bit float WAV of `x` at `rate` Hz, behind a 44-byte header.
 /// It reads back ([`read_wav`]) as `x` exactly.
 ///
-/// More than 2^30 samples overflow the header's 32-bit sizes.
+/// More than 2^30 samples overflow the header's 32-bit sizes. A rate of 0
+/// is refused.
 pub fn f32_wav(x: &[f32], rate: u32) -> Result<Vec<u8>> {
-    let mut out = mono_header(x.len(), rate, FORMAT_FLOAT, 4)?;
-    for v in x {
-        out.extend_from_slice(&v.to_le_bytes());
-    }
-    Ok(out)
+    voxr::wav::encode_wav_f32(x, rate).map_err(written)
 }
 
-/// The 44-byte header of a mono WAV holding `len` samples of `width` bytes
-/// each, in format `format` at `rate` Hz. The returned buffer has room for
-/// the samples after it.
-fn mono_header(len: usize, rate: u32, format: u16, width: u16) -> Result<Vec<u8>> {
-    let too_long = || Error::InvalidArgument {
-        arg: "x",
-        reason: format!(
-            "{len} samples do not fit a WAV header's 32-bit sizes. Split the audio into shorter files"
-        ),
-    };
-    let data = u32::try_from(len)
-        .ok()
-        .and_then(|n| n.checked_mul(u32::from(width)))
-        .ok_or_else(too_long)?;
-    let riff = data.checked_add(36).ok_or_else(too_long)?;
-    let byte_rate = rate
-        .checked_mul(u32::from(width))
-        .ok_or_else(|| Error::InvalidArgument {
-            arg: "rate",
-            reason: format!(
-                "a rate of {rate} Hz overflows the WAV header's byte rate. Pass a rate under {} Hz",
-                u32::MAX / u32::from(width) + 1
-            ),
-        })?;
-    let mut out = Vec::with_capacity(HEADER + data as usize);
-    out.extend_from_slice(b"RIFF");
-    out.extend_from_slice(&riff.to_le_bytes());
-    out.extend_from_slice(b"WAVEfmt ");
-    out.extend_from_slice(&16u32.to_le_bytes());
-    out.extend_from_slice(&format.to_le_bytes());
-    out.extend_from_slice(&1u16.to_le_bytes());
-    out.extend_from_slice(&rate.to_le_bytes());
-    out.extend_from_slice(&byte_rate.to_le_bytes());
-    out.extend_from_slice(&width.to_le_bytes());
-    out.extend_from_slice(&(width * 8).to_le_bytes());
-    out.extend_from_slice(b"data");
-    out.extend_from_slice(&data.to_le_bytes());
-    Ok(out)
+/// A voxr encoder error as this crate's: an argument it refuses keeps its
+/// name and reason.
+fn written(e: voxr::Error) -> Error {
+    match e {
+        voxr::Error::InvalidArgument { arg, reason } => Error::InvalidArgument { arg, reason },
+        other => Error::DataError {
+            reason: other.to_string(),
+        },
+    }
 }
 
 /// `x` as [`pcm16_wav`] writes it and ffmpeg reads it back: each sample
@@ -174,7 +137,7 @@ pub fn read_wav(bytes: &[u8]) -> Result<Take> {
                     .iter()
                     .map(|&b| f32::from(i16::from_le_bytes(b)) * PCM16_READ)
                     .collect(),
-                (FORMAT_FLOAT, 32) => body
+                (FORMAT_IEEE_FLOAT, 32) => body
                     .as_chunks::<4>()
                     .0
                     .iter()
@@ -210,6 +173,7 @@ pub fn read_wav_file(path: &Path) -> Result<Take> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use voxr::wav::HEADER_LEN as HEADER;
 
     #[test]
     fn the_header_matches_the_skill() -> Result<()> {
@@ -271,7 +235,7 @@ mod tests {
     #[test]
     fn a_float_file_reads_as_it_is() -> Result<()> {
         let mut bytes = pcm16_wav(&[], 48000)?;
-        bytes[20..22].copy_from_slice(&FORMAT_FLOAT.to_le_bytes());
+        bytes[20..22].copy_from_slice(&FORMAT_IEEE_FLOAT.to_le_bytes());
         bytes[34..36].copy_from_slice(&32u16.to_le_bytes());
         bytes[40..44].copy_from_slice(&8u32.to_le_bytes());
         bytes.extend_from_slice(&0.125f32.to_le_bytes());
@@ -285,7 +249,7 @@ mod tests {
         let x = [0.1f32, -0.7, 1.5, f32::MIN_POSITIVE];
         let bytes = f32_wav(&x, 24000)?;
         assert_eq!(bytes.len(), HEADER + 16);
-        assert_eq!(u16_at(&bytes, 20), Some(FORMAT_FLOAT));
+        assert_eq!(u16_at(&bytes, 20), Some(FORMAT_IEEE_FLOAT));
         assert_eq!(u32_at(&bytes, 28), Some(96000));
         let take = read_wav(&bytes)?;
         assert_eq!((take.samples.as_slice(), take.rate), (&x[..], 24000));

@@ -31,10 +31,10 @@ use std::path::{Path, PathBuf};
 use serde::Deserialize;
 use serde_json::Value;
 use voxr_narrate::{
-    EngineChoice, Error, HeardWord, Hearing, JoinedTrack, PartCheck, Recognizer, Result, SimpleRun,
-    SimpleSetup, SpeakOpts, SpeakRequest, SpeakRuns, SpeakTarget, SpeechEngine, Take, TimedCue,
-    Transcribed, TtsConfig, VoiceSource, VoxcpmRun, VoxcpmSetup, pcm16_wav, speak_phrases,
-    speak_script,
+    EngineChoice, Error, HeardWord, Hearing, JoinedTrack, PartCheck, Recognizer, Result,
+    ScriptStep, SimpleRun, SimpleSetup, SimpleStep, SpeakOpts, SpeakRequest, SpeakRuns,
+    SpeakTarget, SpeechEngine, Take, TimedCue, Transcribed, TtsConfig, VoiceSource, VoxcpmRun,
+    VoxcpmSetup, pcm16_wav, speak_phrases, speak_script,
 };
 
 mod common;
@@ -207,6 +207,8 @@ struct Runs<'a> {
     hearing: ScriptedHearing,
     /// The last run's joined samples, their rate and its phrase spans.
     joined: Option<(Vec<f32>, u32, Option<Vec<HeardWord>>)>,
+    /// Every step, in the order it happened.
+    notes: Vec<ScriptStep>,
 }
 
 impl Runs<'_> {
@@ -302,12 +304,18 @@ impl SpeakRuns for Runs<'_> {
             case: self.case,
             at: self.at,
         };
-        let run = speak_phrases(script, setup, &mut synth, &mut self.hearing);
+        let notes = &mut self.notes;
+        let mut steps = |s: SimpleStep| notes.push(ScriptStep::Phrases(s));
+        let run = speak_phrases(script, setup, &mut synth, &mut self.hearing, &mut steps);
         self.at = synth.at;
         if let Ok(r) = &run {
             self.joined = Some((r.samples.clone(), r.rate, r.phrases.clone()));
         }
         run
+    }
+
+    fn note(&mut self, step: ScriptStep) {
+        self.notes.push(step);
     }
 }
 
@@ -511,6 +519,7 @@ fn check_case(case: &Case) -> Result<()> {
             calls: Vec::new(),
         },
         joined: None,
+        notes: Vec::new(),
     };
     let got = speak_script(&case.script, &opts, &tts, &target, &mut runs);
     if let Err(e) = &got
@@ -540,7 +549,7 @@ fn check_case(case: &Case) -> Result<()> {
         (Ok(_), Some(want)) => panic!("case {name} speaks, where the skill fails: {want}"),
         (Ok(spoken), None) => spoken,
     };
-    let messages: Vec<String> = spoken.log.iter().filter_map(|s| s.message()).collect();
+    let messages: Vec<String> = runs.notes.iter().filter_map(|s| s.message()).collect();
     assert_eq!(messages, case.messages, "messages, {name}");
     let json = serde_json::to_string(&spoken).map_err(|e| Error::DataError {
         reason: e.to_string(),

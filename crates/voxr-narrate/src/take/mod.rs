@@ -24,6 +24,7 @@ pub mod command;
 pub mod dispatch;
 mod dispatch_run;
 pub mod dispatch_setup;
+mod dispatch_time;
 pub mod engine;
 pub mod engine_choice;
 pub mod files;
@@ -34,12 +35,15 @@ pub mod join_heat;
 pub mod judge;
 pub mod pace;
 pub mod pick;
+mod pick_rules;
 pub mod place;
+pub mod progress;
 pub mod seed;
 pub mod simple;
 pub mod simple_setup;
 pub mod speak;
 pub mod speak_opts;
+mod speak_resolution;
 pub mod speak_resolve;
 pub mod speak_setup;
 pub mod speak_step;
@@ -90,6 +94,7 @@ pub use place::{
     CueUnits, LINE_GAP, PLACE_RATE, PlacedTrack, TIMING_SLACK, UNPLACED_PROBLEM, cue_script,
     place_on_times,
 };
+pub use progress::{Sink, Tee};
 pub use seed::text_seed;
 pub use simple::speak_phrases;
 pub use simple_setup::{SimpleRun, SimpleSetup, SimpleStep, WholeCheck, check_kokoro_voice};

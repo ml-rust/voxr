@@ -21,8 +21,10 @@ use super::files::{ReadTakes, chosen_takes, read_takes_file, resolve_seed, takes
 use super::join::JOIN_RATE;
 use super::judge::{JudgedTake, ReferenceHearing};
 use super::pick::{PickSetup, TakeLoop};
+use super::progress::{Sink, Tee};
 use super::speak_setup::{VoiceReference, VoxcpmRun, VoxcpmSetup};
-use super::speak_step::{SpeakStep, push_anchor_steps, push_take_steps, short_parts};
+use super::speak_step::{SpeakStep, anchor_step, short_parts, take_step};
+use super::step::TakeStep;
 use super::store::{FileStore, TakeKeys};
 use crate::error::{Error, Result};
 use crate::glitch::median_pitch;
@@ -99,7 +101,7 @@ fn cloned_voice<J: ReferenceHearing>(
     reference: &VoiceReference<'_>,
     judge: &mut J,
     decode: &mut dyn FnMut(&Path) -> Result<Vec<f32>>,
-    log: &mut Vec<SpeakStep>,
+    log: &mut dyn Sink<SpeakStep>,
 ) -> Result<Voice> {
     let key = prepared_reference_key(setup.checkpoint, setup.voice, &reference.id);
     let clone = clone_file(setup.cache_dir, &key, reference.path, decode)?;
@@ -110,7 +112,7 @@ fn cloned_voice<J: ReferenceHearing>(
         let words: Vec<&str> = heard.words.iter().map(|w| w.text.as_str()).collect();
         transcript = non_empty(&words.join(" ")).map(str::to_string);
         if transcript.is_some() && !setup.style.is_empty() {
-            log.push(SpeakStep::Anchor(AnchorStep::HifiIgnoresStyle));
+            log.step(SpeakStep::Anchor(AnchorStep::HifiIgnoresStyle));
         }
     }
     Ok(Voice {
@@ -129,7 +131,7 @@ fn designed_voice<E: SpeechEngine>(
     key: &str,
     engine: &mut E,
     store: &mut FileStore<'_>,
-    log: &mut Vec<SpeakStep>,
+    log: &mut dyn Sink<SpeakStep>,
 ) -> Result<Voice> {
     let anchor_setup = AnchorSetup {
         cache_dir: setup.cache_dir,
@@ -141,9 +143,9 @@ fn designed_voice<E: SpeechEngine>(
         steps: setup.steps,
         hifi: setup.hifi,
     };
-    let mut steps = Vec::new();
+    let download = setup.checkpoint.is_none();
+    let mut steps = |step: AnchorStep| anchor_step(log, step, download);
     let anchor = designed_anchor(script, &anchor_setup, engine, store, &mut steps)?;
-    push_anchor_steps(log, steps, setup.checkpoint.is_none());
     let voice_file = copy_voice_beside(&anchor.file, setup.out)?;
     Ok(Voice {
         file: anchor.file,
@@ -169,7 +171,8 @@ fn designed_voice<E: SpeechEngine>(
 /// median pitch, and written to `setup.out` with `<out>.takes.json`.
 ///
 /// `decode` reads a recording as mono samples at [`ANCHOR_RATE`]. `engine`
-/// speaks at [`JOIN_RATE`].
+/// speaks at [`JOIN_RATE`]. Every step goes to `progress` as it happens,
+/// and the run keeps a copy.
 pub fn speak_voxcpm<E, J>(
     script: &str,
     setup: &VoxcpmSetup<'_>,
@@ -177,19 +180,20 @@ pub fn speak_voxcpm<E, J>(
     judge: &mut J,
     decode: &mut dyn FnMut(&Path) -> Result<Vec<f32>>,
     random: &mut dyn FnMut() -> f64,
+    progress: &mut dyn Sink<SpeakStep>,
 ) -> Result<VoxcpmRun>
 where
     E: SpeechEngine,
     J: TakeJudge<Verdict = JudgedTake> + ReferenceHearing,
 {
-    let mut log = Vec::new();
+    let mut log = Tee::new(progress);
     if setup.voice.is_empty() && setup.reference.is_none() {
-        log.push(SpeakStep::NoVoice);
+        log.step(SpeakStep::NoVoice);
     }
     let units = parts_of(script, setup)?;
     let short = short_parts(&units);
     if !short.is_empty() {
-        log.push(SpeakStep::ShortParts(short));
+        log.step(SpeakStep::ShortParts(short));
     }
     let record = takes_file(setup.out);
     let read = read_record(&record);
@@ -242,12 +246,11 @@ where
         judge,
         store: &mut store,
     };
-    let mut best = take_loop.best_takes(units, setup.rerolls, random)?;
-    push_take_steps(
-        &mut log,
-        std::mem::take(&mut best.log),
-        setup.checkpoint.is_none(),
-    );
+    let download = setup.checkpoint.is_none();
+    let best = {
+        let mut steps = |step: TakeStep| take_step(&mut log, step, download);
+        take_loop.best_takes(units, setup.rerolls, random, &mut steps)?
+    };
     let voice_median = match setup.reference {
         Some(r) => median_pitch(&decode(r.path)?),
         None => median_pitch(&reference.samples),
@@ -259,7 +262,7 @@ where
     let thumps: usize = best.best.iter().map(|b| b.verdict.thumps).sum();
     let fixed: usize = best.best.iter().map(|b| b.verdict.fixed).sum();
     if thumps > 0 || fixed > 0 {
-        log.push(SpeakStep::Repaired { thumps, fixed });
+        log.step(SpeakStep::Repaired { thumps, fixed });
     }
     let checks = best.checks(&track)?;
     let problems = best.problems();
@@ -271,7 +274,7 @@ where
         problems,
         voice_file: voice.voice_file,
         voice_median,
-        log,
+        log: log.kept,
     })
 }
 

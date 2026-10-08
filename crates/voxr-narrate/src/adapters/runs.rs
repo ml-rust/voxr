@@ -10,8 +10,9 @@ use super::audio::decode_48k;
 use super::work_dir::WorkDir;
 use crate::error::{Error, Result};
 use crate::take::{
-    CommandEngine, EngineChoice, HeardJudge, Hearing, SimpleRun, SimpleSetup, SpeakRequest,
-    SpeakRuns, SpeechEngine, Take, VoxcpmRun, VoxcpmSetup, asr_model, speak_phrases, speak_voxcpm,
+    CommandEngine, EngineChoice, HeardJudge, Hearing, ScriptStep, SimpleRun, SimpleSetup,
+    SimpleStep, SpeakRequest, SpeakRuns, SpeakStep, SpeechEngine, Take, VoxcpmRun, VoxcpmSetup,
+    asr_model, speak_phrases, speak_voxcpm,
 };
 
 /// Runs one shell line of the user's TTS command and returns its exit
@@ -57,7 +58,9 @@ fn random_unit() -> f64 {
 ///   over the spawner, in a fresh work directory removed after the run.
 ///
 /// The recognizer heard first comes from the config's `asr.model`, else
-/// the run's language ([`asr_model`]). The caller loads each engine on the device the run
+/// the run's language ([`asr_model`]). Every step of a run goes to the
+/// progress callback as it happens ([`with_progress`](Self::with_progress)).
+/// The caller loads each engine on the device the run
 /// asks for: a [`VoxcpmSetup::device`] is not read here. A run whose engine
 /// is not loaded is refused before any audio is made.
 pub struct NarrationRuns<'a, H, V = NoEngine> {
@@ -67,7 +70,11 @@ pub struct NarrationRuns<'a, H, V = NoEngine> {
     hearing: H,
     spawn: Spawn<'a>,
     random: Box<dyn FnMut() -> f64 + 'a>,
+    progress: Progress<'a>,
 }
+
+/// Takes each step of a run as it happens.
+pub type Progress<'a> = Box<dyn FnMut(&ScriptStep) + 'a>;
 
 impl<'a, H: Hearing> NarrationRuns<'a, H> {
     /// Runs that hear through `hearing` and run the user's TTS command
@@ -81,6 +88,7 @@ impl<'a, H: Hearing> NarrationRuns<'a, H> {
             hearing,
             spawn: Box::new(spawn),
             random: Box::new(random_unit),
+            progress: Box::new(|_: &ScriptStep| {}),
         }
     }
 }
@@ -96,6 +104,7 @@ impl<'a, H: Hearing, V> NarrationRuns<'a, H, V> {
             hearing: self.hearing,
             spawn: self.spawn,
             random: self.random,
+            progress: self.progress,
         }
     }
 
@@ -127,6 +136,13 @@ impl<'a, H: Hearing, V> NarrationRuns<'a, H, V> {
         self
     }
 
+    /// The same runs with every step handed to `progress` as it happens,
+    /// such as a VoxCPM2 batch starting, for a caller to print.
+    pub fn with_progress(mut self, progress: impl FnMut(&ScriptStep) + 'a) -> Self {
+        self.progress = Box::new(progress);
+        self
+    }
+
     /// The hearing every run checks its takes with.
     pub fn hearing(&mut self) -> &mut H {
         &mut self.hearing
@@ -147,6 +163,8 @@ impl<H: Hearing, V: SpeechEngine> SpeakRuns for NarrationRuns<'_, H, V> {
             language: setup.language.map(str::to_string),
         };
         let mut decode = |path: &Path| decode_48k(path);
+        let progress = &mut self.progress;
+        let mut steps = |step: SpeakStep| progress(&ScriptStep::Voxcpm(step));
         speak_voxcpm(
             script,
             setup,
@@ -154,18 +172,22 @@ impl<H: Hearing, V: SpeechEngine> SpeakRuns for NarrationRuns<'_, H, V> {
             &mut judge,
             &mut decode,
             &mut *self.random,
+            &mut steps,
         )
     }
 
     fn phrases(&mut self, script: &str, setup: &SimpleSetup<'_>) -> Result<SimpleRun> {
         let hearing = &mut self.hearing;
+        let progress = &mut self.progress;
+        let mut steps = |step: SimpleStep| progress(&ScriptStep::Phrases(step));
+        let steps = &mut steps;
         match setup.engine {
             EngineChoice::Kokoro { .. } => {
                 let engine = self.kokoro.as_deref_mut().ok_or_else(|| Error::InvalidArgument {
                     arg: "engine",
                     reason: "the run speaks with Kokoro, and no Kokoro engine is loaded. Load one and pass it with NarrationRuns::with_kokoro, or pick another engine".to_string(),
                 })?;
-                speak_phrases(script, setup, engine, hearing)
+                speak_phrases(script, setup, engine, hearing, steps)
             }
             EngineChoice::Model { model } => {
                 let loaded: Vec<&str> = self.models.iter().map(|(id, _)| id.as_str()).collect();
@@ -182,7 +204,7 @@ impl<H: Hearing, V: SpeechEngine> SpeakRuns for NarrationRuns<'_, H, V> {
                         ),
                     });
                 };
-                speak_phrases(script, setup, engine.as_mut(), hearing)
+                speak_phrases(script, setup, engine.as_mut(), hearing, steps)
             }
             EngineChoice::Command {
                 command,
@@ -199,10 +221,16 @@ impl<H: Hearing, V: SpeechEngine> SpeakRuns for NarrationRuns<'_, H, V> {
                     decode: |path: &Path| decode_48k(path).ok(),
                     windows: cfg!(windows),
                 };
-                speak_phrases(script, setup, &mut engine, hearing)
+                speak_phrases(script, setup, &mut engine, hearing, steps)
             }
-            EngineChoice::Voxcpm { .. } => speak_phrases(script, setup, &mut NoEngine, hearing),
+            EngineChoice::Voxcpm { .. } => {
+                speak_phrases(script, setup, &mut NoEngine, hearing, steps)
+            }
         }
+    }
+
+    fn note(&mut self, step: ScriptStep) {
+        (self.progress)(&step);
     }
 }
 

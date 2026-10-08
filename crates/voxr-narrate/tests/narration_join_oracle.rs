@@ -233,7 +233,7 @@ fn run(case: &Case, voice_median: f64) -> Result<()> {
         store: &mut store,
     };
     let mut random = || -> f64 { panic!("case {name} re-rolls no part") };
-    let best = take_loop.best_takes(units, &[], &mut random)?;
+    let best = take_loop.best_takes(units, &[], &mut random, &mut Vec::new())?;
 
     let parts: Vec<&str> = best.parts.iter().map(|p| p.text.as_str()).collect();
     assert_eq!(parts, case.parts, "parts, case {name}");

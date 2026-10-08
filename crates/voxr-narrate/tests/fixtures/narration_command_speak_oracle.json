@@ -1,0 +1,1189 @@
+{
+ "rate": 48000,
+ "scenarios": [
+  {
+   "name": "kokoro by default, from a file",
+   "files": {
+    "script.txt": "First line here now.\nSecond line ends it\n"
+   },
+   "args": {
+    "rest": [
+     "script.txt"
+    ]
+   },
+   "config": {},
+   "ready": {
+    "ok": false,
+    "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+   },
+   "wav": {
+    "n": 120000,
+    "ops": [
+     {
+      "kind": "tone",
+      "hz": "200",
+      "start": 4800,
+      "len": 43200,
+      "amp": 0.3,
+      "attack": 480,
+      "release": 480
+     },
+     {
+      "kind": "tone",
+      "hz": "150",
+      "start": 62400,
+      "len": 48000,
+      "amp": 0.12,
+      "attack": 480,
+      "release": 480
+     }
+    ]
+   },
+   "result": {
+    "duration": 2.5,
+    "engine": "Kokoro (af_heart)",
+    "phrases": [
+     {
+      "text": "First line here now.",
+      "start": 0,
+      "end": 1.1
+     },
+     {
+      "text": "Second line ends it.",
+      "start": 1.3,
+      "end": 2.4
+     }
+    ],
+    "checks": [
+     {
+      "at": 0,
+      "text": "First line here now. Second line ends it",
+      "ok": true,
+      "heard": "First line here now. Second line ends it",
+      "why": "",
+      "doubt": [],
+      "pauses": []
+     }
+    ],
+    "problems": []
+   },
+   "output": {
+    "calls": [
+     {
+      "script": "First line here now.\nSecond line ends it",
+      "out": "<dir>/assets/voiceover.wav",
+      "opts": {}
+     }
+    ],
+    "lines": [
+     {
+      "stream": "out",
+      "text": "Script review, 2 note(s) (narration.md, Prepare the script for speech):"
+     },
+     {
+      "stream": "out",
+      "text": "  line 1  \"First line here now.…\": no breath after \"First\": \"First, …\""
+     },
+     {
+      "stream": "out",
+      "text": "  line 2  \"line ends it\": no end punctuation: the voice runs into the next line"
+     },
+     {
+      "stream": "out",
+      "text": ""
+     },
+     {
+      "stream": "out",
+      "text": "Voice polish: loudness evened in 1 sentence(s) (up to 6.0 dB), compressed gently, harsh \"s\" turned down in 0.0% of the audio, normalized to a -1 dB peak. --raw skips this."
+     },
+     {
+      "stream": "out",
+      "text": "Pace: 6.3 syllables per second while speaking: faster than the 3.5 to 4.7 range. --speed 0.65 reaches 4.1."
+     },
+     {
+      "stream": "out",
+      "text": "assets/voiceover.wav (2.50s, Kokoro (af_heart)) and its script assets/voiceover.txt"
+     },
+     {
+      "stream": "out",
+      "text": "Next, in video.json: \"voiceover\": { \"file\": \"assets/voiceover.wav\", \"script\": \"assets/voiceover.txt\" } for narration across the whole video,"
+     },
+     {
+      "stream": "out",
+      "text": "or \"audio\": \"assets/voiceover.wav\" and \"script\": \"assets/voiceover.txt\" on the one scene it narrates. Then run transcribe."
+     },
+     {
+      "stream": "out",
+      "text": ""
+     },
+     {
+      "stream": "out",
+      "text": "Heard back, phrase by phrase:"
+     },
+     {
+      "stream": "out",
+      "text": "  ok     0.00s  First line here now. Second line ends it"
+     },
+     {
+      "stream": "out",
+      "text": "Speech check: every phrase was heard back as written."
+     }
+    ],
+    "code": 0,
+    "failure": null,
+    "files": [
+     {
+      "path": "assets/voiceover.phrases.json",
+      "text": "{\n \"script\": \"First line here now. Second line ends it\",\n \"phrases\": [\n  {\n   \"text\": \"First line here now.\",\n   \"start\": 0,\n   \"end\": 1.1\n  },\n  {\n   \"text\": \"Second line ends it.\",\n   \"start\": 1.3,\n   \"end\": 2.4\n  }\n ]\n}"
+     },
+     {
+      "path": "assets/voiceover.txt",
+      "text": "First line here now. Second line ends it\n"
+     },
+     {
+      "path": "assets/voiceover.wav",
+      "bytes": "f4e46f30"
+     },
+     {
+      "path": "script.txt",
+      "text": "First line here now.\nSecond line ends it\n"
+     }
+    ]
+   }
+  },
+  {
+   "name": "voxcpm with notes on every part and a problem",
+   "files": {},
+   "args": {
+    "rest": [
+     "First",
+     "line",
+     "here",
+     "now.",
+     "Second line ends it?"
+    ],
+    "voice": "(warm, low)",
+    "speed": 0.9,
+    "pace": 3.5,
+    "seed": 3,
+    "reroll": [
+     2
+    ]
+   },
+   "config": {},
+   "ready": {
+    "ok": true,
+    "why": "NVIDIA GeForce, 12 GB"
+   },
+   "wav": {
+    "n": 120000,
+    "ops": [
+     {
+      "kind": "tone",
+      "hz": "200",
+      "start": 4800,
+      "len": 43200,
+      "amp": 0.3,
+      "attack": 480,
+      "release": 480
+     },
+     {
+      "kind": "tone",
+      "hz": "150",
+      "start": 62400,
+      "len": 48000,
+      "amp": 0.12,
+      "attack": 480,
+      "release": 480
+     }
+    ]
+   },
+   "result": {
+    "duration": 2.5,
+    "engine": "VoxCPM2 (warm, low)",
+    "phrases": [
+     {
+      "text": "First line here now.",
+      "start": 0,
+      "end": 1.1
+     },
+     {
+      "text": "Second line ends it.",
+      "start": 1.3,
+      "end": 2.4
+     }
+    ],
+    "voiceFile": null,
+    "checks": [
+     {
+      "at": 0,
+      "text": "First line here now.",
+      "ok": true,
+      "heard": "First line here now.",
+      "why": "",
+      "seed": 7,
+      "doubt": [
+       "here"
+      ],
+      "heat": 1.75,
+      "hotText": "First line here now.",
+      "pauses": [
+       {
+        "after": "line",
+        "before": "here",
+        "gap": 0.52
+       }
+      ],
+      "clicks": [
+       0.31,
+       0.8
+      ]
+     },
+     {
+      "at": 1.3,
+      "text": "Second line ends it?",
+      "ok": false,
+      "heard": "Second line end it",
+      "why": "misheard: ends",
+      "seed": 1007,
+      "doubt": [],
+      "heat": 1.2,
+      "hotText": "Second line ends it?",
+      "pauses": [],
+      "clicks": []
+     }
+    ],
+    "problems": [
+     "part 2 \"Second line ends it?\": misheard: ends (heard \"Second line end it\"). Three takes failed, so reword it first (a longer line, another word order). --reroll 2 draws new takes."
+    ]
+   },
+   "output": {
+    "calls": [
+     {
+      "script": "First line here now. Second line ends it?",
+      "out": "<dir>/assets/voiceover.wav",
+      "opts": {
+       "voice": "(warm, low)",
+       "speed": 0.9,
+       "seed": 3,
+       "reroll": [
+        2
+       ]
+      }
+     }
+    ],
+    "lines": [
+     {
+      "stream": "out",
+      "text": "Script review, 2 note(s) (narration.md, Prepare the script for speech):"
+     },
+     {
+      "stream": "out",
+      "text": "  line 1  \"First line here now.…\": no breath after \"First\": \"First, …\""
+     },
+     {
+      "stream": "out",
+      "text": "  line 1  \"Second line ends it?\": a question with no delivery note: VoxCPM2 reads it in the take's delivery, and it can come out as a statement. Give it its own line with a note (tts/voxcpm2.md)"
+     },
+     {
+      "stream": "out",
+      "text": ""
+     },
+     {
+      "stream": "err",
+      "text": "speak --speed: VoxCPM2 is never time-stretched, so --speed and \"tts.speed\" are ignored for it. Its pace comes from the reference: a recording at the pace wanted, or a new --seed for another designed voice."
+     },
+     {
+      "stream": "out",
+      "text": "Voice polish: loudness evened in 1 sentence(s) (up to 6.0 dB), compressed gently, harsh \"s\" turned down in 0.0% of the audio, normalized to a -1 dB peak. --raw skips this."
+     },
+     {
+      "stream": "out",
+      "text": "Pace: 6.3 syllables per second while speaking: faster than the 2.9 to 4.1 range. VoxCPM2 takes its pace from the reference, so change the reference: a recording at the pace wanted, or a new --seed for another designed voice. Pace words in --style or a note skew the voice."
+     },
+     {
+      "stream": "out",
+      "text": "assets/voiceover.wav (2.50s, VoxCPM2 (warm, low)) and its script assets/voiceover.txt"
+     },
+     {
+      "stream": "out",
+      "text": "Next, in video.json: \"voiceover\": { \"file\": \"assets/voiceover.wav\", \"script\": \"assets/voiceover.txt\" } for narration across the whole video,"
+     },
+     {
+      "stream": "out",
+      "text": "or \"audio\": \"assets/voiceover.wav\" and \"script\": \"assets/voiceover.txt\" on the one scene it narrates. Then run transcribe."
+     },
+     {
+      "stream": "out",
+      "text": ""
+     },
+     {
+      "stream": "out",
+      "text": "Heard back, phrase by phrase:"
+     },
+     {
+      "stream": "out",
+      "text": "  ok ?   0.00s  First line here now."
+     },
+     {
+      "stream": "out",
+      "text": "        \"First line here now.\": its pitch peaks at 1.75x the voice's usual pitch: it can sound shouted or excited. Listen, then calm its delivery note or --reroll 1"
+     },
+     {
+      "stream": "out",
+      "text": "        a 0.52s pause between \"line\" and \"here\", where the script has no break: the voice misread the grammar. Add a comma where the break belongs, or reword"
+     },
+     {
+      "stream": "out",
+      "text": "        a click the repair could not smooth, 0.31s, 0.8s into this part: listen to it, and --reroll 1 if it is heard"
+     },
+     {
+      "stream": "out",
+      "text": "        both recognizers missed or misheard \"here\": listen to it, and --reroll 1 if it is said wrong"
+     },
+     {
+      "stream": "out",
+      "text": "  FAIL   1.30s  Second line end it"
+     },
+     {
+      "stream": "out",
+      "text": "        misheard: ends"
+     },
+     {
+      "stream": "out",
+      "text": ""
+     },
+     {
+      "stream": "out",
+      "text": "The speech check found 1 problem(s), heard back with Whisper:"
+     },
+     {
+      "stream": "out",
+      "text": "  part 2 \"Second line ends it?\": misheard: ends (heard \"Second line end it\"). Three takes failed, so reword it first (a longer line, another word order). --reroll 2 draws new takes."
+     }
+    ],
+    "code": 1,
+    "failure": null,
+    "files": [
+     {
+      "path": "assets/voiceover.phrases.json",
+      "text": "{\n \"script\": \"First line here now. Second line ends it?\",\n \"phrases\": [\n  {\n   \"text\": \"First line here now.\",\n   \"start\": 0,\n   \"end\": 1.1\n  },\n  {\n   \"text\": \"Second line ends it.\",\n   \"start\": 1.3,\n   \"end\": 2.4\n  }\n ]\n}"
+     },
+     {
+      "path": "assets/voiceover.txt",
+      "text": "First line here now. Second line ends it?\n"
+     },
+     {
+      "path": "assets/voiceover.wav",
+      "bytes": "f4e46f30"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a timed script with a written script, raw",
+   "files": {
+    "brief.txt": "0-2s: First line here now.\n2-4s: Second line ends it.\n",
+    "written.txt": "0-2s: First line, here now!\n2-4s: Second line ends it.\n"
+   },
+   "args": {
+    "rest": [
+     "brief.txt"
+    ],
+    "written": "written.txt",
+    "raw": true,
+    "engine": "kokoro",
+    "out": "audio/vo.wav"
+   },
+   "config": {
+    "tts": {
+     "pace": 4.5
+    }
+   },
+   "ready": {
+    "ok": true,
+    "why": "NVIDIA GeForce, 12 GB"
+   },
+   "wav": {
+    "n": 120000,
+    "ops": [
+     {
+      "kind": "tone",
+      "hz": "200",
+      "start": 4800,
+      "len": 43200,
+      "amp": 0.3,
+      "attack": 480,
+      "release": 480
+     },
+     {
+      "kind": "tone",
+      "hz": "150",
+      "start": 62400,
+      "len": 48000,
+      "amp": 0.12,
+      "attack": 480,
+      "release": 480
+     }
+    ]
+   },
+   "result": {
+    "duration": 4.2,
+    "engine": "Kokoro (af_heart)",
+    "phrases": [
+     {
+      "text": "First line here now.",
+      "start": 0,
+      "end": 1.1
+     },
+     {
+      "text": "Second line ends it.",
+      "start": 1.3,
+      "end": 2.4
+     }
+    ],
+    "timing": [
+     "line 2 \"Second line ends it.\" starts 0.40s late: shorten line 1"
+    ],
+    "checks": [
+     {
+      "at": 0,
+      "text": "First line here now. Second line ends it.",
+      "ok": true,
+      "heard": "First line here now. Second line ends it.",
+      "why": "",
+      "doubt": [],
+      "pauses": []
+     }
+    ],
+    "problems": []
+   },
+   "output": {
+    "calls": [
+     {
+      "script": "First line here now.\nSecond line ends it.",
+      "out": "<dir>/audio/vo.wav",
+      "opts": {
+       "engine": "kokoro",
+       "cues": [
+        {
+         "start": 0,
+         "end": 2,
+         "text": "First line here now."
+        },
+        {
+         "start": 2,
+         "end": 4,
+         "text": "Second line ends it."
+        }
+       ]
+      }
+     }
+    ],
+    "lines": [
+     {
+      "stream": "out",
+      "text": "Script review, 1 note(s) (narration.md, Prepare the script for speech):"
+     },
+     {
+      "stream": "out",
+      "text": "  line 1  \"First line here now.…\": no breath after \"First\": \"First, …\""
+     },
+     {
+      "stream": "out",
+      "text": ""
+     },
+     {
+      "stream": "out",
+      "text": "Pace: 6.3 syllables per second while speaking: faster than the 3.9 to 5.1 range. --speed 0.71 reaches 4.5."
+     },
+     {
+      "stream": "out",
+      "text": "Timed script: 2 lines placed at their times."
+     },
+     {
+      "stream": "out",
+      "text": "  line 2 \"Second line ends it.\" starts 0.40s late: shorten line 1"
+     },
+     {
+      "stream": "out",
+      "text": "audio/vo.wav (4.20s, Kokoro (af_heart)) and its script audio/vo.txt"
+     },
+     {
+      "stream": "out",
+      "text": "Next, in video.json: \"voiceover\": { \"file\": \"audio/vo.wav\", \"script\": \"audio/vo.txt\" } for narration across the whole video,"
+     },
+     {
+      "stream": "out",
+      "text": "or \"audio\": \"audio/vo.wav\" and \"script\": \"audio/vo.txt\" on the one scene it narrates. Then run transcribe."
+     },
+     {
+      "stream": "out",
+      "text": ""
+     },
+     {
+      "stream": "out",
+      "text": "Heard back, phrase by phrase:"
+     },
+     {
+      "stream": "out",
+      "text": "  ok     0.00s  First line here now. Second line ends it."
+     },
+     {
+      "stream": "out",
+      "text": "Speech check: every phrase was heard back as written."
+     }
+    ],
+    "code": 0,
+    "failure": null,
+    "files": [
+     {
+      "path": "audio/vo.phrases.json",
+      "text": "{\n \"script\": \"First line, here now! Second line ends it.\",\n \"phrases\": [\n  {\n   \"text\": \"First line, here now!\",\n   \"start\": 0,\n   \"end\": 1.1\n  },\n  {\n   \"text\": \"Second line ends it.\",\n   \"start\": 1.3,\n   \"end\": 2.4\n  }\n ]\n}"
+     },
+     {
+      "path": "audio/vo.txt",
+      "text": "First line, here now! Second line ends it.\n"
+     },
+     {
+      "path": "audio/vo.wav",
+      "bytes": "21edc6f1"
+     },
+     {
+      "path": "brief.txt",
+      "text": "0-2s: First line here now.\n2-4s: Second line ends it.\n"
+     },
+     {
+      "path": "written.txt",
+      "text": "0-2s: First line, here now!\n2-4s: Second line ends it.\n"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a one-call command leaves no spans",
+   "files": {
+    "assets/voiceover.phrases.json": "{\"script\":\"old\",\"phrases\":[]}"
+   },
+   "args": {
+    "rest": [
+     "Hello there, friend."
+    ],
+    "oneCall": true
+   },
+   "config": {
+    "tts": {
+     "command": "tts {text} {out}",
+     "speed": 1.2
+    }
+   },
+   "ready": {
+    "ok": true,
+    "why": "NVIDIA GeForce, 12 GB"
+   },
+   "wav": {
+    "n": 120000,
+    "ops": [
+     {
+      "kind": "tone",
+      "hz": "200",
+      "start": 4800,
+      "len": 43200,
+      "amp": 0.3,
+      "attack": 480,
+      "release": 480
+     },
+     {
+      "kind": "tone",
+      "hz": "150",
+      "start": 62400,
+      "len": 48000,
+      "amp": 0.12,
+      "attack": 480,
+      "release": 480
+     }
+    ]
+   },
+   "result": {
+    "duration": 2.5,
+    "engine": "command: tts {text} {out}",
+    "checks": [
+     {
+      "at": 0,
+      "text": "Hello there, friend.",
+      "ok": false,
+      "heard": "Hello there, friend.",
+      "why": "missing: it",
+      "doubt": [],
+      "pauses": []
+     }
+    ],
+    "problems": [
+     "missing: it. Heard: \"Hello there, friend.\"."
+    ]
+   },
+   "output": {
+    "calls": [
+     {
+      "script": "Hello there, friend.",
+      "out": "<dir>/assets/voiceover.wav",
+      "opts": {
+       "oneCall": true
+      }
+     }
+    ],
+    "lines": [
+     {
+      "stream": "out",
+      "text": "Voice polish: loudness evened in 0 sentence(s), compressed gently, harsh \"s\" turned down in 0.0% of the audio, normalized to a -1 dB peak. --raw skips this."
+     },
+     {
+      "stream": "out",
+      "text": "assets/voiceover.wav (2.50s, command: tts {text} {out}) and its script assets/voiceover.txt"
+     },
+     {
+      "stream": "out",
+      "text": "Next, in video.json: \"voiceover\": { \"file\": \"assets/voiceover.wav\", \"script\": \"assets/voiceover.txt\" } for narration across the whole video,"
+     },
+     {
+      "stream": "out",
+      "text": "or \"audio\": \"assets/voiceover.wav\" and \"script\": \"assets/voiceover.txt\" on the one scene it narrates. Then run transcribe."
+     },
+     {
+      "stream": "out",
+      "text": ""
+     },
+     {
+      "stream": "out",
+      "text": "Heard back, phrase by phrase:"
+     },
+     {
+      "stream": "out",
+      "text": "  FAIL   0.00s  Hello there, friend."
+     },
+     {
+      "stream": "out",
+      "text": "        missing: it"
+     },
+     {
+      "stream": "out",
+      "text": ""
+     },
+     {
+      "stream": "out",
+      "text": "The speech check found 1 problem(s), heard back with Whisper:"
+     },
+     {
+      "stream": "out",
+      "text": "  missing: it. Heard: \"Hello there, friend.\"."
+     }
+    ],
+    "code": 1,
+    "failure": null,
+    "files": [
+     {
+      "path": "assets/voiceover.txt",
+      "text": "Hello there, friend.\n"
+     },
+     {
+      "path": "assets/voiceover.wav",
+      "bytes": "3bbe8e9c"
+     }
+    ]
+   }
+  },
+  {
+   "name": "the script beside the output keeps its name",
+   "files": {
+    "assets/voiceover.txt": "[pause] First line here now.\n\nSecond line ends it."
+   },
+   "args": {
+    "rest": [
+     "assets/voiceover.txt"
+    ],
+    "speed": 1.25,
+    "engine": "kokoro"
+   },
+   "config": {
+    "tts": {
+     "pace": 4.1
+    }
+   },
+   "ready": {
+    "ok": false,
+    "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+   },
+   "wav": {
+    "n": 120000,
+    "ops": [
+     {
+      "kind": "tone",
+      "hz": "200",
+      "start": 4800,
+      "len": 43200,
+      "amp": 0.3,
+      "attack": 480,
+      "release": 480
+     },
+     {
+      "kind": "tone",
+      "hz": "150",
+      "start": 62400,
+      "len": 48000,
+      "amp": 0.12,
+      "attack": 480,
+      "release": 480
+     }
+    ]
+   },
+   "result": {
+    "duration": 2.5,
+    "engine": "Kokoro (af_heart)",
+    "phrases": [
+     {
+      "text": "First line here now.",
+      "start": 0,
+      "end": 1.1
+     },
+     {
+      "text": "Second line ends it.",
+      "start": 1.3,
+      "end": 2.4
+     }
+    ],
+    "checks": [
+     {
+      "at": 0,
+      "text": "First line here now. Second line ends it.",
+      "ok": true,
+      "heard": "First line here now. Second line ends it.",
+      "why": "",
+      "doubt": [],
+      "pauses": []
+     }
+    ],
+    "problems": []
+   },
+   "output": {
+    "calls": [
+     {
+      "script": "[pause] First line here now.\n\nSecond line ends it.",
+      "out": "<dir>/assets/voiceover.wav",
+      "opts": {
+       "speed": 1.25,
+       "engine": "kokoro"
+      }
+     }
+    ],
+    "lines": [
+     {
+      "stream": "out",
+      "text": "Script review, 1 note(s) (narration.md, Prepare the script for speech):"
+     },
+     {
+      "stream": "out",
+      "text": "  line 1  \"First line here now.…\": no breath after \"First\": \"First, …\""
+     },
+     {
+      "stream": "out",
+      "text": ""
+     },
+     {
+      "stream": "out",
+      "text": "Voice polish: loudness evened in 1 sentence(s) (up to 6.0 dB), compressed gently, harsh \"s\" turned down in 0.0% of the audio, normalized to a -1 dB peak. --raw skips this."
+     },
+     {
+      "stream": "out",
+      "text": "Pace: 6.3 syllables per second while speaking: faster than the 3.5 to 4.7 range. --speed 0.81 reaches 4.1."
+     },
+     {
+      "stream": "out",
+      "text": "assets/voiceover.wav (2.50s, Kokoro (af_heart)) and its script assets/voiceover.spoken.txt"
+     },
+     {
+      "stream": "out",
+      "text": "Next, in video.json: \"voiceover\": { \"file\": \"assets/voiceover.wav\", \"script\": \"assets/voiceover.spoken.txt\" } for narration across the whole video,"
+     },
+     {
+      "stream": "out",
+      "text": "or \"audio\": \"assets/voiceover.wav\" and \"script\": \"assets/voiceover.spoken.txt\" on the one scene it narrates. Then run transcribe."
+     },
+     {
+      "stream": "out",
+      "text": ""
+     },
+     {
+      "stream": "out",
+      "text": "Heard back, phrase by phrase:"
+     },
+     {
+      "stream": "out",
+      "text": "  ok     0.00s  First line here now. Second line ends it."
+     },
+     {
+      "stream": "out",
+      "text": "Speech check: every phrase was heard back as written."
+     }
+    ],
+    "code": 0,
+    "failure": null,
+    "files": [
+     {
+      "path": "assets/voiceover.phrases.json",
+      "text": "{\n \"script\": \"First line here now. Second line ends it.\",\n \"phrases\": [\n  {\n   \"text\": \"First line here now.\",\n   \"start\": 0,\n   \"end\": 1.1\n  },\n  {\n   \"text\": \"Second line ends it.\",\n   \"start\": 1.3,\n   \"end\": 2.4\n  }\n ]\n}"
+     },
+     {
+      "path": "assets/voiceover.spoken.txt",
+      "text": "First line here now. Second line ends it.\n"
+     },
+     {
+      "path": "assets/voiceover.txt",
+      "text": "[pause] First line here now.\n\nSecond line ends it."
+     },
+     {
+      "path": "assets/voiceover.wav",
+      "bytes": "f4e46f30"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a model run is reviewed for no engine",
+   "files": {},
+   "args": {
+    "rest": [
+     "Then the river runs north past the mill."
+    ],
+    "model": "facebook/mms-tts-zlm",
+    "language": "ms"
+   },
+   "config": {},
+   "ready": {
+    "ok": false,
+    "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+   },
+   "wav": {
+    "n": 120000,
+    "ops": [
+     {
+      "kind": "tone",
+      "hz": "200",
+      "start": 4800,
+      "len": 43200,
+      "amp": 0.3,
+      "attack": 480,
+      "release": 480
+     },
+     {
+      "kind": "tone",
+      "hz": "150",
+      "start": 62400,
+      "len": 48000,
+      "amp": 0.12,
+      "attack": 480,
+      "release": 480
+     }
+    ]
+   },
+   "result": {
+    "duration": 2.5,
+    "engine": "facebook/mms-tts-zlm",
+    "phrases": [
+     {
+      "text": "First line here now.",
+      "start": 0,
+      "end": 1.1
+     },
+     {
+      "text": "Second line ends it.",
+      "start": 1.3,
+      "end": 2.4
+     }
+    ],
+    "checks": [
+     {
+      "at": 0,
+      "text": "Then the river runs north past the mill.",
+      "ok": true,
+      "heard": "Then the river runs north past the mill.",
+      "why": "",
+      "doubt": [],
+      "pauses": []
+     }
+    ],
+    "problems": []
+   },
+   "output": {
+    "calls": [
+     {
+      "script": "Then the river runs north past the mill.",
+      "out": "<dir>/assets/voiceover.wav",
+      "opts": {
+       "model": "facebook/mms-tts-zlm",
+       "language": "ms"
+      }
+     }
+    ],
+    "lines": [
+     {
+      "stream": "out",
+      "text": "Script review, 1 note(s) (narration.md, Prepare the script for speech):"
+     },
+     {
+      "stream": "out",
+      "text": "  line 1  \"Then the river runs…\": no breath after \"Then\": \"Then, …\""
+     },
+     {
+      "stream": "out",
+      "text": ""
+     },
+     {
+      "stream": "out",
+      "text": "Voice polish: loudness evened in 1 sentence(s) (up to 6.0 dB), compressed gently, harsh \"s\" turned down in 0.0% of the audio, normalized to a -1 dB peak. --raw skips this."
+     },
+     {
+      "stream": "out",
+      "text": "Pace: 6.3 syllables per second while speaking: faster than the 3.5 to 4.7 range. --speed 0.65 reaches 4.1."
+     },
+     {
+      "stream": "out",
+      "text": "assets/voiceover.wav (2.50s, facebook/mms-tts-zlm) and its script assets/voiceover.txt"
+     },
+     {
+      "stream": "out",
+      "text": "Next, in video.json: \"voiceover\": { \"file\": \"assets/voiceover.wav\", \"script\": \"assets/voiceover.txt\" } for narration across the whole video,"
+     },
+     {
+      "stream": "out",
+      "text": "or \"audio\": \"assets/voiceover.wav\" and \"script\": \"assets/voiceover.txt\" on the one scene it narrates. Then run transcribe."
+     },
+     {
+      "stream": "out",
+      "text": ""
+     },
+     {
+      "stream": "out",
+      "text": "Heard back, phrase by phrase:"
+     },
+     {
+      "stream": "out",
+      "text": "  ok     0.00s  Then the river runs north past the mill."
+     },
+     {
+      "stream": "out",
+      "text": "Speech check: every phrase was heard back as written."
+     }
+    ],
+    "code": 0,
+    "failure": null,
+    "files": [
+     {
+      "path": "assets/voiceover.phrases.json",
+      "text": "{\n \"script\": \"Then the river runs north past the mill.\",\n \"phrases\": [\n  {\n   \"text\": \"First line here now.\",\n   \"start\": 0,\n   \"end\": 1.1\n  },\n  {\n   \"text\": \"Second line ends it.\",\n   \"start\": 1.3,\n   \"end\": 2.4\n  }\n ]\n}"
+     },
+     {
+      "path": "assets/voiceover.txt",
+      "text": "Then the river runs north past the mill.\n"
+     },
+     {
+      "path": "assets/voiceover.wav",
+      "bytes": "f4e46f30"
+     }
+    ]
+   }
+  },
+  {
+   "name": "review only",
+   "files": {},
+   "args": {
+    "rest": [
+     "Hello there, friend."
+    ],
+    "review": true
+   },
+   "config": {},
+   "ready": {
+    "ok": false,
+    "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+   },
+   "output": {
+    "calls": [],
+    "lines": [
+     {
+      "stream": "out",
+      "text": "Script review: nothing likely to be misread."
+     },
+     {
+      "stream": "out",
+      "text": ""
+     }
+    ],
+    "code": 0,
+    "failure": null,
+    "files": []
+   }
+  },
+  {
+   "name": "review with notes, then a missing written script",
+   "files": {},
+   "args": {
+    "rest": [
+     "Use the --raw flag"
+    ],
+    "written": "gone.txt"
+   },
+   "config": {},
+   "ready": {
+    "ok": false,
+    "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+   },
+   "output": {
+    "calls": [],
+    "lines": [
+     {
+      "stream": "out",
+      "text": "Script review, 2 note(s) (narration.md, Prepare the script for speech):"
+     },
+     {
+      "stream": "out",
+      "text": "  line 1  \"--raw\": a flag, file name or address: write how it is said, {--raw|…}"
+     },
+     {
+      "stream": "out",
+      "text": "  line 1  \"the --raw flag\": no end punctuation: the voice runs into the next line"
+     },
+     {
+      "stream": "out",
+      "text": ""
+     }
+    ],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "speak --written gone.txt: no such file. Pass the written script: the same words as the ear script, punctuated for reading."
+    },
+    "files": []
+   }
+  },
+  {
+   "name": "an empty script",
+   "files": {},
+   "args": {
+    "rest": [
+     "  "
+    ]
+   },
+   "config": {},
+   "ready": {
+    "ok": false,
+    "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "speak needs the script: a text file, or the words in quotes."
+    },
+    "files": []
+   }
+  },
+  {
+   "name": "a written script with other words",
+   "files": {
+    "w.txt": "Hello there, enemy."
+   },
+   "args": {
+    "rest": [
+     "Hello there, friend."
+    ],
+    "written": "w.txt"
+   },
+   "config": {},
+   "ready": {
+    "ok": false,
+    "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "speak --written: the scripts' words differ at \"friend.\" in the ear script and \"enemy.\" in the written one. The written script holds the same words, with only punctuation, case or spacing changed."
+    },
+    "files": [
+     {
+      "path": "w.txt",
+      "text": "Hello there, enemy."
+     }
+    ]
+   }
+  },
+  {
+   "name": "a language with no engine",
+   "files": {},
+   "args": {
+    "rest": [
+     "Satu dua tiga."
+    ],
+    "language": "ms"
+   },
+   "config": {},
+   "ready": {
+    "ok": false,
+    "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": false,
+     "message": "speak --language ms: Kokoro speaks English only, and VoxCPM2 needs an NVIDIA GPU with 8 GB of memory (none found). Use the user's TTS (--command), a recording, or a Hugging Face model whose license allows the video's use (--model, references/tts.md)."
+    },
+    "files": []
+   }
+  },
+  {
+   "name": "a configured engine wins over the default",
+   "files": {},
+   "args": {
+    "rest": [
+     "Is it here?"
+    ],
+    "review": true
+   },
+   "config": {
+    "tts": {
+     "engine": "voxcpm"
+    }
+   },
+   "ready": {
+    "ok": false,
+    "why": "needs an NVIDIA GPU with 8 GB of memory (none found)"
+   },
+   "output": {
+    "calls": [],
+    "lines": [
+     {
+      "stream": "out",
+      "text": "Script review, 1 note(s) (narration.md, Prepare the script for speech):"
+     },
+     {
+      "stream": "out",
+      "text": "  line 1  \"Is it here?\": a question with no delivery note: VoxCPM2 reads it in the take's delivery, and it can come out as a statement. Give it its own line with a note (tts/voxcpm2.md)"
+     },
+     {
+      "stream": "out",
+      "text": ""
+     }
+    ],
+    "code": 0,
+    "failure": null,
+    "files": []
+   }
+  }
+ ]
+}

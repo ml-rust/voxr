@@ -1,0 +1,3300 @@
+{
+ "rate": 16000,
+ "scenarios": [
+  {
+   "name": "a manifest: voiceover, a subtitled scene, a plain scene",
+   "audio": {
+    "vo.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    },
+    "scene.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    },
+    "plain.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"fps\":30,\"scenes\":[{\"file\":\"scenes/01-hook.html\",\"duration\":1},{\"file\":\"scenes/02-sub.html\",\"audio\":\"scene.wav\",\"script\":\"scene.srt\"},{\"file\":\"scenes/03-plain.html\",\"audio\":\"plain.wav\"}],\"voiceover\":{\"file\":\"vo.wav\",\"start\":-0.25,\"script\":\"vo.txt\"}}",
+    "vo.txt": "[pause] One two, three.",
+    "scene.srt": "1\n00:00:00,150 --> 00:00:01,150\nOne two\n\n2\n00:00:01,250 --> 00:00:01,900\nthree.\n"
+   },
+   "heard": {
+    "vo.wav": [
+     {
+      "text": "One",
+      "start": 0.18,
+      "end": 0.62
+     },
+     {
+      "text": "too",
+      "start": 0.79,
+      "end": 1.12
+     },
+     {
+      "text": "three.",
+      "start": 1.3,
+      "end": 1.71
+     }
+    ],
+    "scene.wav": [
+     {
+      "text": "One",
+      "start": 0.18,
+      "end": 0.62
+     },
+     {
+      "text": "too",
+      "start": 0.79,
+      "end": 1.12
+     },
+     {
+      "text": "three.",
+      "start": 1.3,
+      "end": 1.71
+     }
+    ],
+    "plain.wav": [
+     {
+      "text": "One",
+      "start": 0.2,
+      "end": 0.6
+     },
+     {
+      "text": "two",
+      "start": 0.8,
+      "end": 1.1
+     },
+     {
+      "text": "three.",
+      "start": 1.3,
+      "end": 1.7
+     },
+     {
+      "text": "you",
+      "start": 1.95,
+      "end": 2
+     }
+    ]
+   },
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [
+     {
+      "file": "<dir>/vo.wav",
+      "model": "onnx-community/whisper-base_timestamped",
+      "language": null
+     },
+     {
+      "file": "<dir>/scene.wav",
+      "model": "onnx-community/whisper-base_timestamped",
+      "language": null
+     },
+     {
+      "file": "<dir>/plain.wav",
+      "model": "onnx-community/whisper-base_timestamped",
+      "language": null
+     }
+    ],
+    "lines": [
+     {
+      "stream": "out",
+      "text": "<dir>/vo.wav (voiceover, 2.00s, 3 words, words from <dir>/vo.txt) -> <dir>/out/voice/vo.words.json"
+     },
+     {
+      "stream": "out",
+      "text": "  video seconds, start-end, word:"
+     },
+     {
+      "stream": "out",
+      "text": "  -0.05-0.39  One"
+     },
+     {
+      "stream": "out",
+      "text": "  0.55-0.88  two,"
+     },
+     {
+      "stream": "out",
+      "text": "  1.05-1.46  three."
+     },
+     {
+      "stream": "out",
+      "text": "<dir>/scene.wav (scene 02-sub, 2.00s, 3 words, words from <dir>/scene.srt) -> <dir>/out/voice/scene.words.json"
+     },
+     {
+      "stream": "out",
+      "text": "  video seconds, start-end, word:"
+     },
+     {
+      "stream": "out",
+      "text": "  1.50-1.94  One"
+     },
+     {
+      "stream": "out",
+      "text": "  2.10-2.43  two"
+     },
+     {
+      "stream": "out",
+      "text": "  2.60-3.01  three."
+     },
+     {
+      "stream": "out",
+      "text": "<dir>/plain.wav (scene 03-plain, 2.00s, 4 words) -> <dir>/out/voice/plain.words.json"
+     },
+     {
+      "stream": "out",
+      "text": "  video seconds, start-end, word:"
+     },
+     {
+      "stream": "out",
+      "text": "  4.30-4.70  One"
+     },
+     {
+      "stream": "out",
+      "text": "  4.90-5.20  two"
+     },
+     {
+      "stream": "out",
+      "text": "  5.40-5.80  three."
+     },
+     {
+      "stream": "out",
+      "text": "  6.05-6.10  you"
+     },
+     {
+      "stream": "out",
+      "text": "video timeline -> <dir>/out/voice/words.json  (for <div data-captions=\"../out/voice/words.json\">)"
+     }
+    ],
+    "code": 0,
+    "failure": null,
+    "files": [
+     {
+      "path": "out/voice/plain.words.json",
+      "text": "{\n \"file\": \"<dir>/plain.wav\",\n \"model\": \"onnx-community/whisper-base_timestamped\",\n \"duration\": 2,\n \"words\": [\n  {\n   \"text\": \"One\",\n   \"start\": 0.2,\n   \"end\": 0.6\n  },\n  {\n   \"text\": \"two\",\n   \"start\": 0.8,\n   \"end\": 1.1\n  },\n  {\n   \"text\": \"three.\",\n   \"start\": 1.3,\n   \"end\": 1.7\n  },\n  {\n   \"text\": \"you\",\n   \"start\": 1.95,\n   \"end\": 2\n  }\n ],\n \"looped\": false\n}"
+     },
+     {
+      "path": "out/voice/scene.words.json",
+      "text": "{\n \"file\": \"<dir>/scene.wav\",\n \"model\": \"onnx-community/whisper-base_timestamped\",\n \"duration\": 2,\n \"words\": [\n  {\n   \"text\": \"One\",\n   \"start\": 0.2,\n   \"end\": 0.64\n  },\n  {\n   \"text\": \"two\",\n   \"start\": 0.8,\n   \"end\": 1.1300000000000001\n  },\n  {\n   \"text\": \"three.\",\n   \"start\": 1.3,\n   \"end\": 1.71\n  }\n ],\n \"looped\": false,\n \"heard\": [\n  {\n   \"text\": \"One\",\n   \"start\": 0.18,\n   \"end\": 0.62\n  },\n  {\n   \"text\": \"too\",\n   \"start\": 0.79,\n   \"end\": 1.12\n  },\n  {\n   \"text\": \"three.\",\n   \"start\": 1.3,\n   \"end\": 1.71\n  }\n ],\n \"phrases\": \"<dir>/scene.srt\",\n \"script\": \"<dir>/scene.srt\"\n}"
+     },
+     {
+      "path": "out/voice/vo.words.json",
+      "text": "{\n \"file\": \"<dir>/vo.wav\",\n \"model\": \"onnx-community/whisper-base_timestamped\",\n \"duration\": 2,\n \"words\": [\n  {\n   \"text\": \"One\",\n   \"start\": 0.2,\n   \"end\": 0.64\n  },\n  {\n   \"text\": \"two,\",\n   \"start\": 0.8,\n   \"end\": 1.1300000000000001\n  },\n  {\n   \"text\": \"three.\",\n   \"start\": 1.3,\n   \"end\": 1.71\n  }\n ],\n \"looped\": false,\n \"heard\": [\n  {\n   \"text\": \"One\",\n   \"start\": 0.18,\n   \"end\": 0.62\n  },\n  {\n   \"text\": \"too\",\n   \"start\": 0.79,\n   \"end\": 1.12\n  },\n  {\n   \"text\": \"three.\",\n   \"start\": 1.3,\n   \"end\": 1.71\n  }\n ],\n \"script\": \"<dir>/vo.txt\"\n}"
+     },
+     {
+      "path": "out/voice/words.json",
+      "text": "{\n \"words\": [\n  {\n   \"text\": \"One\",\n   \"start\": 0,\n   \"end\": 0.39\n  },\n  {\n   \"text\": \"two,\",\n   \"start\": 0.55,\n   \"end\": 0.88\n  },\n  {\n   \"text\": \"three.\",\n   \"start\": 1.05,\n   \"end\": 1.46\n  },\n  {\n   \"text\": \"One\",\n   \"start\": 1.5,\n   \"end\": 1.94\n  },\n  {\n   \"text\": \"two\",\n   \"start\": 2.1,\n   \"end\": 2.43\n  },\n  {\n   \"text\": \"three.\",\n   \"start\": 2.6,\n   \"end\": 3.01\n  },\n  {\n   \"text\": \"One\",\n   \"start\": 4.3,\n   \"end\": 4.7\n  },\n  {\n   \"text\": \"two\",\n   \"start\": 4.9,\n   \"end\": 5.2\n  },\n  {\n   \"text\": \"three.\",\n   \"start\": 5.4,\n   \"end\": 5.8\n  },\n  {\n   \"text\": \"you\",\n   \"start\": 6.05,\n   \"end\": 6.1\n  }\n ]\n}"
+     },
+     {
+      "path": "plain.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "scene.srt",
+      "text": "1\n00:00:00,150 --> 00:00:01,150\nOne two\n\n2\n00:00:01,250 --> 00:00:01,900\nthree.\n"
+     },
+     {
+      "path": "scene.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"fps\":30,\"scenes\":[{\"file\":\"scenes/01-hook.html\",\"duration\":1},{\"file\":\"scenes/02-sub.html\",\"audio\":\"scene.wav\",\"script\":\"scene.srt\"},{\"file\":\"scenes/03-plain.html\",\"audio\":\"plain.wav\"}],\"voiceover\":{\"file\":\"vo.wav\",\"start\":-0.25,\"script\":\"vo.txt\"}}"
+     },
+     {
+      "path": "vo.txt",
+      "text": "[pause] One two, three."
+     },
+     {
+      "path": "vo.wav",
+      "bytes": "38e95893"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a voiceover past the video end",
+   "audio": {
+    "vo.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":1}],\"voiceover\":\"vo.wav\"}"
+   },
+   "heard": {
+    "vo.wav": [
+     {
+      "text": "One",
+      "start": 0.18,
+      "end": 0.62
+     },
+     {
+      "text": "too",
+      "start": 0.79,
+      "end": 1.12
+     },
+     {
+      "text": "three.",
+      "start": 1.3,
+      "end": 1.71
+     }
+    ]
+   },
+   "opts": {
+    "rest": [],
+    "manifest": "video.json",
+    "language": "ms"
+   },
+   "config": {
+    "asr": {
+     "model": "openai/whisper-large-v3"
+    }
+   },
+   "output": {
+    "calls": [
+     {
+      "file": "<dir>/vo.wav",
+      "model": "openai/whisper-large-v3",
+      "language": "ms"
+     }
+    ],
+    "lines": [
+     {
+      "stream": "out",
+      "text": "<dir>/vo.wav (voiceover, 2.00s, 3 words) -> <dir>/out/voice/vo.words.json"
+     },
+     {
+      "stream": "out",
+      "text": "  video seconds, start-end, word:"
+     },
+     {
+      "stream": "out",
+      "text": "  0.18-0.62  One"
+     },
+     {
+      "stream": "out",
+      "text": "  0.79-1.12  too"
+     },
+     {
+      "stream": "out",
+      "text": "  1.30-1.71  three."
+     },
+     {
+      "stream": "out",
+      "text": "video timeline -> <dir>/out/voice/words.json  (for <div data-captions=\"../out/voice/words.json\">)"
+     },
+     {
+      "stream": "out",
+      "text": "The voiceover runs 1.00s past the video's end. Size the scenes to its words above, so the video holds all of it."
+     }
+    ],
+    "code": 0,
+    "failure": null,
+    "files": [
+     {
+      "path": "out/voice/vo.words.json",
+      "text": "{\n \"file\": \"<dir>/vo.wav\",\n \"model\": \"openai/whisper-large-v3\",\n \"duration\": 2,\n \"words\": [\n  {\n   \"text\": \"One\",\n   \"start\": 0.18,\n   \"end\": 0.62\n  },\n  {\n   \"text\": \"too\",\n   \"start\": 0.79,\n   \"end\": 1.12\n  },\n  {\n   \"text\": \"three.\",\n   \"start\": 1.3,\n   \"end\": 1.71\n  }\n ],\n \"looped\": false\n}"
+     },
+     {
+      "path": "out/voice/words.json",
+      "text": "{\n \"words\": [\n  {\n   \"text\": \"One\",\n   \"start\": 0.18,\n   \"end\": 0.62\n  },\n  {\n   \"text\": \"too\",\n   \"start\": 0.79,\n   \"end\": 1.12\n  },\n  {\n   \"text\": \"three.\",\n   \"start\": 1.3,\n   \"end\": 1.71\n  }\n ]\n}"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":1}],\"voiceover\":\"vo.wav\"}"
+     },
+     {
+      "path": "vo.wav",
+      "bytes": "38e95893"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a file with no manifest, its recorded spans and a script",
+   "audio": {
+    "take.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "take.phrases.json": "{\"script\":\"One two,  three.\",\"phrases\":[{\"text\":\"One two,\",\"start\":0.15,\"end\":1.2},{\"text\":\"three.\",\"start\":1.25,\"end\":1.9}]}",
+    "take.txt": "One two, three.\n"
+   },
+   "heard": {
+    "take.wav": [
+     {
+      "text": "One",
+      "start": 0.18,
+      "end": 0.62
+     },
+     {
+      "text": "too",
+      "start": 0.79,
+      "end": 1.12
+     },
+     {
+      "text": "three.",
+      "start": 1.3,
+      "end": 1.71
+     }
+    ]
+   },
+   "opts": {
+    "rest": [
+     "take.wav"
+    ],
+    "manifest": "video.json",
+    "script": "take.txt",
+    "model": "onnx-community/whisper-small_timestamped"
+   },
+   "output": {
+    "calls": [
+     {
+      "file": "<dir>/take.wav",
+      "model": "onnx-community/whisper-small_timestamped",
+      "language": null
+     }
+    ],
+    "lines": [
+     {
+      "stream": "out",
+      "text": "<dir>/take.wav (file, 2.00s, 3 words, words from <dir>/take.txt) -> <dir>/out/voice/take.words.json"
+     },
+     {
+      "stream": "out",
+      "text": "  file seconds, start-end, word:"
+     },
+     {
+      "stream": "out",
+      "text": "  0.20-0.64  One"
+     },
+     {
+      "stream": "out",
+      "text": "  0.80-1.13  two,"
+     },
+     {
+      "stream": "out",
+      "text": "  1.30-1.71  three."
+     }
+    ],
+    "code": 0,
+    "failure": null,
+    "files": [
+     {
+      "path": "out/voice/take.words.json",
+      "text": "{\n \"file\": \"<dir>/take.wav\",\n \"model\": \"onnx-community/whisper-small_timestamped\",\n \"duration\": 2,\n \"words\": [\n  {\n   \"text\": \"One\",\n   \"start\": 0.2,\n   \"end\": 0.64\n  },\n  {\n   \"text\": \"two,\",\n   \"start\": 0.8,\n   \"end\": 1.1300000000000001\n  },\n  {\n   \"text\": \"three.\",\n   \"start\": 1.3,\n   \"end\": 1.71\n  }\n ],\n \"looped\": false,\n \"heard\": [\n  {\n   \"text\": \"One\",\n   \"start\": 0.18,\n   \"end\": 0.62\n  },\n  {\n   \"text\": \"too\",\n   \"start\": 0.79,\n   \"end\": 1.12\n  },\n  {\n   \"text\": \"three.\",\n   \"start\": 1.3,\n   \"end\": 1.71\n  }\n ],\n \"phrases\": \"<dir>/take.phrases.json\",\n \"script\": \"<dir>/take.txt\"\n}"
+     },
+     {
+      "path": "take.phrases.json",
+      "text": "{\"script\":\"One two,  three.\",\"phrases\":[{\"text\":\"One two,\",\"start\":0.15,\"end\":1.2},{\"text\":\"three.\",\"start\":1.25,\"end\":1.9}]}"
+     },
+     {
+      "path": "take.txt",
+      "text": "One two, three.\n"
+     },
+     {
+      "path": "take.wav",
+      "bytes": "38e95893"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a file beside a manifest writes under its out directory",
+   "audio": {
+    "take.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":3}]}",
+    "old.phrases.json": "{}"
+   },
+   "heard": {
+    "take.wav": [
+     {
+      "text": "One",
+      "start": 0.18,
+      "end": 0.62
+     },
+     {
+      "text": "too",
+      "start": 0.79,
+      "end": 1.12
+     },
+     {
+      "text": "three.",
+      "start": 1.3,
+      "end": 1.71
+     }
+    ]
+   },
+   "opts": {
+    "rest": [
+     "take.wav"
+    ],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [
+     {
+      "file": "<dir>/take.wav",
+      "model": "onnx-community/whisper-base_timestamped",
+      "language": null
+     }
+    ],
+    "lines": [
+     {
+      "stream": "out",
+      "text": "<dir>/take.wav (file, 2.00s, 3 words) -> <dir>/out/voice/take.words.json"
+     },
+     {
+      "stream": "out",
+      "text": "  file seconds, start-end, word:"
+     },
+     {
+      "stream": "out",
+      "text": "  0.18-0.62  One"
+     },
+     {
+      "stream": "out",
+      "text": "  0.79-1.12  too"
+     },
+     {
+      "stream": "out",
+      "text": "  1.30-1.71  three."
+     }
+    ],
+    "code": 0,
+    "failure": null,
+    "files": [
+     {
+      "path": "old.phrases.json",
+      "text": "{}"
+     },
+     {
+      "path": "out/voice/take.words.json",
+      "text": "{\n \"file\": \"<dir>/take.wav\",\n \"model\": \"onnx-community/whisper-base_timestamped\",\n \"duration\": 2,\n \"words\": [\n  {\n   \"text\": \"One\",\n   \"start\": 0.18,\n   \"end\": 0.62\n  },\n  {\n   \"text\": \"too\",\n   \"start\": 0.79,\n   \"end\": 1.12\n  },\n  {\n   \"text\": \"three.\",\n   \"start\": 1.3,\n   \"end\": 1.71\n  }\n ],\n \"looped\": false\n}"
+     },
+     {
+      "path": "take.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":3}]}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "two files and one script",
+   "audio": {},
+   "files": {
+    "s.txt": "x"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [
+     "a.wav",
+     "b.wav"
+    ],
+    "manifest": "video.json",
+    "script": "s.txt"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "transcribe --script: 2 narrations to read, and one script. Pass one FILE, or set \"script\" per narration in video.json."
+    },
+    "files": [
+     {
+      "path": "s.txt",
+      "text": "x"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a script that does not exist",
+   "audio": {
+    "take.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {},
+   "heard": {},
+   "opts": {
+    "rest": [
+     "take.wav"
+    ],
+    "manifest": "video.json",
+    "script": "gone.txt"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "transcribe --script: gone.txt does not exist."
+    },
+    "files": [
+     {
+      "path": "take.wav",
+      "bytes": "38e95893"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a file that does not exist",
+   "audio": {
+    "take.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {},
+   "heard": {
+    "take.wav": [
+     {
+      "text": "One",
+      "start": 0.18,
+      "end": 0.62
+     },
+     {
+      "text": "too",
+      "start": 0.79,
+      "end": 1.12
+     },
+     {
+      "text": "three.",
+      "start": 1.3,
+      "end": 1.71
+     }
+    ]
+   },
+   "opts": {
+    "rest": [
+     "take.wav",
+     "gone.wav"
+    ],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [
+     {
+      "file": "<dir>/take.wav",
+      "model": "onnx-community/whisper-base_timestamped",
+      "language": null
+     }
+    ],
+    "lines": [
+     {
+      "stream": "out",
+      "text": "<dir>/take.wav (file, 2.00s, 3 words) -> <dir>/out/voice/take.words.json"
+     },
+     {
+      "stream": "out",
+      "text": "  file seconds, start-end, word:"
+     },
+     {
+      "stream": "out",
+      "text": "  0.18-0.62  One"
+     },
+     {
+      "stream": "out",
+      "text": "  0.79-1.12  too"
+     },
+     {
+      "stream": "out",
+      "text": "  1.30-1.71  three."
+     }
+    ],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "transcribe: <dir>/gone.wav does not exist."
+    },
+    "files": [
+     {
+      "path": "out/voice/take.words.json",
+      "text": "{\n \"file\": \"<dir>/take.wav\",\n \"model\": \"onnx-community/whisper-base_timestamped\",\n \"duration\": 2,\n \"words\": [\n  {\n   \"text\": \"One\",\n   \"start\": 0.18,\n   \"end\": 0.62\n  },\n  {\n   \"text\": \"too\",\n   \"start\": 0.79,\n   \"end\": 1.12\n  },\n  {\n   \"text\": \"three.\",\n   \"start\": 1.3,\n   \"end\": 1.71\n  }\n ],\n \"looped\": false\n}"
+     },
+     {
+      "path": "take.wav",
+      "bytes": "38e95893"
+     }
+    ]
+   }
+  },
+  {
+   "name": "no narration",
+   "audio": {},
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2}]}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "transcribe: no narration to read. Set \"voiceover\" or a scene \"audio\" in video.json, or pass a file."
+    },
+    "files": [
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2}]}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "no manifest",
+   "audio": {},
+   "files": {},
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json not found. Run \"init <dir>\" or pass the manifest path."
+    },
+    "files": []
+   }
+  },
+  {
+   "name": "every sound field set, and valid",
+   "audio": {
+    "vo.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    },
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":1.5,\"energy\":[[0,0.2],[0.5,0.9],[1.5,0.4]]},{\"file\":\"b.html\",\"duration\":1.5,\"energy\":1,\"in\":\"riser\",\"inVol\":4,\"inDur\":0.2}],\"music\":{\"file\":\"music.wav\",\"volume\":1,\"start\":0},\"voiceover\":\"vo.wav\",\"sound\":{\"space\":\"hall\",\"fadeIn\":0,\"fadeOut\":5,\"palette\":\"ceramic\",\"key\":\"f# minor\",\"bed\":{\"fragments\":8,\"level\":-48,\"seed\":0}}}"
+   },
+   "heard": {
+    "vo.wav": [
+     {
+      "text": "One",
+      "start": 0.18,
+      "end": 0.62
+     },
+     {
+      "text": "too",
+      "start": 0.79,
+      "end": 1.12
+     },
+     {
+      "text": "three.",
+      "start": 1.3,
+      "end": 1.71
+     }
+    ]
+   },
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [
+     {
+      "file": "<dir>/vo.wav",
+      "model": "onnx-community/whisper-base_timestamped",
+      "language": null
+     }
+    ],
+    "lines": [
+     {
+      "stream": "out",
+      "text": "<dir>/vo.wav (voiceover, 2.00s, 3 words) -> <dir>/out/voice/vo.words.json"
+     },
+     {
+      "stream": "out",
+      "text": "  video seconds, start-end, word:"
+     },
+     {
+      "stream": "out",
+      "text": "  0.18-0.62  One"
+     },
+     {
+      "stream": "out",
+      "text": "  0.79-1.12  too"
+     },
+     {
+      "stream": "out",
+      "text": "  1.30-1.71  three."
+     },
+     {
+      "stream": "out",
+      "text": "video timeline -> <dir>/out/voice/words.json  (for <div data-captions=\"../out/voice/words.json\">)"
+     }
+    ],
+    "code": 0,
+    "failure": null,
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "out/voice/vo.words.json",
+      "text": "{\n \"file\": \"<dir>/vo.wav\",\n \"model\": \"onnx-community/whisper-base_timestamped\",\n \"duration\": 2,\n \"words\": [\n  {\n   \"text\": \"One\",\n   \"start\": 0.18,\n   \"end\": 0.62\n  },\n  {\n   \"text\": \"too\",\n   \"start\": 0.79,\n   \"end\": 1.12\n  },\n  {\n   \"text\": \"three.\",\n   \"start\": 1.3,\n   \"end\": 1.71\n  }\n ],\n \"looped\": false\n}"
+     },
+     {
+      "path": "out/voice/words.json",
+      "text": "{\n \"words\": [\n  {\n   \"text\": \"One\",\n   \"start\": 0.18,\n   \"end\": 0.62\n  },\n  {\n   \"text\": \"too\",\n   \"start\": 0.79,\n   \"end\": 1.12\n  },\n  {\n   \"text\": \"three.\",\n   \"start\": 1.3,\n   \"end\": 1.71\n  }\n ]\n}"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":1.5,\"energy\":[[0,0.2],[0.5,0.9],[1.5,0.4]]},{\"file\":\"b.html\",\"duration\":1.5,\"energy\":1,\"in\":\"riser\",\"inVol\":4,\"inDur\":0.2}],\"music\":{\"file\":\"music.wav\",\"volume\":1,\"start\":0},\"voiceover\":\"vo.wav\",\"sound\":{\"space\":\"hall\",\"fadeIn\":0,\"fadeOut\":5,\"palette\":\"ceramic\",\"key\":\"f# minor\",\"bed\":{\"fragments\":8,\"level\":-48,\"seed\":0}}}"
+     },
+     {
+      "path": "vo.wav",
+      "bytes": "38e95893"
+     }
+    ]
+   }
+  },
+  {
+   "name": "energy above 1",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2,\"energy\":1.5},{\"file\":\"b.html\",\"duration\":2}]}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: scenes[0].energy is 1.5. Use a number from 0 to 1, or a list of [seconds, energy] points."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2,\"energy\":1.5},{\"file\":\"b.html\",\"duration\":2}]}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "energy of the wrong type",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2,\"energy\":\"high\"},{\"file\":\"b.html\",\"duration\":2}]}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: scenes[0].energy is \"high\". Use a number from 0 to 1, or a list of [seconds, energy] points."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2,\"energy\":\"high\"},{\"file\":\"b.html\",\"duration\":2}]}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "energy as an empty list",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2,\"energy\":[]},{\"file\":\"b.html\",\"duration\":2}]}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: scenes[0].energy is []. Use a number from 0 to 1, or a list of [seconds, energy] points."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2,\"energy\":[]},{\"file\":\"b.html\",\"duration\":2}]}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "an energy point out of range",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2,\"energy\":[[0,0.5],[1,2]]},{\"file\":\"b.html\",\"duration\":2}]}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: scenes[0].energy[1] is [1,2]. Use [seconds into the scene, energy 0-1]."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2,\"energy\":[[0,0.5],[1,2]]},{\"file\":\"b.html\",\"duration\":2}]}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "an energy point that is no pair",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2,\"energy\":[[0,0.5],{\"at\":1}]},{\"file\":\"b.html\",\"duration\":2}]}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: scenes[0].energy[1] is {\"at\":1}. Use [seconds into the scene, energy 0-1]."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2,\"energy\":[[0,0.5],{\"at\":1}]},{\"file\":\"b.html\",\"duration\":2}]}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "an energy point past the scene",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2,\"energy\":[[0,0.5],[5,0.2]]},{\"file\":\"b.html\",\"duration\":2}]}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: scenes[0].energy[1] sits at 5s, outside the scene's 0-2.00s."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2,\"energy\":[[0,0.5],[5,0.2]]},{\"file\":\"b.html\",\"duration\":2}]}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "energy points out of order",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2,\"energy\":[[1,0.5],[0.5,0.2]]},{\"file\":\"b.html\",\"duration\":2}]}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: scenes[0].energy[1] at 0.5s comes before the point at 1s. List points in time order."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2,\"energy\":[[1,0.5],[0.5,0.2]]},{\"file\":\"b.html\",\"duration\":2}]}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "an unknown transition",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2,\"in\":\"fade\"}]}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: scenes[1].in is \"fade\". Use one of: whoosh, swoosh, reverse, riser."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2,\"in\":\"fade\"}]}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a transition on the first scene",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2,\"in\":\"whoosh\"},{\"file\":\"b.html\",\"duration\":2}]}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: scenes[0].in: the first scene has no cut to transition across. Remove it."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2,\"in\":\"whoosh\"},{\"file\":\"b.html\",\"duration\":2}]}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a transition volume too high",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2,\"inVol\":5}]}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: scenes[1].inVol is 5. Use a number from 0 to 4."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2,\"inVol\":5}]}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a transition too short",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2,\"inDur\":0.1}]}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: scenes[1].inDur is 0.1. Use a number from 0.2 to 4."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2,\"inDur\":0.1}]}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "music with no file",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"music\":{\"volume\":0.5}}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: \"music.file\" <dir> does not exist."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"music\":{\"volume\":0.5}}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "music as a string",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"music\":\"music.wav\"}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: \"music.file\" <dir> does not exist."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"music\":\"music.wav\"}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "music too loud",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"music\":{\"file\":\"music.wav\",\"volume\":2}}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: \"music.volume\" is 2. Use a number above 0 and at most 1."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"music\":{\"file\":\"music.wav\",\"volume\":2}}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "music starting before the track",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"music\":{\"file\":\"music.wav\",\"start\":-1}}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: \"music.start\" is -1. Use seconds into the track, 0 or more."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"music\":{\"file\":\"music.wav\",\"start\":-1}}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "an unknown space",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"space\":\"big\"}}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: \"sound.space\" is \"big\". Use \"tight\", \"room\" or \"hall\"."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"space\":\"big\"}}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a fade too long",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"fadeIn\":6}}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: \"sound.fadeIn\" is 6. Use seconds from 0 to 5."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"fadeIn\":6}}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a fade of the wrong type",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"fadeOut\":\"slow\"}}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: \"sound.fadeOut\" is slow. Use seconds from 0 to 5."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"fadeOut\":\"slow\"}}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "an unknown palette",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"palette\":\"paper\"}}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: \"sound.palette\" is \"paper\". Use one of: synth, wood, glass, metal, plastic, stone, rubber, ceramic."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"palette\":\"paper\"}}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "an unknown key",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"key\":\"H\"}}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: \"sound.key\" is \"H\". Use \"auto\" or a key such as \"C\", \"F# minor\" or \"Ebm\"."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"key\":\"H\"}}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a key with no root",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"key\":\"Cb\"}}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: \"sound.key\" is \"Cb\". Use \"auto\" or a key such as \"C\", \"F# minor\" or \"Ebm\"."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"key\":\"Cb\"}}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a bed of the wrong type",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"bed\":\"yes\"}}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: \"sound.bed\" is \"yes\". Use true, false, or an object with fragments, level and seed."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"bed\":\"yes\"}}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a bed with air",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"bed\":{\"air\":1}}}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: \"sound.bed.air\" was removed: the bed has no noise layer. Delete the field."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"bed\":{\"air\":1}}}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a bed with unknown fields",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"bed\":{\"zeta\":1,\"alpha\":2}}}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: \"sound.bed\" has unknown field(s) zeta, alpha. Use fragments, level and seed."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"bed\":{\"zeta\":1,\"alpha\":2}}}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a bed with too many fragments",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"bed\":{\"fragments\":9}}}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: \"sound.bed.fragments\" is 9. Use a number from 1 to 8."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"bed\":{\"fragments\":9}}}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a bed level of the wrong type",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"bed\":{\"level\":\"x\"}}}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: \"sound.bed.level\" is \"x\". Use a number from -48 to -12."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"bed\":{\"level\":\"x\"}}}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a bed with a fractional seed",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"bed\":{\"seed\":1.5}}}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: \"sound.bed.seed\" is 1.5. Use a whole number of 0 or more."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"bed\":{\"seed\":1.5}}}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a bed of true passes, a bad key after it does not",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"bed\":true,\"key\":\"H\"}}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: \"sound.key\" is \"H\". Use \"auto\" or a key such as \"C\", \"F# minor\" or \"Ebm\"."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"sound\":{\"bed\":true,\"key\":\"H\"}}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a bed of true is valid, a sound block after a bad voiceover is not read",
+   "audio": {
+    "music.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "video.json": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"voiceover\":\"gone.wav\",\"sound\":{\"bed\":true,\"key\":\"H\"}}"
+   },
+   "heard": {},
+   "opts": {
+    "rest": [],
+    "manifest": "video.json"
+   },
+   "output": {
+    "calls": [],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": true,
+     "message": "<dir>/video.json: \"voiceover\" file <dir>/gone.wav does not exist."
+    },
+    "files": [
+     {
+      "path": "music.wav",
+      "bytes": "38e95893"
+     },
+     {
+      "path": "video.json",
+      "text": "{\"scenes\":[{\"file\":\"a.html\",\"duration\":2},{\"file\":\"b.html\",\"duration\":2}],\"voiceover\":\"gone.wav\",\"sound\":{\"bed\":true,\"key\":\"H\"}}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "subtitles with no cues",
+   "audio": {
+    "take.wav": {
+     "n": 32000,
+     "ops": [
+      {
+       "kind": "noise",
+       "start": 0,
+       "len": 32000,
+       "amp": 0.00002,
+       "seed": 5
+      },
+      {
+       "kind": "tone",
+       "hz": "200",
+       "start": 3200,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "150",
+       "start": 12800,
+       "len": 4800,
+       "amp": 0.25,
+       "attack": 160,
+       "release": 160
+      },
+      {
+       "kind": "tone",
+       "hz": "260",
+       "start": 20800,
+       "len": 6400,
+       "amp": 0.3,
+       "attack": 160,
+       "release": 160
+      }
+     ]
+    }
+   },
+   "files": {
+    "empty.srt": "\n"
+   },
+   "heard": {
+    "take.wav": [
+     {
+      "text": "One",
+      "start": 0.18,
+      "end": 0.62
+     },
+     {
+      "text": "too",
+      "start": 0.79,
+      "end": 1.12
+     },
+     {
+      "text": "three.",
+      "start": 1.3,
+      "end": 1.71
+     }
+    ]
+   },
+   "opts": {
+    "rest": [
+     "take.wav"
+    ],
+    "manifest": "video.json",
+    "script": "empty.srt"
+   },
+   "output": {
+    "calls": [
+     {
+      "file": "<dir>/take.wav",
+      "model": "onnx-community/whisper-base_timestamped",
+      "language": null
+     }
+    ],
+    "lines": [],
+    "code": null,
+    "failure": {
+     "input": false,
+     "message": "<dir>/empty.srt holds no subtitle cues (\"00:00:01,000 --> 00:00:03,000\" lines with text)."
+    },
+    "files": [
+     {
+      "path": "empty.srt",
+      "text": "\n"
+     },
+     {
+      "path": "take.wav",
+      "bytes": "38e95893"
+     }
+    ]
+   }
+  }
+ ]
+}

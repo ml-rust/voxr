@@ -1,7 +1,7 @@
 //! A known script's words put on recognized timings, and the pauses a voice
 //! took where the script has no break.
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use super::heard::HeardWord;
 use super::speech_match::{letters, match_words, script_words, split_units};
@@ -104,7 +104,7 @@ pub fn align_script(heard: &[HeardWord], script: &str) -> Result<Vec<HeardWord>>
 }
 
 /// A pause the script does not ask for.
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct StrayPause {
     /// The script word before the pause.
     pub after: String,

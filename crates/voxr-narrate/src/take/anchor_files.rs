@@ -17,6 +17,7 @@ use super::cache::{
 };
 use super::engine::{SpeechEngine, TakeStore};
 use super::files::voice_output_file;
+use super::progress::Sink;
 use crate::error::{Result, file_error};
 use crate::pattern::trim;
 use crate::polish::prepare_reference;
@@ -119,13 +120,13 @@ fn saved_transcript(file: &Path) -> Result<Option<String>> {
 ///
 /// A new design's slower takes go to `store`. Then the transcript, the
 /// first design, the prepared marker and last the voice itself are
-/// written. Every step is appended to `log`.
+/// written. Every step goes to `log` as it happens.
 pub fn designed_anchor<E: SpeechEngine, S: TakeStore>(
     script: &str,
     setup: &AnchorSetup<'_>,
     engine: &mut E,
     store: &mut S,
-    log: &mut Vec<AnchorStep>,
+    log: &mut dyn Sink<AnchorStep>,
 ) -> Result<Anchor> {
     let cache = setup.cache_dir;
     create_dir(cache)?;
@@ -135,10 +136,10 @@ pub fn designed_anchor<E: SpeechEngine, S: TakeStore>(
     if setup.hifi {
         transcript = saved_transcript(&said)?;
         if transcript.is_none() && file.exists() {
-            log.push(AnchorStep::HifiUntranscribed);
+            log.step(AnchorStep::HifiUntranscribed);
         }
         if transcript.is_some() && setup.style.is_some_and(|s| !s.is_empty()) {
-            log.push(AnchorStep::HifiIgnoresStyle);
+            log.step(AnchorStep::HifiIgnoresStyle);
         }
     }
     if file.exists() {

@@ -10,6 +10,7 @@
 
 use super::engine::{CloneReference, SpeakRequest, SpeechEngine, Take, TakeSpec, VoiceSource};
 use super::pace::{PaceSpan, REF_PACE, pace};
+use super::progress::Sink;
 use crate::error::{Error, Result};
 use crate::glitch::{repair_clicks, tidy};
 use crate::pattern::is_space;
@@ -143,12 +144,12 @@ fn reference_pace(transcript: &str, x: &[f32]) -> f64 {
 /// file reads back. The last is prepared: breaths turned down, a thin
 /// voice's bass lifted, compressed and normalized.
 ///
-/// Every step is appended to `log`.
+/// Every step goes to `log` as it happens.
 pub fn design_voice<E: SpeechEngine>(
     script: &str,
     setup: &DesignSetup<'_>,
     engine: &mut E,
-    log: &mut Vec<AnchorStep>,
+    log: &mut dyn Sink<AnchorStep>,
 ) -> Result<DesignedVoice> {
     let opening = opening(script)?;
     if opening.is_empty() {
@@ -160,7 +161,7 @@ pub fn design_voice<E: SpeechEngine>(
     let transcript = say(&opening)?;
     // The runner speaks each text after `say` once more.
     let spoken = say(&transcript)?;
-    log.push(AnchorStep::Designing {
+    log.step(AnchorStep::Designing {
         opening: opening.clone(),
     });
     let design_spec = TakeSpec {
@@ -169,7 +170,7 @@ pub fn design_voice<E: SpeechEngine>(
         seed: setup.seed,
         delivery: None,
     };
-    log.push(AnchorStep::Speak(design_spec));
+    log.step(AnchorStep::Speak(design_spec));
     let first = engine.speak(&SpeakRequest {
         text: &spoken,
         delivery: None,
@@ -192,14 +193,14 @@ pub fn design_voice<E: SpeechEngine>(
         if n > 0 && was <= REF_PACE {
             break;
         }
-        log.push(AnchorStep::Slower { ask, pace: was });
+        log.step(AnchorStep::Slower { ask, pace: was });
         let spec = TakeSpec {
             index: 0,
             text: transcript.clone(),
             seed: setup.seed + (n + 1) as f64,
             delivery: Some(ask.to_string()),
         };
-        log.push(AnchorStep::Speak(spec.clone()));
+        log.step(AnchorStep::Speak(spec.clone()));
         let take = engine.speak(&SpeakRequest {
             text: &spoken,
             delivery: Some(ask),
@@ -222,7 +223,7 @@ pub fn design_voice<E: SpeechEngine>(
     let (anchor, report) = prepare_reference(&reference, ANCHOR_RATE);
     let breaths = report.runs.len();
     if breaths > 0 {
-        log.push(AnchorStep::Breaths { runs: breaths });
+        log.step(AnchorStep::Breaths { runs: breaths });
     }
     Ok(DesignedVoice {
         opening,

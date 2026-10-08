@@ -3,9 +3,9 @@
 
 use std::collections::{HashMap, HashSet};
 
-use super::engine::{
-    Graded, SpeakRequest, SpeechEngine, Take, TakeJudge, TakeSpec, TakeStore, VoiceSource,
-};
+use super::engine::{Graded, SpeechEngine, Take, TakeJudge, TakeSpec, TakeStore, VoiceSource};
+use super::pick_rules::{beats, request, reroll_seed};
+use super::progress::Sink;
 use super::seed::text_seed;
 use super::step::{PartTake, TakeStep};
 use crate::error::{Error, Result};
@@ -15,10 +15,6 @@ use crate::text::{Chunk, say};
 pub const ATTEMPTS: usize = 3;
 /// The seed a retry adds to the seed of the take that failed.
 pub const RETRY_STEP: f64 = 1000.0;
-/// The smallest seed a re-rolled part draws.
-const REROLL_BASE: f64 = 100000.0;
-/// The span re-rolled seeds are drawn from.
-const REROLL_SPAN: f64 = 900000.0;
 
 /// What a run speaks with.
 #[derive(Debug)]
@@ -49,38 +45,6 @@ pub struct TakeLoop<'a, E: SpeechEngine, J, S> {
     pub store: &'a mut S,
 }
 
-/// `100000 + Math.floor(random * 900000)`: a re-rolled part's fresh seed.
-fn reroll_seed(random: f64) -> f64 {
-    REROLL_BASE + (random * REROLL_SPAN).floor()
-}
-
-/// `a < b`, or `a <= b` when `or_equal`, with `None` as JavaScript's
-/// `undefined`: every comparison with it is false.
-fn beats(a: Option<f64>, b: Option<f64>, or_equal: bool) -> bool {
-    let (a, b) = (a.unwrap_or(f64::NAN), b.unwrap_or(f64::NAN));
-    a < b || (or_equal && a <= b)
-}
-
-/// The request for `spec`'s take, spoken as `text`. An empty run style is
-/// no style.
-fn request<'r, H>(
-    setup: &'r PickSetup<'_, H>,
-    spec: &'r TakeSpec,
-    text: &'r str,
-) -> SpeakRequest<'r, H> {
-    SpeakRequest {
-        text,
-        delivery: spec.delivery.as_deref(),
-        style: setup.style.filter(|s| !s.is_empty()),
-        voice: setup.voice,
-        seed: spec.seed,
-        cfg: setup.cfg,
-        steps: setup.steps,
-        // VoxCPM2 is never sped up: its pace comes from the reference.
-        speed: 1.0,
-    }
-}
-
 impl<E, J, S> TakeLoop<'_, E, J, S>
 where
     E: SpeechEngine,
@@ -91,9 +55,9 @@ where
         &mut self,
         spec: &TakeSpec,
         take: &Take,
-        log: &mut Vec<TakeStep>,
+        log: &mut dyn Sink<TakeStep>,
     ) -> Result<J::Verdict> {
-        log.push(TakeStep::Judge(spec.clone()));
+        log.step(TakeStep::Judge(spec.clone()));
         self.judge.judge(spec, take)
     }
 
@@ -113,13 +77,14 @@ where
     /// check cannot hear. Otherwise only a better take replaces the one
     /// kept.
     ///
-    /// Every step is appended to `log`.
+    /// Every step goes to `log` as it happens. The takes a round speaks go
+    /// to the model as one batch, announced by a [`TakeStep::Batch`].
     pub fn pick(
         &mut self,
         parts: &[Chunk],
         rolls: &[usize],
         random: &mut dyn FnMut() -> f64,
-        log: &mut Vec<TakeStep>,
+        log: &mut dyn Sink<TakeStep>,
     ) -> Result<Vec<PartTake<J::Verdict>>> {
         if let Some(n) = rolls.iter().find(|&&n| n < 1 || n > parts.len()) {
             return Err(Error::InvalidArgument {
@@ -165,11 +130,9 @@ where
                 TakeSpec::new(i, part, seed)
             })
             .collect();
-        log.extend(
-            fresh
-                .iter()
-                .map(|&(index, seed)| TakeStep::Rerolled { index, seed }),
-        );
+        for &(index, seed) in &fresh {
+            log.step(TakeStep::Rerolled { index, seed });
+        }
         for attempt in 0..ATTEMPTS {
             if todo.is_empty() {
                 break;
@@ -179,10 +142,15 @@ where
                 .collect();
             let mut made: HashSet<usize> = HashSet::new();
             let mut spoken: HashMap<usize, Take> = HashMap::new();
+            if !missing.is_empty() {
+                log.step(TakeStep::Batch {
+                    parts: missing.len(),
+                });
+            }
             for k in missing {
                 let spec = &todo[k];
                 let text = say(&spec.text)?;
-                log.push(TakeStep::Speak(spec.clone()));
+                log.step(TakeStep::Speak(spec.clone()));
                 let take = self.engine.speak(&request(&self.setup, spec, &text))?;
                 self.store.save(spec, &take)?;
                 made.insert(spec.index);
@@ -223,7 +191,7 @@ where
                     };
                     let regenerating = attempt < ATTEMPTS - 1;
                     if made.contains(&index) || (regenerating && !self.store.has(&retry)) {
-                        log.push(TakeStep::Failed {
+                        log.step(TakeStep::Failed {
                             index,
                             seed,
                             why,
@@ -386,13 +354,5 @@ pub(crate) mod tests {
             got,
             Err(Error::InvalidArgument { arg: "rolls", .. })
         ));
-    }
-
-    #[test]
-    fn undefined_badness_never_compares() {
-        assert!(!beats(None, Some(1.0), true));
-        assert!(!beats(Some(1.0), None, true));
-        assert!(beats(Some(1.0), Some(1.0), true));
-        assert!(!beats(Some(1.0), Some(1.0), false));
     }
 }

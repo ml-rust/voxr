@@ -20,7 +20,9 @@ unicode-normalization = "0.1"
 serde = { version = "1", features = ["derive"] }
 # Transcript files are written as JSON.stringify writes them, and read back
 # with every number exact.
-serde_json = { version = "1", features = ["float_roundtrip"] }
+# `preserve_order`: a manifest's keys keep their order, as JavaScript
+# lists them in the messages that name them.
+serde_json = { version = "1", features = ["float_roundtrip", "preserve_order"] }
 thiserror = "2"
 # RBJ cookbook biquads: the band levels and the bass shelf of a reference
 # voice's preparation.
@@ -28,13 +30,12 @@ biquad = "0.6"
 # A take's own-text seed and a cache key's sha1 digest.
 sha1 = "0.11"
 
+# The RIFF/WAVE writer behind the skill's WAV files. Behind features,
 # `HeardWord: From<&WordTiming>`, `WhisperTranscriber` and `read_take_16k`:
 # Whisper word timings and the audio decode that feeds them. Also
 # `stretch_track`: voxr's atempo and resampler. Also the engines the
 # adapters drive: Kokoro, VITS and VoxCPM2.
-# A workspace-internal path dependency, off by default so a consumer that
-# only parses scripts and checks speech does not pull in voxr's audio stack.
-voxr = { path = "../voxr", optional = true, default-features = false }
+voxr = { path = "../voxr", default-features = false }
 # `WhisperTranscriber` and the VoxCPM2 adapter: the runtime and client a
 # checkpoint runs on.
 numr = { version = "0.7", optional = true }
@@ -48,18 +49,18 @@ tempfile = "3"
 default = []
 # Whisper word timings, and the `Hearing` the adapters check takes with.
 # With it, `NarrationRuns`: the `SpeakRuns` over loaded engines.
-whisper = ["dep:voxr", "voxr/whisper", "dep:numr"]
+whisper = ["voxr/whisper", "dep:numr"]
 # `stretch_track` and `resample_48k`: voxr's ffmpeg-exact atempo and
 # resampler, with no voxr feature beyond its default-off set.
-stretch = ["dep:voxr"]
+stretch = []
 # `KokoroSpeech`: voxr's Kokoro engine as a speech engine.
-kokoro = ["dep:voxr", "voxr/kokoro"]
+kokoro = ["voxr/kokoro"]
 # `VitsSpeech`: voxr's VITS (MMS-TTS) engine as a speech engine.
-vits = ["dep:voxr", "voxr/vits"]
+vits = ["voxr/vits"]
 # `VoxcpmSpeech`: voxr's VoxCPM2 engine as a speech engine.
-voxcpm = ["dep:voxr", "voxr/voxcpm", "dep:numr", "dep:boostr"]
+voxcpm = ["voxr/voxcpm", "dep:numr", "dep:boostr"]
 # The CUDA runtime for Whisper and VoxCPM2.
-cuda = ["dep:voxr", "voxr/cuda", "dep:numr", "numr/cuda"]
+cuda = ["voxr/cuda", "dep:numr", "numr/cuda"]
 
 [[test]]
 name = "narration_oracle"
@@ -99,6 +100,12 @@ name = "narration_place_oracle"
 
 [[test]]
 name = "narration_dispatch_oracle"
+
+[[test]]
+name = "narration_command_speak_oracle"
+
+[[test]]
+name = "narration_command_transcribe_oracle"
 
 [[test]]
 name = "adapters_kokoro"

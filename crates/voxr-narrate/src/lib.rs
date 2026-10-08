@@ -10,7 +10,8 @@
 //! a pace, and the skill's WAV files. Also, behind features, the real
 //! engines behind the take loop's seams: Kokoro, VITS and VoxCPM2 as speech
 //! engines, Whisper as the hearing, and the runs a caller hands loaded
-//! models to.
+//! models to. Also the speak and transcribe commands around them: every
+//! printed line, file and exit code, and the video manifest's narration.
 
 mod error;
 mod js;
@@ -25,6 +26,7 @@ mod pattern;
 ))]
 pub mod adapters;
 pub mod check;
+pub mod command;
 pub mod glitch;
 pub mod polish;
 pub mod take;
@@ -40,6 +42,7 @@ pub mod wav;
 ))]
 pub use adapters::*;
 pub use check::*;
+pub use command::*;
 pub use error::{Error, Result};
 pub use glitch::*;
 pub use polish::*;

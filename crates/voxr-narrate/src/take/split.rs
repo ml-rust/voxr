@@ -5,6 +5,7 @@
 use super::engine::{Graded, SpeechEngine, TakeJudge, TakeStore};
 use super::files::TakesFile;
 use super::pick::TakeLoop;
+use super::progress::{Sink, Tee};
 use super::step::{PartTake, TakeStep};
 use crate::error::Result;
 use crate::text::{Chunk, PhraseKind};
@@ -108,13 +109,17 @@ where
     /// for up to [`SPLIT_ROUNDS`] rounds, each part whose kept take fails
     /// and that holds more than one phrase is replaced by its pieces
     /// ([`break_up`]), and every part is picked again with no re-rolls.
+    ///
+    /// Every step goes to `progress` as it happens, and the result keeps a
+    /// copy.
     pub fn best_takes(
         &mut self,
         mut parts: Vec<Chunk>,
         rolls: &[usize],
         random: &mut dyn FnMut() -> f64,
+        progress: &mut dyn Sink<TakeStep>,
     ) -> Result<BestTakes<J::Verdict>> {
-        let mut log = Vec::new();
+        let mut log = Tee::new(progress);
         let mut best = self.pick(&parts, rolls, random, &mut log)?;
         for round in 0..SPLIT_ROUNDS {
             let split: Vec<bool> = parts
@@ -125,7 +130,7 @@ where
             if !split.iter().any(|&s| s) {
                 break;
             }
-            log.push(TakeStep::Split {
+            log.step(TakeStep::Split {
                 round,
                 parts: split
                     .iter()
@@ -140,7 +145,11 @@ where
                 .collect();
             best = self.pick(&parts, &[], random, &mut log)?;
         }
-        Ok(BestTakes { parts, best, log })
+        Ok(BestTakes {
+            parts,
+            best,
+            log: log.kept,
+        })
     }
 }
 
@@ -188,7 +197,7 @@ mod tests {
             judge: &mut j,
             store: &mut s,
         };
-        let got = tl.best_takes(whole, &[], &mut sequence(vec![]))?;
+        let got = tl.best_takes(whole, &[], &mut sequence(vec![]), &mut Vec::new())?;
         let texts: Vec<&str> = got.parts.iter().map(|c| c.text.as_str()).collect();
         assert_eq!(texts, ["One two three.", "Four five six."]);
         assert!(got.best.iter().all(|b| b.verdict.ok));

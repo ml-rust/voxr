@@ -57,6 +57,20 @@ pub enum Error {
     },
 }
 
+impl Error {
+    /// The reason alone, without the kind of error before it.
+    pub fn reason(&self) -> &str {
+        match self {
+            Self::InvalidArgument { reason, .. }
+            | Self::Pattern { reason }
+            | Self::DataError { reason }
+            | Self::Recognizer { reason }
+            | Self::Engine { reason }
+            | Self::File { reason } => reason,
+        }
+    }
+}
+
 /// An [`Error::File`] naming what failed on `path`, and the next action.
 pub(crate) fn file_error(
     what: &str,

@@ -22,7 +22,7 @@ use std::path::Path;
 use serde::Deserialize;
 use voxr_narrate::{
     CommandEngine, EngineChoice, Error, HeardWord, Hearing, Recognizer, Result, SimpleSetup,
-    SpeakOpts, SpeakRequest, SpeechEngine, Take, Transcribed, TtsConfig, VoiceSource,
+    SimpleStep, SpeakOpts, SpeakRequest, SpeechEngine, Take, Transcribed, TtsConfig, VoiceSource,
     check_kokoro_voice, f32_wav, js_json, read_wav_file, resolve_speak, speak_phrases,
 };
 
@@ -323,11 +323,12 @@ fn check_case(fixture: &Fixture, case: &Case) -> Result<()> {
         calls: Vec::new(),
     };
     let voices: Vec<&str> = fixture.voices.iter().map(String::as_str).collect();
+    let mut live: Vec<SimpleStep> = Vec::new();
     let (result, made) = match &resolved.engine {
         EngineChoice::Command { command, .. } => {
             let made = Cell::new(0);
             let mut engine = command_engine(case, command, &work, &made);
-            let result = speak_phrases(&case.script, &setup, &mut engine, &mut hearing);
+            let result = speak_phrases(&case.script, &setup, &mut engine, &mut hearing, &mut live);
             (result, made.get())
         }
         choice => {
@@ -336,7 +337,9 @@ fn check_case(fixture: &Fixture, case: &Case) -> Result<()> {
                 EngineChoice::Kokoro { voice, .. } => check_kokoro_voice(voice, &voices),
                 _ => Ok(()),
             }
-            .and_then(|()| speak_phrases(&case.script, &setup, &mut synth, &mut hearing));
+            .and_then(|()| {
+                speak_phrases(&case.script, &setup, &mut synth, &mut hearing, &mut live)
+            });
             (result, synth.at)
         }
     };
@@ -354,8 +357,10 @@ fn check_case(fixture: &Fixture, case: &Case) -> Result<()> {
     let (Some(want), Some(joined), Some(wav)) = (&case.result, &case.joined, &case.wav) else {
         panic!("case {name} has no result");
     };
-    let messages: Vec<String> = run.log.iter().map(|s| s.message()).collect();
+    // The steps as they happened, and the copy the run keeps.
+    let messages: Vec<String> = live.iter().map(|s| s.message()).collect();
     assert_eq!(messages, case.messages, "messages, {name}");
+    assert_eq!(live, run.log, "kept steps, {name}");
     assert_eq!(fnv1a(&run.samples), joined.samples, "joined, {name}");
     assert_eq!(run.rate, joined.rate, "rate, {name}");
     let bytes = std::fs::read(&out).map_err(io("reading", &out))?;

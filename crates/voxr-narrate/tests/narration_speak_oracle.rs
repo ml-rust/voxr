@@ -20,9 +20,9 @@ use std::path::Path;
 use serde::Deserialize;
 use voxr_narrate::{
     Error, HeardCheck, HeardWord, JudgedTake, ReferenceHearing, Result, SLOWER, SpeakRequest,
-    SpeechEngine, Take, TakeJudge, TakeSpec, Transcribed, Verdict, VoiceReference, VoiceSource,
-    VoxcpmSetup, js_json, pcm16_wav, read_takes_file, read_wav_file, resolve_seed, say,
-    speak_voxcpm, text_seed,
+    SpeakStep, SpeechEngine, Take, TakeJudge, TakeSpec, Transcribed, Verdict, VoiceReference,
+    VoiceSource, VoxcpmSetup, js_json, pcm16_wav, read_takes_file, read_wav_file, resolve_seed,
+    say, speak_voxcpm, text_seed,
 };
 
 mod common;
@@ -286,6 +286,7 @@ fn run_one(fixture: &Fixture, scenario: &Scenario, root: &Path, run: &Run) -> Re
         run.random
             .unwrap_or_else(|| panic!("run {name} draws no random number"))
     };
+    let mut live: Vec<SpeakStep> = Vec::new();
     let got = speak_voxcpm(
         &scenario.script,
         &setup,
@@ -293,12 +294,15 @@ fn run_one(fixture: &Fixture, scenario: &Scenario, root: &Path, run: &Run) -> Re
         &mut judge,
         &mut decode,
         &mut random,
+        &mut live,
     )?;
 
     assert_eq!(engine.calls, run.calls, "model calls, {name}");
     assert_eq!(judge.calls, run.judged, "judge calls, {name}");
-    let messages: Vec<String> = got.log.iter().filter_map(|s| s.message()).collect();
+    // The steps as they happened, and the copy the run keeps.
+    let messages: Vec<String> = live.iter().filter_map(|s| s.message()).collect();
     assert_eq!(messages, run.messages, "messages, {name}");
+    assert_eq!(live, got.log, "kept steps, {name}");
     assert_eq!(
         got.voice_median,
         num(&run.voice_median),

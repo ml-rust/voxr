@@ -46,6 +46,14 @@ pub trait SpeakRuns {
     /// A run of `script` with Kokoro, a Hugging Face model or the user's
     /// command, as `setup.engine` names it.
     fn phrases(&mut self, script: &str, setup: &SimpleSetup<'_>) -> Result<SimpleRun>;
+
+    /// A step of the run, as it happens, such as the notice that the tags
+    /// are stripped. An implementation that prints progress prints it here,
+    /// and passes each engine run's own steps on as they happen. The
+    /// default drops it.
+    fn note(&mut self, step: ScriptStep) {
+        let _ = step;
+    }
 }
 
 /// The checks a run returns: one per VoxCPM2 part, or one of the whole
@@ -101,7 +109,8 @@ impl ScriptStep {
 }
 
 /// A finished speak run: the skill's `speak()` result. It serializes to
-/// the JSON object the skill returns, with the log left out.
+/// the JSON object the skill returns. Its steps went to the runs as they
+/// happened ([`SpeakRuns::note`]).
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SpokenScript {
@@ -127,9 +136,6 @@ pub struct SpokenScript {
     /// other engine, which leaves the key out.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub voice_file: Option<Option<PathBuf>>,
-    /// Every step, in order.
-    #[serde(skip)]
-    pub log: Vec<ScriptStep>,
 }
 
 #[cfg(test)]
@@ -158,7 +164,6 @@ mod tests {
             problems: Vec::new(),
             timing: None,
             voice_file: None,
-            log: vec![ScriptStep::TagsStripped],
         };
         let json = |s: &SpokenScript| {
             serde_json::to_string(s).map_err(|e| crate::error::Error::DataError {

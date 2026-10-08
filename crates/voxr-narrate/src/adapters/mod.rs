@@ -27,11 +27,11 @@ pub mod whisper;
 mod work_dir;
 
 #[cfg(feature = "whisper")]
-pub use audio::{decode_48k, to_16k};
+pub use audio::{decode_16k, decode_48k, probe_duration, to_16k};
 #[cfg(feature = "kokoro")]
 pub use kokoro::KokoroSpeech;
 #[cfg(feature = "whisper")]
-pub use runs::{NarrationRuns, NoEngine, Spawn};
+pub use runs::{NarrationRuns, NoEngine, Progress, Spawn};
 #[cfg(feature = "vits")]
 pub use vits::VitsSpeech;
 #[cfg(feature = "voxcpm")]

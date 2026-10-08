@@ -198,8 +198,8 @@ where
 /// Reads an audio file as 16 kHz mono samples, the input of
 /// [`transcribe_narration`](super::transcribe_narration).
 ///
-/// Any container voxr decodes (WAV, FLAC, MP3, OGG/Vorbis) is downmixed and
-/// resampled to 16 kHz.
+/// Any container voxr decodes (WAV, FLAC, MP3, MP4/M4A/MOV, MKV/WebM,
+/// Ogg) is downmixed and resampled to 16 kHz.
 ///
 /// # Errors
 ///
@@ -207,7 +207,7 @@ where
 pub fn read_take_16k(path: &Path) -> Result<Vec<f32>> {
     voxr::decode_audio_file_mono_at(path, TRANSCRIPT_RATE).map_err(|e| Error::DataError {
         reason: format!(
-            "decoding {}: {e}. Pass a WAV, FLAC, MP3 or OGG/Vorbis file",
+            "decoding {}: {e}. Pass a WAV, FLAC, MP3, M4A, MP4, MOV, MKV, WebM, Ogg or Opus file",
             path.display()
         ),
     })

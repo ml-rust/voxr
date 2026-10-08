@@ -5,7 +5,7 @@
 
 use std::path::Path;
 
-use super::dispatch_setup::{ScriptChecks, ScriptStep, SpeakRuns, SpeakTarget, SpokenScript};
+use super::dispatch_setup::{ScriptChecks, SpeakRuns, SpeakTarget, SpokenScript};
 use super::engine_choice::truthy;
 use super::join::JOIN_RATE;
 use super::place::PLACE_RATE;
@@ -132,7 +132,6 @@ pub(super) fn engine_run<R: SpeakRuns + ?Sized>(
             problems: run.problems,
             timing: None,
             voice_file: None,
-            log: run.log.into_iter().map(ScriptStep::Phrases).collect(),
         },
         samples: run.samples,
         rate: run.rate,
@@ -194,7 +193,6 @@ fn voxcpm_run<R: SpeakRuns + ?Sized>(
             problems: run.problems,
             timing: None,
             voice_file: Some(run.voice_file),
-            log: run.log.into_iter().map(ScriptStep::Voxcpm).collect(),
         },
         samples: run.track.samples,
         rate: JOIN_RATE,

@@ -18,8 +18,8 @@ use std::rc::Rc;
 use serde::Deserialize;
 use voxr_narrate::{
     Chunk, ChunkOptions, CloneReference, Error, Graded, PickSetup, Result, SpeakRequest,
-    SpeechEngine, Take, TakeJudge, TakeLoop, TakeSpec, TakeStore, VoiceSource, chosen_takes,
-    chunks, read_takes_file, resolve_seed,
+    SpeechEngine, Take, TakeJudge, TakeLoop, TakeSpec, TakeStep, TakeStore, VoiceSource,
+    chosen_takes, chunks, read_takes_file, resolve_seed,
 };
 
 mod common;
@@ -267,11 +267,14 @@ fn run(case: &Case) -> Result<()> {
         judge: &mut judge,
         store: &mut store,
     };
-    let got = take_loop.best_takes(units, &case.reroll, &mut random)?;
+    let mut live: Vec<TakeStep> = Vec::new();
+    let got = take_loop.best_takes(units, &case.reroll, &mut random, &mut live)?;
 
     assert_eq!(*calls.borrow(), case.calls, "calls, case {name}");
-    let messages: Vec<String> = got.log.iter().filter_map(|s| s.message()).collect();
+    // The steps as they happened, and the copy the result keeps.
+    let messages: Vec<String> = live.iter().filter_map(|s| s.message()).collect();
     assert_eq!(messages, case.messages, "messages, case {name}");
+    assert_eq!(live, got.log, "kept steps, case {name}");
     let parts: Vec<&str> = got.parts.iter().map(|p| p.text.as_str()).collect();
     assert_eq!(parts, case.parts, "parts, case {name}");
     assert_eq!(got.best.len(), case.best.len(), "best count, case {name}");

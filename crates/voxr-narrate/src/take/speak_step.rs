@@ -3,6 +3,7 @@
 //! speak command prints each step's message.
 
 use super::anchor::{AnchorStep, js_word_count};
+use super::progress::Sink;
 use super::step::TakeStep;
 use crate::text::Chunk;
 
@@ -85,36 +86,22 @@ pub(super) fn short_parts(parts: &[Chunk]) -> Vec<(usize, String)> {
         .collect()
 }
 
-/// Appends the design steps to `log`, each call to the model after a
-/// [`SpeakStep::Generating`] of one take: a design speaks one take a call.
-pub(super) fn push_anchor_steps(log: &mut Vec<SpeakStep>, steps: Vec<AnchorStep>, download: bool) {
-    for step in steps {
-        if matches!(step, AnchorStep::Speak(_)) {
-            log.push(SpeakStep::Generating { parts: 1, download });
-        }
-        log.push(SpeakStep::Anchor(step));
+/// Passes a design step on to `log` as it happens: each call to the
+/// model after a [`SpeakStep::Generating`] of one take, since a design
+/// speaks one take a call.
+pub(super) fn anchor_step(log: &mut dyn Sink<SpeakStep>, step: AnchorStep, download: bool) {
+    if matches!(step, AnchorStep::Speak(_)) {
+        log.step(SpeakStep::Generating { parts: 1, download });
     }
+    log.step(SpeakStep::Anchor(step));
 }
 
-/// Appends the take loop's steps to `log`. Each run of takes spoken in a
-/// row is one batch to the model, so a [`SpeakStep::Generating`] of the
-/// run's length goes before it.
-pub(super) fn push_take_steps(log: &mut Vec<SpeakStep>, steps: Vec<TakeStep>, download: bool) {
-    let mut steps = steps.into_iter().peekable();
-    while let Some(step) = steps.next() {
-        if matches!(step, TakeStep::Speak(_)) {
-            let mut batch = vec![step];
-            while let Some(next) = steps.next_if(|s| matches!(s, TakeStep::Speak(_))) {
-                batch.push(next);
-            }
-            log.push(SpeakStep::Generating {
-                parts: batch.len(),
-                download,
-            });
-            log.extend(batch.into_iter().map(SpeakStep::Take));
-        } else {
-            log.push(SpeakStep::Take(step));
-        }
+/// Passes a take-loop step on to `log` as it happens: a batch of takes to
+/// the model as a [`SpeakStep::Generating`] of its length.
+pub(super) fn take_step(log: &mut dyn Sink<SpeakStep>, step: TakeStep, download: bool) {
+    match step {
+        TakeStep::Batch { parts } => log.step(SpeakStep::Generating { parts, download }),
+        other => log.step(SpeakStep::Take(other)),
     }
 }
 
@@ -133,15 +120,19 @@ mod tests {
     }
 
     #[test]
-    fn each_run_of_takes_spoken_is_one_batch() {
+    fn each_batch_of_takes_announces_its_length() {
         let mut log = Vec::new();
         let steps = vec![
+            TakeStep::Batch { parts: 2 },
             TakeStep::Speak(spec(1.0)),
             TakeStep::Speak(spec(2.0)),
             TakeStep::Judge(spec(1.0)),
+            TakeStep::Batch { parts: 1 },
             TakeStep::Speak(spec(3.0)),
         ];
-        push_take_steps(&mut log, steps, false);
+        for step in steps {
+            take_step(&mut log, step, false);
+        }
         let messages: Vec<String> = log.iter().filter_map(SpeakStep::message).collect();
         assert_eq!(
             messages,
@@ -162,7 +153,9 @@ mod tests {
             },
             AnchorStep::Speak(spec(7.0)),
         ];
-        push_anchor_steps(&mut log, steps, true);
+        for step in steps {
+            anchor_step(&mut log, step, true);
+        }
         assert_eq!(
             log[1],
             SpeakStep::Generating {

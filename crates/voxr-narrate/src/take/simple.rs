@@ -8,6 +8,7 @@ use super::anchor_files::{OUT_NEXT, write_whole_with};
 use super::engine::{SpeakRequest, SpeechEngine, VoiceSource};
 use super::files::DEFAULT_SEED;
 use super::hear::{Hearing, asr_model, heard_check};
+use super::progress::{Sink, Tee};
 use super::simple_setup::{SimpleRun, SimpleSetup, SimpleStep, WholeCheck};
 use super::speak_resolve::EngineChoice;
 use crate::check::HeardWord;
@@ -73,7 +74,8 @@ fn spans(list: &[Phrase], lengths: &[(usize, usize)], rate: u32) -> Result<Vec<H
 /// other engine is asked for its own voice at speed 1. With
 /// `setup.one_call`, the command speaks the whole [`sayable`] script in one
 /// call, and the run has no phrase spans. The command logs its progress
-/// after each phrase of a script of more than one.
+/// after each phrase of a script of more than one, to `progress` as it
+/// happens, and the run keeps a copy.
 ///
 /// The joined audio is written as a 16-bit WAV at the last take's rate,
 /// then heard back once through `hearing` ([`heard_check`]) against the
@@ -84,6 +86,7 @@ pub fn speak_phrases<E, H>(
     setup: &SimpleSetup<'_>,
     engine: &mut E,
     hearing: &mut H,
+    progress: &mut dyn Sink<SimpleStep>,
 ) -> Result<SimpleRun>
 where
     E: SpeechEngine + ?Sized,
@@ -119,7 +122,7 @@ where
             speed,
         })
     };
-    let mut log = Vec::new();
+    let mut log = Tee::new(progress);
     let (samples, rate, spans) = if command && setup.one_call {
         let take = speak(&sayable(script)?)?;
         (take.samples, take.rate, None)
@@ -136,7 +139,7 @@ where
             samples.extend_from_slice(&take.samples);
             samples.resize(samples.len() + pause, 0.0);
             if command && list.len() > 1 {
-                log.push(SimpleStep::CommandProgress {
+                log.step(SimpleStep::CommandProgress {
                     done: i + 1,
                     total: list.len(),
                 });
@@ -177,7 +180,7 @@ where
         engine: setup.engine.label(),
         checks,
         problems,
-        log,
+        log: log.kept,
     })
 }
 
@@ -233,7 +236,7 @@ mod tests {
             rate,
             calls: Vec::new(),
         };
-        let r = speak_phrases(script, &setup, &mut engine, heard)?;
+        let r = speak_phrases(script, &setup, &mut engine, heard, &mut Vec::new())?;
         Ok((r, engine))
     }
 

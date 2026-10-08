@@ -14,6 +14,12 @@ pub enum TakeStep {
         /// The seed drawn.
         seed: f64,
     },
+    /// The engine is about to speak this many takes in a row: one batch
+    /// to the model.
+    Batch {
+        /// Takes in the batch.
+        parts: usize,
+    },
     /// The engine speaks a take.
     Speak(TakeSpec),
     /// The judge grades a take.
@@ -73,7 +79,7 @@ impl TakeStep {
                     }
                 ))
             }
-            Self::Speak(_) | Self::Judge(_) => None,
+            Self::Batch { .. } | Self::Speak(_) | Self::Judge(_) => None,
         }
     }
 }
