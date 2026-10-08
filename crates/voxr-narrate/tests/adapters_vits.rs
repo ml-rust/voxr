@@ -70,5 +70,39 @@ fn a_take_follows_its_seed() {
     let b = speech.speak(&request(8.0)).expect("seed 8");
     assert_eq!(a, again, "one seed gave two takes");
     assert_ne!(a.samples, b.samples, "two seeds gave one take");
-    assert_eq!(a.rate, 16_000);
+    assert_eq!(a.rate, 48_000);
+}
+
+/// A take is what the skill's Python runner hands on: the phrase written
+/// as a 16-bit WAV at the checkpoint's rate, decoded by ffmpeg at 48 kHz.
+#[cfg(feature = "stretch")]
+#[test]
+fn a_take_is_the_runner_wav_as_ffmpeg_decodes_it() {
+    let Some(engine) = vits() else {
+        return;
+    };
+    let Some(bin) = common::ffmpeg::bin() else {
+        common::ffmpeg::skip_notice();
+        return;
+    };
+    let text = "Selamat pagi semua.";
+    let mut speech = VitsSpeech::new(&engine).expect("the checkpoint's voice");
+    let take = speech
+        .speak(&SpeakRequest {
+            text,
+            delivery: None,
+            style: None,
+            voice: VoiceSource::<()>::Own { design: None },
+            seed: 7.0,
+            cfg: 1.6,
+            steps: 16,
+            speed: 1.0,
+        })
+        .expect("seed 7");
+    let raw = engine
+        .synthesize_seeded(text, speech.voice(), 1.0, Some(7))
+        .expect("the raw take");
+    let wav = voxr_narrate::pcm16_wav(&raw, engine.sample_rate()).expect("the runner's WAV");
+    let decoded = common::ffmpeg::decode_48k(&bin, &wav);
+    common::ffmpeg::check_snr("VITS take at 48 kHz", &decoded, &take.samples);
 }

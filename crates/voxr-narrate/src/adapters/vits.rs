@@ -7,15 +7,26 @@ use voxr::tts::VitsEngine;
 use super::seed::engine_seed;
 use crate::error::{Error, Result};
 use crate::take::{SpeakRequest, SpeechEngine, Take, VoiceSource};
+use crate::wav::pcm16_round_trip;
+
+/// The rate the skill decodes a phrase of its Python runner at.
+const TAKE_RATE: u32 = 48_000;
 
 /// A loaded [`VitsEngine`] as a [`SpeechEngine`].
 ///
 /// A take speaks the request's text in the checkpoint's one voice, at the
 /// request's speed, with its noise drawn from the request's seed: the same
 /// text, speed and seed give the same take, as the skill's
-/// `torch.manual_seed` per phrase does. The take is at the checkpoint's own
-/// rate. VITS holds no voice to clone or design, and reads a delivery note
-/// as words, so a request with either is refused.
+/// `torch.manual_seed` per phrase does. VITS holds no voice to clone or
+/// design, and reads a delivery note as words, so a request with either is
+/// refused.
+///
+/// The take comes back at 48 kHz, as the skill's Python runner hands it
+/// on: the runner writes each phrase as a 16-bit WAV at the checkpoint's
+/// rate, and the skill decodes it with `ffmpeg -ac 1 -ar 48000`. The take
+/// is rounded to 16 bits, then resampled through
+/// [`voxr::resample_like_ffmpeg`]. The skill runs a checkpoint with
+/// PyTorch weights there, the only kind loaded here.
 pub struct VitsSpeech<'a> {
     engine: &'a VitsEngine,
     voice: String,
@@ -77,9 +88,17 @@ impl SpeechEngine for VitsSpeech<'_> {
                     request.text
                 ),
             })?;
+        let rate = self.engine.sample_rate();
+        let samples = voxr::resample_like_ffmpeg(&pcm16_round_trip(&samples), rate, TAKE_RATE)
+            .map_err(|e| Error::Engine {
+                reason: format!(
+                    "resampling the VITS take of \"{}\" from {rate} Hz to {TAKE_RATE} Hz: {e}. Load a checkpoint at a common rate such as 16 or 22.05 kHz",
+                    request.text
+                ),
+            })?;
         Ok(Take {
             samples,
-            rate: self.engine.sample_rate(),
+            rate: TAKE_RATE,
         })
     }
 }
