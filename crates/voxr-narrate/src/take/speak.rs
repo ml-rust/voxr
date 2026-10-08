@@ -77,10 +77,7 @@ fn parts_of(script: &str, setup: &VoxcpmSetup<'_>) -> Result<Vec<Chunk>> {
     if let Some(n) = setup.rerolls.iter().find(|&&n| n < 1 || n > units.len()) {
         return Err(Error::InvalidArgument {
             arg: "rerolls",
-            reason: format!(
-                "--reroll {n}: the script has parts 1 to {}. Pass a part number in that range",
-                units.len()
-            ),
+            reason: format!("--reroll {n}: the script has parts 1 to {}.", units.len()),
         });
     }
     Ok(units)
@@ -317,9 +314,10 @@ mod tests {
             parts_of("  ", &setup(&[], false)),
             Err(Error::InvalidArgument { arg: "script", .. })
         ));
+        // The skill's own words: `speak --reroll 2: the script has parts 1 to 1.`
         assert!(matches!(
             parts_of("One two three.", &setup(&[2], false)),
-            Err(Error::InvalidArgument { arg: "rerolls", ref reason }) if reason.contains("parts 1 to 1")
+            Err(Error::InvalidArgument { arg: "rerolls", ref reason }) if reason == "--reroll 2: the script has parts 1 to 1."
         ));
         assert!(matches!(
             parts_of("One two three.", &setup(&[0], false)),

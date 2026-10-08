@@ -251,7 +251,7 @@ try {
       globalThis.oracleCheckpoint = CHECKPOINT;
       globalThis.oracleRefId = REF_ID;
       globalThis.oracleGenerate = (list, designing, ctx) => {
-        for (const s of list) {
+        for (const [done, s] of list.entries()) {
           const from = designing ? null : ctx.cloneFrom ?? ctx.anchorFile;
           calls.push({
             text: ctx.say(s.text),
@@ -273,6 +273,8 @@ try {
             x = render(t.n, [noise(0, t.n, 0.00002, noiseSeed(s.seed)), ...t.tones]);
           }
           writeFileSync(designing ? join(ctx.dir, 'anchor.wav') : ctx.takeFile(s), wavF32(x, RATE));
+          // The runner's progress line for each take, as generate relays it from the runner's stderr.
+          console.error(`  voxcpm: ${done + 1}/${list.length} sentences`);
         }
       };
       globalThis.oracleJudge = async (s, ctx) => {

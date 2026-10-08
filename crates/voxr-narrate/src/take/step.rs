@@ -22,6 +22,13 @@ pub enum TakeStep {
     },
     /// The engine speaks a take.
     Speak(TakeSpec),
+    /// The engine spoke a take of its batch.
+    Spoken {
+        /// Takes of the batch spoken so far, this one included.
+        done: usize,
+        /// Takes in the batch.
+        total: usize,
+    },
     /// The judge grades a take.
     Judge(TakeSpec),
     /// A take failed and a new take follows, or this one was new.
@@ -79,7 +86,7 @@ impl TakeStep {
                     }
                 ))
             }
-            Self::Batch { .. } | Self::Speak(_) | Self::Judge(_) => None,
+            Self::Batch { .. } | Self::Speak(_) | Self::Spoken { .. } | Self::Judge(_) => None,
         }
     }
 }

@@ -26,6 +26,13 @@ pub enum SpeakStep {
         /// No checkpoint is on disk, so the model downloads first.
         download: bool,
     },
+    /// The model spoke one take of its batch: the runner's progress line.
+    Spoken {
+        /// Takes of the batch spoken so far, this one included.
+        done: usize,
+        /// Takes in the batch.
+        total: usize,
+    },
     /// A step of the voice's design or reuse.
     Anchor(AnchorStep),
     /// A step of the take loop.
@@ -58,6 +65,7 @@ impl SpeakStep {
                 "speak: VoxCPM2 is speaking {parts} part(s){}, about 3 s per sentence on a GPU.",
                 if *download { " after the download" } else { "" }
             )),
+            Self::Spoken { done, total } => Some(format!("  voxcpm: {done}/{total} sentences")),
             Self::Anchor(step) => step.message(),
             Self::Take(step) => step.message(),
             Self::Repaired { thumps, fixed } => {
@@ -88,19 +96,26 @@ pub(super) fn short_parts(parts: &[Chunk]) -> Vec<(usize, String)> {
 
 /// Passes a design step on to `log` as it happens: each call to the
 /// model after a [`SpeakStep::Generating`] of one take, since a design
-/// speaks one take a call.
+/// speaks one take a call, and its take spoken as a
+/// [`SpeakStep::Spoken`] of one.
 pub(super) fn anchor_step(log: &mut dyn Sink<SpeakStep>, step: AnchorStep, download: bool) {
-    if matches!(step, AnchorStep::Speak(_)) {
-        log.step(SpeakStep::Generating { parts: 1, download });
+    match step {
+        AnchorStep::Speak(_) => {
+            log.step(SpeakStep::Generating { parts: 1, download });
+            log.step(SpeakStep::Anchor(step));
+        }
+        AnchorStep::Spoken => log.step(SpeakStep::Spoken { done: 1, total: 1 }),
+        other => log.step(SpeakStep::Anchor(other)),
     }
-    log.step(SpeakStep::Anchor(step));
 }
 
 /// Passes a take-loop step on to `log` as it happens: a batch of takes to
-/// the model as a [`SpeakStep::Generating`] of its length.
+/// the model as a [`SpeakStep::Generating`] of its length, and each take
+/// it spoke as a [`SpeakStep::Spoken`].
 pub(super) fn take_step(log: &mut dyn Sink<SpeakStep>, step: TakeStep, download: bool) {
     match step {
         TakeStep::Batch { parts } => log.step(SpeakStep::Generating { parts, download }),
+        TakeStep::Spoken { done, total } => log.step(SpeakStep::Spoken { done, total }),
         other => log.step(SpeakStep::Take(other)),
     }
 }
@@ -125,10 +140,13 @@ mod tests {
         let steps = vec![
             TakeStep::Batch { parts: 2 },
             TakeStep::Speak(spec(1.0)),
+            TakeStep::Spoken { done: 1, total: 2 },
             TakeStep::Speak(spec(2.0)),
+            TakeStep::Spoken { done: 2, total: 2 },
             TakeStep::Judge(spec(1.0)),
             TakeStep::Batch { parts: 1 },
             TakeStep::Speak(spec(3.0)),
+            TakeStep::Spoken { done: 1, total: 1 },
         ];
         for step in steps {
             take_step(&mut log, step, false);
@@ -138,10 +156,13 @@ mod tests {
             messages,
             [
                 "speak: VoxCPM2 is speaking 2 part(s), about 3 s per sentence on a GPU.",
+                "  voxcpm: 1/2 sentences",
+                "  voxcpm: 2/2 sentences",
                 "speak: VoxCPM2 is speaking 1 part(s), about 3 s per sentence on a GPU.",
+                "  voxcpm: 1/1 sentences",
             ]
         );
-        assert_eq!(log.len(), 6);
+        assert_eq!(log.len(), 9);
     }
 
     #[test]
@@ -152,10 +173,13 @@ mod tests {
                 opening: "Hi.".to_string(),
             },
             AnchorStep::Speak(spec(7.0)),
+            AnchorStep::Spoken,
         ];
         for step in steps {
             anchor_step(&mut log, step, true);
         }
+        assert_eq!(log[3], SpeakStep::Spoken { done: 1, total: 1 });
+        assert_eq!(log[3].message().as_deref(), Some("  voxcpm: 1/1 sentences"));
         assert_eq!(
             log[1],
             SpeakStep::Generating {

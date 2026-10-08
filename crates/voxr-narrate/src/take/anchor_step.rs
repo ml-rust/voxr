@@ -20,6 +20,8 @@ pub enum AnchorStep {
     },
     /// The engine speaks a take.
     Speak(TakeSpec),
+    /// The engine spoke the take, the one take of its call.
+    Spoken,
     /// The reference is spoken again, slower.
     Slower {
         /// The delivery asked for, parentheses included.
@@ -59,7 +61,7 @@ impl AnchorStep {
             Self::Breaths { runs } => Some(format!(
                 "speak: turned down {runs} breath(s) in the designed voice's reference."
             )),
-            Self::Speak(_) => None,
+            Self::Speak(_) | Self::Spoken => None,
         }
     }
 }

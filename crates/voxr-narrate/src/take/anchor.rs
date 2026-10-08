@@ -183,6 +183,7 @@ pub fn design_voice<E: SpeechEngine>(
         steps: setup.steps,
         speed: 1.0,
     })?;
+    log.step(AnchorStep::Spoken);
     let design = repaired(at_anchor_rate(&first)?);
     let mut reference = pcm16_round_trip(&design);
     let mut paces = Vec::new();
@@ -217,6 +218,7 @@ pub fn design_voice<E: SpeechEngine>(
             steps: setup.steps,
             speed: 1.0,
         })?;
+        log.step(AnchorStep::Spoken);
         reference = pcm16_round_trip(&repaired(at_anchor_rate(&take)?));
         retries.push((spec, take));
     }

@@ -147,11 +147,16 @@ where
                     parts: missing.len(),
                 });
             }
-            for k in missing {
+            let total = missing.len();
+            for (done, k) in missing.into_iter().enumerate() {
                 let spec = &todo[k];
                 let text = say(&spec.text)?;
                 log.step(TakeStep::Speak(spec.clone()));
                 let take = self.engine.speak(&request(&self.setup, spec, &text))?;
+                log.step(TakeStep::Spoken {
+                    done: done + 1,
+                    total,
+                });
                 self.store.save(spec, &take)?;
                 made.insert(spec.index);
                 spoken.insert(spec.index, take);
