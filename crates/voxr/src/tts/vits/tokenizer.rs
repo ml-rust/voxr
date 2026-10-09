@@ -1,23 +1,26 @@
 //! Character-level tokenizer for VITS / MMS-TTS.
 //!
 //! Exact port of HF `transformers.models.vits.tokenization_vits.VitsTokenizer`
-//! for the case this crate supports: a checkpoint with `phonemize: false` and
-//! `is_uroman: false` (character-vocabulary MMS-TTS checkpoints such as
-//! `facebook/mms-tts-*`). [`VitsTokenizer::from_dir`] refuses any checkpoint
-//! that needs phonemization or uroman romanization.
+//! for the character-vocabulary MMS-TTS checkpoints (`facebook/mms-tts-*`,
+//! `phonemize: false`). A checkpoint with `is_uroman: true` gets the MMS-TTS
+//! recipe's uroman romanization first (see [`super::romanize`]).
+//! [`VitsTokenizer::from_dir`] refuses any checkpoint that needs
+//! phonemization.
 
 use std::collections::HashMap;
 use std::path::Path;
 
 use crate::error::{Error, Result};
 use crate::tts::vits::load;
+use crate::tts::vits::romanize::{romanize, romanize_non_roman};
 
 /// Character-level VITS/MMS-TTS tokenizer: text in, model input ids out.
 ///
 /// Holds the vocabulary, the special-token strings, and the flags read from
 /// `tokenizer_config.json` that shape [`VitsTokenizer::encode`]:
-/// `normalize` (lower-case and drop out-of-vocabulary characters) and
-/// `add_blank` (intersperse the pad token id between characters).
+/// `normalize` (lower-case and drop out-of-vocabulary characters),
+/// `add_blank` (intersperse the pad token id between characters) and
+/// `is_uroman` (romanize the text with uroman first).
 #[derive(Debug, Clone)]
 pub struct VitsTokenizer {
     encoder: HashMap<String, u32>,
@@ -26,18 +29,17 @@ pub struct VitsTokenizer {
     language: Option<String>,
     add_blank: bool,
     normalize: bool,
+    /// `tokenizer_config.json`'s `is_uroman`.
+    is_uroman: bool,
     /// Id of the pad token, used as the blank-interspersion id. HF always
     /// re-derives this as `encoder[decoder[0]]`, which is the pad token's own
     /// id whenever the vocabulary assigns id 0 to exactly one token.
     blank_id: u32,
-    /// Vocabulary words (encoder keys plus any special token absent from the
-    /// vocabulary) sorted by descending character length, for the
-    /// longest-match-first scan `normalize_text` runs. Sorting by length
-    /// rather than replaying the source file's key order is behavior
-    /// preserving here because every candidate match is copied back
-    /// verbatim: only how far the scan advances depends on which word
-    /// matched, and among equal-length candidates any match advances the
-    /// same distance.
+    /// The words `normalize_text` scans for, in HF's order: `vocab.json`
+    /// keys in file order, then each special token absent from the
+    /// vocabulary in added-token id order (unk before pad). The first word
+    /// that matches wins, as in HF, so a shorter word earlier in the file
+    /// beats a longer one later.
     match_words: Vec<Vec<char>>,
     /// Distinct special-token strings (pad, unk), sorted by descending
     /// character length. HF registers both as "added tokens" even when one
@@ -61,17 +63,18 @@ impl VitsTokenizer {
     /// Load a tokenizer from a checkpoint directory containing `vocab.json`,
     /// `tokenizer_config.json`, and optionally `special_tokens_map.json`.
     ///
-    /// Errors when the checkpoint needs phonemization (`phonemize: true`) or
-    /// uroman romanization (`is_uroman: true`): this crate has no G2P for
-    /// VITS, and uroman romanization is a queued unit.
+    /// Errors when the checkpoint needs phonemization (`phonemize: true`):
+    /// this crate has no G2P for VITS.
     pub fn from_dir(dir: &Path) -> Result<Self> {
         let load::Loaded {
             encoder,
+            vocab_order,
             pad_token,
             unk_token,
             language,
             add_blank,
             normalize,
+            is_uroman,
         } = load::load(dir)?;
 
         let blank_id = if add_blank {
@@ -97,13 +100,14 @@ impl VitsTokenizer {
             0
         };
 
-        let mut match_words: Vec<Vec<char>> = encoder.keys().map(|w| w.chars().collect()).collect();
-        for extra in [&pad_token, &unk_token] {
-            if !encoder.contains_key(extra) {
-                match_words.push(extra.chars().collect());
+        let mut match_words: Vec<Vec<char>> =
+            vocab_order.iter().map(|w| w.chars().collect()).collect();
+        for extra in [&unk_token, &pad_token] {
+            let chars: Vec<char> = extra.chars().collect();
+            if !encoder.contains_key(extra) && !match_words.contains(&chars) {
+                match_words.push(chars);
             }
         }
-        match_words.sort_by_key(|w| std::cmp::Reverse(w.len()));
 
         let mut special_tokens: Vec<Vec<char>> = Vec::new();
         for tok in [&pad_token, &unk_token] {
@@ -121,6 +125,7 @@ impl VitsTokenizer {
             language,
             add_blank,
             normalize,
+            is_uroman,
             blank_id,
             match_words,
             special_tokens,
@@ -128,13 +133,29 @@ impl VitsTokenizer {
     }
 
     /// Encode `text` into VITS model input ids.
+    ///
+    /// On an `is_uroman` checkpoint, the text is romanized first, as the
+    /// MMS-TTS recipe does. HF's `prepare_for_tokenization` then runs in its
+    /// own order: lower-case (`normalize`), the language's character
+    /// substitution, a second romanization when a non-ASCII character is
+    /// left, and the out-of-vocabulary filter.
     pub fn encode(&self, text: &str) -> Result<Vec<u32>> {
+        let romanized;
+        let text = if self.is_uroman {
+            romanized = romanize(text);
+            romanized.as_str()
+        } else {
+            text
+        };
         let normalized = if self.normalize {
             self.normalize_text(text)
         } else {
             text.to_string()
         };
-        let preprocessed = self.preprocess_char(&normalized);
+        let mut preprocessed = self.preprocess_char(&normalized);
+        if self.is_uroman {
+            preprocessed = romanize_non_roman(preprocessed);
+        }
 
         let filtered = if self.normalize {
             let kept: String = preprocessed
@@ -237,7 +258,8 @@ impl VitsTokenizer {
     }
 
     /// Lower-case `input`, leaving any vocabulary or special-token substring
-    /// that matches at the current position untouched (longest match wins).
+    /// that matches at the current position untouched (first match in
+    /// `match_words` order wins).
     fn normalize_text(&self, input: &str) -> String {
         let chars: Vec<char> = input.chars().collect();
         let mut out = String::with_capacity(input.len());
@@ -289,6 +311,12 @@ impl VitsTokenizer {
             })
     }
 
+    /// Whether [`VitsTokenizer::encode`] romanizes its input with uroman
+    /// (`is_uroman: true` in `tokenizer_config.json`).
+    pub fn is_uroman(&self) -> bool {
+        self.is_uroman
+    }
+
     /// Vocabulary size.
     pub fn vocab_size(&self) -> usize {
         self.encoder.len()
@@ -321,9 +349,11 @@ mod tests {
         .collect();
         let pad_token = "y".to_string();
         let unk_token = "<unk>".to_string();
-        let mut match_words: Vec<Vec<char>> = encoder.keys().map(|w| w.chars().collect()).collect();
+        let mut match_words: Vec<Vec<char>> = ["y", " ", "a", "b", "c", "'"]
+            .iter()
+            .map(|w| w.chars().collect())
+            .collect();
         match_words.push(unk_token.chars().collect());
-        match_words.sort_by_key(|w| std::cmp::Reverse(w.len()));
         let mut special_tokens: Vec<Vec<char>> =
             vec![pad_token.chars().collect(), unk_token.chars().collect()];
         special_tokens.sort_by_key(|w| std::cmp::Reverse(w.len()));
@@ -334,6 +364,7 @@ mod tests {
             language: None,
             add_blank: true,
             normalize: true,
+            is_uroman: false,
             blank_id: 0,
             match_words,
             special_tokens,
@@ -435,5 +466,32 @@ mod tests {
         // independent of the others.
         let ids = tok.encode("ayb").expect("encode");
         assert_eq!(ids, vec![0, 2, 0, 0, 0, 3, 0]);
+    }
+
+    #[test]
+    fn uroman_checkpoint_romanizes_before_lowercasing() {
+        let mut tok = tiny();
+        tok.is_uroman = true;
+        // Cyrillic "АБ" romanizes to "AB", which lower-cases to "ab".
+        assert_eq!(tok.encode("АБ").expect("encode"), vec![0, 2, 0, 3, 0]);
+        assert!(tok.is_uroman());
+    }
+
+    #[test]
+    fn non_uroman_checkpoint_drops_non_latin_text() {
+        let tok = tiny();
+        assert_eq!(tok.encode("АБ").expect("encode"), Vec::<u32>::new());
+        assert!(!tok.is_uroman());
+    }
+
+    #[test]
+    fn normalize_text_takes_the_first_matching_word_in_vocab_order() {
+        let mut tok = tiny();
+        // "a" precedes "aB" in the vocabulary, so "a" matches first and the
+        // "B" after it lower-cases, as HF's scan does.
+        tok.match_words = vec![vec!['a'], vec!['a', 'B']];
+        assert_eq!(tok.normalize_text("aB"), "ab");
+        tok.match_words = vec![vec!['a', 'B'], vec!['a']];
+        assert_eq!(tok.normalize_text("aB"), "aB");
     }
 }

@@ -63,6 +63,10 @@ unicode-general-category = { version = "1", optional = true }
 # and lookahead. splintr already links regexr, so nothing new enters the
 # graph.
 regexr = { version = "0.6", optional = true, default-features = false }
+# uroman romanization for VITS checkpoints with `is_uroman: true`. Behind
+# `vits` and no feature of its own: every such checkpoint needs it, and its
+# rayon, regex and rkyv dependencies already link through boostr and splintr.
+uroman = { version = "0.7", optional = true }
 
 [dev-dependencies]
 tempfile = "3"
@@ -112,9 +116,10 @@ voxcpm = ["boostr/voxcpm", "tts", "decode"]
 # `WhisperBundle::transcribe_segments` needs both.
 whisper = ["boostr/whisper", "decode"]
 # VITS (MMS-TTS) synthesis: the model from boostr, the character tokenizer
-# here. Refuses at load any checkpoint needing phonemization or uroman
-# romanization (`VitsTokenizer::from_dir`).
-vits = ["boostr/vits", "tts"]
+# here. Romanizes the text with uroman for an `is_uroman: true` checkpoint.
+# Refuses at load any checkpoint needing phonemization
+# (`VitsTokenizer::from_dir`).
+vits = ["boostr/vits", "tts", "dep:uroman"]
 # Silero VAD segmentation: the network from boostr, the `get_speech_timestamps`
 # port here.
 vad = ["boostr/silero-vad"]
@@ -195,6 +200,10 @@ required-features = ["vits"]
 
 [[test]]
 name = "vits_engine_integration"
+required-features = ["vits"]
+
+[[test]]
+name = "vits_uroman_parity"
 required-features = ["vits"]
 
 [[test]]

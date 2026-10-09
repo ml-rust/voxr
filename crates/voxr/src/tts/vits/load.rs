@@ -1,14 +1,14 @@
 //! Checkpoint file parsing for [`super::tokenizer::VitsTokenizer::from_dir`].
 //!
-//! Reads `vocab.json`, `tokenizer_config.json`, and an optional
-//! `special_tokens_map.json`, and refuses a checkpoint that needs
-//! phonemization or uroman romanization.
+//! Reads `vocab.json` (in file order), `tokenizer_config.json`, and an
+//! optional `special_tokens_map.json`, and refuses a checkpoint that needs
+//! phonemization.
 
 use std::collections::HashMap;
 use std::path::Path;
 
-use serde::Deserialize;
-use serde::de::DeserializeOwned;
+use serde::de::{DeserializeOwned, MapAccess, Visitor};
+use serde::{Deserialize, Deserializer};
 
 use crate::error::{Error, Result};
 
@@ -68,24 +68,57 @@ fn special_token_string(value: &serde_json::Value) -> Option<String> {
     }
 }
 
+/// `vocab.json` entries in file order. Python's `json.load` keeps that
+/// order, and HF's `normalize_text` scans the vocabulary in it.
+struct OrderedVocab(Vec<(String, serde_json::Value)>);
+
+impl<'de> Deserialize<'de> for OrderedVocab {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> std::result::Result<Self, D::Error> {
+        struct OrderedVisitor;
+
+        impl<'de> Visitor<'de> for OrderedVisitor {
+            type Value = OrderedVocab;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                f.write_str("a JSON object mapping tokens to ids")
+            }
+
+            fn visit_map<A: MapAccess<'de>>(
+                self,
+                mut map: A,
+            ) -> std::result::Result<Self::Value, A::Error> {
+                let mut entries = Vec::with_capacity(map.size_hint().unwrap_or(0));
+                while let Some(entry) = map.next_entry()? {
+                    entries.push(entry);
+                }
+                Ok(OrderedVocab(entries))
+            }
+        }
+
+        deserializer.deserialize_map(OrderedVisitor)
+    }
+}
+
 /// Parsed checkpoint contents needed to build a `VitsTokenizer`.
 pub(super) struct Loaded {
     pub encoder: HashMap<String, u32>,
+    /// `vocab.json` keys in file order, each once.
+    pub vocab_order: Vec<String>,
     pub pad_token: String,
     pub unk_token: String,
     pub language: Option<String>,
     pub add_blank: bool,
     pub normalize: bool,
+    pub is_uroman: bool,
 }
 
 /// Read and validate the checkpoint directory. Errors when the checkpoint
-/// needs phonemization (`phonemize: true`) or uroman romanization
-/// (`is_uroman: true`): this crate has no G2P for VITS, and uroman
-/// romanization is a queued unit.
+/// needs phonemization (`phonemize: true`): this crate has no G2P for VITS.
 pub(super) fn load(dir: &Path) -> Result<Loaded> {
     let vocab_path = dir.join("vocab.json");
-    let raw_vocab: HashMap<String, serde_json::Value> = read_json(&vocab_path)?;
+    let OrderedVocab(raw_vocab) = read_json(&vocab_path)?;
     let mut encoder = HashMap::with_capacity(raw_vocab.len());
+    let mut vocab_order = Vec::with_capacity(raw_vocab.len());
     for (token, id) in raw_vocab {
         let id = id.as_u64().ok_or_else(|| Error::ModelError {
             reason: format!(
@@ -99,7 +132,11 @@ pub(super) fn load(dir: &Path) -> Result<Loaded> {
                 vocab_path.display()
             ),
         })?;
-        encoder.insert(token, id);
+        // A repeated key keeps its first position and its last id, as a
+        // Python dict built by `json.load` does.
+        if encoder.insert(token.clone(), id).is_none() {
+            vocab_order.push(token);
+        }
     }
 
     let config_path = dir.join("tokenizer_config.json");
@@ -110,15 +147,6 @@ pub(super) fn load(dir: &Path) -> Result<Loaded> {
             reason: format!(
                 "{}: tokenizer_config.json sets phonemize: true, which needs a \
                  grapheme-to-phoneme backend this crate does not provide for VITS",
-                dir.display()
-            ),
-        });
-    }
-    if config.is_uroman {
-        return Err(Error::ModelError {
-            reason: format!(
-                "{}: tokenizer_config.json sets is_uroman: true; uroman romanization is a \
-                 queued unit, not yet implemented",
                 dir.display()
             ),
         });
@@ -146,10 +174,12 @@ pub(super) fn load(dir: &Path) -> Result<Loaded> {
 
     Ok(Loaded {
         encoder,
+        vocab_order,
         pad_token,
         unk_token,
         language: config.language,
         add_blank: config.add_blank,
         normalize: config.normalize,
+        is_uroman: config.is_uroman,
     })
 }
