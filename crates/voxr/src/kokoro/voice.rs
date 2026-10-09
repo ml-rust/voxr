@@ -9,8 +9,8 @@
 //!
 //! * `af_alloy` — bare voice ID. Resolved to
 //!   `{voice_dir}/af_alloy.safetensors` (then `.pt`, `.pth`). `voice_dir`
-//!   comes from (in order): explicit `asset_dir`, `$BLAZR_VOICE_DIR`, the
-//!   bundled `blazr/assets/kokoro_voices/` shipped with the binary.
+//!   comes from (in order): explicit `asset_dir`, `$BLAZR_VOICE_DIR`, then
+//!   `./assets/kokoro_voices/` under the working directory.
 //! * `./path/to/file.safetensors` / `.pt` / `.pth` — direct path. File must
 //!   exist; extension selects the format.
 //! * `name:/path/to/dir` — future-proofing for when we want to co-locate
@@ -27,9 +27,8 @@ use std::path::{Path, PathBuf};
 /// Resolver configuration.
 #[derive(Debug, Clone, Default)]
 pub struct VoiceResolver {
-    /// Primary asset directory. `None` → use `$BLAZR_VOICE_DIR` or the
-    /// compiled-in bundled path. Callers typically pass the blazr binary's
-    /// own `assets/kokoro_voices/` path.
+    /// Primary asset directory. `None` → use `$BLAZR_VOICE_DIR`, then
+    /// `./assets/kokoro_voices/` under the working directory.
     pub asset_dir: Option<PathBuf>,
 }
 
@@ -115,13 +114,11 @@ impl VoiceResolver {
                 out.push(p);
             }
         }
-        // Last-resort bundled path relative to the binary (dev builds).
-        // Production builds should always pass `asset_dir` explicitly.
-        for rel in ["./assets/kokoro_voices", "../blazr/assets/kokoro_voices"] {
-            let p = PathBuf::from(rel);
-            if !out.contains(&p) {
-                out.push(p);
-            }
+        // Last resort: a voice directory under the working directory.
+        // Production callers pass `asset_dir` explicitly.
+        let p = PathBuf::from("./assets/kokoro_voices");
+        if !out.contains(&p) {
+            out.push(p);
         }
         out
     }
