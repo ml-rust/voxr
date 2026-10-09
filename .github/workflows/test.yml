@@ -1,0 +1,225 @@
+# Reusable test workflow.
+#
+# Called by:
+#   - ci.yml              (PR checks + manual dispatch)
+#   - release-prepare.yml (tag gate, before anything is published)
+#
+# Not triggered directly — `workflow_call` only.
+#
+# Every third-party action is pinned to a commit SHA, with its release in a
+# trailing comment. A tag can move. A SHA cannot, so a retagged action cannot
+# enter a run that holds a crates.io token. Dependabot keeps the pins current
+# (.github/dependabot.yml).
+#
+# Jobs:
+#   lint     — rustfmt, docs.rs-feature docs, shellcheck
+#   clippy   — `-D warnings` on every feature set the matrix names, per crate
+#   test     — the test suites with every non-CUDA feature
+#   msrv     — the MSRV from crates/voxr/Cargo.toml
+#   audit    — cargo-deny: advisories, licences, sources, banned crates
+#
+# No job installs a CUDA toolkit. `cuda` stays out of every feature set.
+#
+# No job runs with `--locked`. The committed Cargo.lock resolves numr, boostr,
+# splintr and regexr through local path patches, so a lock-exact build on a
+# clean runner is not possible. Cargo's MSRV-aware resolver picks the versions.
+
+name: Test
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+  # The features docs.rs builds, per crate. Kept in step with each crate's
+  # `[package.metadata.docs.rs]`.
+  VOXR_DOCS_FEATURES: decode,misaki,spacy-tokenizer,spacy-tagger,tts,kokoro,voxcpm,whisper,vits,vad,clap,neucodec,corpus,f16
+  NARRATE_DOCS_FEATURES: whisper,stretch,kokoro,vits,voxcpm
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  lint:
+    name: Format, Docs & Scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+        with:
+          components: rustfmt
+
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          prefix-key: lint
+
+      - name: Check formatting
+        run: cargo fmt --all --check
+
+      # Warnings are denied: a link to a private item renders as plain text
+      # rather than an error, so the published docs lose it with no report.
+      - name: Build docs (voxr, docs.rs features)
+        run: cargo doc -p voxr --no-deps --features "$VOXR_DOCS_FEATURES"
+        env:
+          RUSTDOCFLAGS: -D warnings
+
+      - name: Build docs (voxr-narrate, docs.rs features)
+        run: cargo doc -p voxr-narrate --no-deps --features "$NARRATE_DOCS_FEATURES"
+        env:
+          RUSTDOCFLAGS: -D warnings
+
+      - name: Shellcheck release scripts
+        run: shellcheck scripts/ci/*.sh
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Each feature gate compiles alone, so a gate that leans on another one's
+  # import fails here. `--all-targets` also checks the tests and examples
+  # each gate enables.
+  clippy:
+    name: Clippy (${{ matrix.crate }}, ${{ matrix.features || 'no features' }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { crate: voxr, features: "" }
+          - { crate: voxr, features: "decode" }
+          - { crate: voxr, features: "spacy-tokenizer" }
+          - { crate: voxr, features: "misaki" }
+          - { crate: voxr, features: "kokoro" }
+          - { crate: voxr, features: "vits" }
+          - { crate: voxr, features: "whisper,vad" }
+          - { crate: voxr, features: "voxcpm" }
+          - { crate: voxr, features: "clap" }
+          - { crate: voxr, features: "neucodec" }
+          - { crate: voxr, features: "corpus" }
+          - { crate: voxr, features: "decode,misaki,spacy-tokenizer,spacy-tagger,tts,kokoro,voxcpm,whisper,vits,vad,clap,neucodec,corpus,f16" }
+          - { crate: voxr-narrate, features: "" }
+          - { crate: voxr-narrate, features: "stretch" }
+          - { crate: voxr-narrate, features: "whisper" }
+          - { crate: voxr-narrate, features: "kokoro" }
+          - { crate: voxr-narrate, features: "vits" }
+          - { crate: voxr-narrate, features: "voxcpm" }
+          - { crate: voxr-narrate, features: "whisper,stretch,kokoro,vits,voxcpm" }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+        with:
+          components: clippy
+
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          prefix-key: clippy-${{ matrix.crate }}
+
+      - name: Clippy
+        env:
+          CRATE: ${{ matrix.crate }}
+          FEATURES: ${{ matrix.features }}
+        run: cargo clippy -p "$CRATE" --features "$FEATURES" --all-targets -- -D warnings
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Tests that need a model directory, a fixture directory or the skill's
+  # JavaScript skip with a notice when their env var is unset. None is set
+  # here.
+  test:
+    name: Test (${{ matrix.crate }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - crate: voxr
+            features: decode,misaki,spacy-tokenizer,spacy-tagger,tts,kokoro,voxcpm,whisper,vits,vad,clap,neucodec,corpus,f16
+          - crate: voxr-narrate
+            features: whisper,stretch,kokoro,vits,voxcpm
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # The ffmpeg parity tests run whenever an ffmpeg runs, and compare bit
+      # for bit against the ffmpeg build they were written against. This job
+      # installs none. A runner image that starts shipping one fails here,
+      # rather than in a parity test against an unknown build.
+      - name: Require no ffmpeg on the runner
+        run: |
+          if command -v ffmpeg || command -v ffprobe; then
+            echo "::error::the runner image ships ffmpeg; the parity tests would run against it"
+            exit 1
+          fi
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          prefix-key: test-${{ matrix.crate }}
+
+      - name: Run tests
+        env:
+          CRATE: ${{ matrix.crate }}
+          FEATURES: ${{ matrix.features }}
+        run: cargo test -p "$CRATE" --features "$FEATURES" --no-fail-fast
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # The MSRV comes from `package.rust-version`, so the published contract and
+  # this job cannot drift apart. Both crates declare the same one. It is read
+  # with grep: the toolchain `cargo metadata` would run on is the one this job
+  # is choosing.
+  msrv:
+    name: MSRV
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Read MSRV from the manifests
+        id: msrv
+        run: |
+          set -euo pipefail
+          VOXR=$(grep -m1 '^rust-version = ' crates/voxr/Cargo.toml | sed 's/.*"\(.*\)"/\1/')
+          NARRATE=$(grep -m1 '^rust-version = ' crates/voxr-narrate/Cargo.toml | sed 's/.*"\(.*\)"/\1/')
+          if [[ -z "$VOXR" || "$VOXR" != "$NARRATE" ]]; then
+            echo "::error::rust-version is missing or differs: voxr '$VOXR', voxr-narrate '$NARRATE'"
+            exit 1
+          fi
+          echo "Declared MSRV: $VOXR"
+          echo "version=$VOXR" >> "$GITHUB_OUTPUT"
+
+      - name: Install Rust ${{ steps.msrv.outputs.version }}
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+        with:
+          toolchain: ${{ steps.msrv.outputs.version }}
+
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          prefix-key: msrv-${{ steps.msrv.outputs.version }}
+
+      # Library targets only. Dev-dependencies are not part of the contract.
+      - name: Check MSRV (voxr, every non-CUDA feature)
+        run: cargo check -p voxr --lib --features "$VOXR_DOCS_FEATURES"
+
+      - name: Check MSRV (voxr-narrate, every non-CUDA feature)
+        run: cargo check -p voxr-narrate --lib --features "$NARRATE_DOCS_FEATURES"
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # `--exclude-dev`: dev-dependencies link test oracles only.
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+
+      - name: Install cargo-deny
+        uses: taiki-e/install-action@7b8d4719ee4aaa279bdf55df38dacb9ebfe12a6c # v2.87.6
+        with:
+          tool: cargo-deny
+
+      - name: Run cargo-deny
+        run: cargo deny --exclude-dev check

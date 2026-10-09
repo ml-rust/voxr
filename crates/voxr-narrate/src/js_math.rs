@@ -10,7 +10,8 @@
 //! [`js_pow`] calls `powf`. Later V8 releases compute these with LLVM's
 //! correctly rounded libm, which can differ in the last bit.
 
-// The constants are the fdlibm ones, written as their bit patterns.
+// The constants are the fdlibm ones, written as their bit patterns. The
+// Sun Microsystems notices for these algorithms are in LICENSE-OTHERS.
 
 /// 2^54, which scales a subnormal input into the normal range.
 const TWO54: f64 = f64::from_bits(0x4350_0000_0000_0000);

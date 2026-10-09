@@ -1,5 +1,5 @@
-spaCy en_core_web_sm tokenizer, tagger weights and ports
-========================================================
+spaCy en_core_web_sm tokenizer data and ports
+=============================================
 
 tokenizer.json holds the tokenizer settings of the spaCy pipeline
 en_core_web_sm 3.8.0, extracted by build_tokenizer.py from spaCy 3.8:
@@ -16,11 +16,13 @@ spacy/tokenizer.pyx (Tokenizer.__call__ and the special-case matcher pass)
 and of the English lexeme attribute getters in spacy/lang/lex_attrs.py. The
 port changes the language and the data encoding. It keeps the behavior.
 
-tagger.safetensors.zlib holds the trained parameters of the `tok2vec` and
-`tagger` components of en_core_web_sm 3.8.0, unchanged in value, written by
-convert_tagger.py as a zlib-compressed SafeTensors file. tagger.json holds
-the network geometry, the HashEmbed seeds, the tag labels and the
-spacy.symbols.IDS table, from the same pipeline and spaCy 3.8.
+The tagger weights are not in this crate. They load at run time from a
+directory holding tagger.safetensors and tagger.json, which convert_tagger.py
+writes from en_core_web_sm 3.8.0. The converted files are published in the
+Hugging Face repo fs90/kokoro-g2p (tagger/). tagger.safetensors holds the
+trained parameters of the `tok2vec` and `tagger` components, unchanged in
+value. tagger.json holds the network geometry, the HashEmbed seeds, the tag
+labels and the spacy.symbols.IDS table, from the same pipeline and spaCy 3.8.
 
 src/model/text/spacy_tagger/ in boostr is a Rust port of the forward pass
 of spaCy 3.8's spacy.Tok2Vec.v2, MultiHashEmbed.v2, MaxoutWindowEncoder.v2

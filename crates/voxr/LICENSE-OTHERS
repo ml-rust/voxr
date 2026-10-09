@@ -1,9 +1,10 @@
 Third-party licences
 ====================
 
-voxr's own code is Apache-2.0 (see ../../LICENSE). This file covers
-what voxr redistributes but did not write. Each entry's licence text
-and NOTICE travel beside the data it covers; this file is the index.
+voxr's own code is Apache-2.0 (see LICENSE in this directory). This file
+covers what voxr redistributes or ports but did not write. Data files carry
+their licence text and NOTICE beside them. Ported code carries its upstream
+copyright line and licence below.
 
   path                  what                               source                     licence
   -------------------------------------------------------------------------------------------------
@@ -14,16 +15,153 @@ and NOTICE travel beside the data it covers; this file is the index.
                         exceptions and norm tables, and     en_core_web_sm 3.8.0
                         the port in src/g2p/spacy_tokenizer/
                         (feature `spacy-tokenizer`)
-  assets/spacy_en/      en_core_web_sm tok2vec + tagger     spaCy 3.8, thinc 8.3,      MIT
-                        weights and metadata, and the       en_core_web_sm 3.8.0
-                        ports in src/g2p/spacy_tagger/ and
-                        boostr's model/text/spacy_tagger/
-                        (feature `spacy-tagger`)
+  src/g2p/spacy_tagger/ ports of the en_core_web_sm         spaCy 3.8, thinc 8.3,      MIT
+                        tok2vec + tagger feature lookup;    en_core_web_sm 3.8.0
+                        the network is boostr's
+                        model/text/spacy_tagger/
+                        (feature `spacy-tagger`); licence
+                        text in assets/spacy_en/
   src/stretch/          WSOLA tempo engine, following the   pkoshevoy/aeyae 7e01117    MIT
                         yae audio tempo filter; licence     (yae/ffmpeg/)
                         text in src/stretch/LICENSE-aeyae
+  src/metrics/welch.rs  Welch PSD: welch, csd and           scipy/scipy                BSD-3-Clause
+                        ShortTimeFFT
+  src/resample/poly.rs  polyphase resampling: resample_poly, scipy/scipy               BSD-3-Clause
+                        firwin and upfirdn
+  src/metrics/          single-signal measures of the       numpy/numpy,               BSD-3-Clause
+                        sound review, ported from their     scipy/scipy
+                        NumPy and SciPy computations
+  src/vad/mod.rs,       get_speech_timestamps segmentation  snakers4/silero-vad        MIT
+  src/vad/segment.rs
+  src/tts/vits/         VitsTokenizer                       huggingface/transformers   Apache-2.0
+    tokenizer.rs                                            (models/vits)
+  src/whisper/dtw.rs    cross-attention DTW word timing     huggingface/transformers   Apache-2.0
+                                                            (models/whisper)
+  src/kokoro/g2p/       text splitting, phoneme chunking    hexgrad/kokoro             Apache-2.0
+    chunk.rs, ids.rs    and input-id mapping
+  src/voxcpm/engine/    request planning, continuation      OpenBMB/VoxCPM             Apache-2.0
+    plan.rs,            rows and retry defaults of
+    request.rs,         VoxCPM.generate, and its text
+  src/voxcpm/tokenizer/ whitespace handling
+    text.rs
 
 The lexicons are embedded in the binary only when the `misaki` feature is on.
 The spaCy tokenizer data is embedded only when the `spacy-tokenizer` feature
-is on. The tagger weights (5.8 MB) are embedded only when the `spacy-tagger`
-feature is on. `misaki` turns both on.
+is on. The tagger weights are not part of this crate: `EnglishTagger::from_dir`
+and `KokoroG2pModels` read them at run time from a directory. The converted
+weights are published in the Hugging Face repo `fs90/kokoro-g2p` (`tagger/`).
+
+`resample_like_librosa` is an independent windowed-sinc design checked
+against librosa's output. It contains no librosa or soxr code.
+
+uroman romanization comes from the `uroman` crate dependency under its own
+licence. voxr redistributes none of it.
+
+
+Upstream notices for ported code
+================================
+
+hexgrad/kokoro (https://github.com/hexgrad/kokoro)
+  Copyright hexgrad. The upstream LICENSE file carries no copyright line.
+  Licensed under the Apache License, Version 2.0 (LICENSE in this directory).
+
+OpenBMB/VoxCPM (https://github.com/OpenBMB/VoxCPM)
+  Copyright OpenBMB. The upstream LICENSE file carries no copyright line.
+  Licensed under the Apache License, Version 2.0 (LICENSE in this directory).
+
+huggingface/transformers (https://github.com/huggingface/transformers)
+  Copyright 2018- The Hugging Face team. All rights reserved.
+  Copyright 2023 The Kakao Enterprise Authors, the MMS-TTS Authors and the
+  HuggingFace Inc. team. All rights reserved. (models/vits)
+  Copyright 2024 The HuggingFace Inc. team. (models/whisper)
+  Licensed under the Apache License, Version 2.0 (LICENSE in this directory).
+
+scipy/scipy (https://github.com/scipy/scipy), BSD-3-Clause:
+
+Copyright (c) 2001-2002 Enthought, Inc. 2003, SciPy Developers.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above
+   copyright notice, this list of conditions and the following
+   disclaimer in the documentation and/or other materials provided
+   with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived
+   from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+numpy/numpy (https://github.com/numpy/numpy), BSD-3-Clause:
+
+Copyright (c) 2005-2025, NumPy Developers.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
+
+    * Redistributions in binary form must reproduce the above
+       copyright notice, this list of conditions and the following
+       disclaimer in the documentation and/or other materials provided
+       with the distribution.
+
+    * Neither the name of the NumPy Developers nor the names of any
+       contributors may be used to endorse or promote products derived
+       from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+snakers4/silero-vad (https://github.com/snakers4/silero-vad), MIT:
+
+MIT License
+
+Copyright (c) 2020-present Silero Team
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

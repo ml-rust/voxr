@@ -1,0 +1,35 @@
+Third-party licences
+====================
+
+voxr-narrate's own code is Apache-2.0 (see LICENSE in this directory). This
+file covers code it ports but did not write.
+
+  path             what                                 source                     licence
+  ------------------------------------------------------------------------------------------
+  src/js_math.rs   the constants and steps of log,       fdlibm e_log.c,            Sun notice
+                   log10 and exp, as JavaScript's        e_log10.c; FreeBSD msun    below
+                   Math.log10 and Math.exp compute them  e_exp.c
+
+The Sun Microsystems notices below are reproduced verbatim from FreeBSD's
+msun sources (lib/msun/src/), as their terms require.
+
+e_log.c and e_log10.c:
+
+ * ====================================================
+ * Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
+ *
+ * Developed at SunSoft, a Sun Microsystems, Inc. business.
+ * Permission to use, copy, modify, and distribute this
+ * software is freely granted, provided that this notice 
+ * is preserved.
+ * ====================================================
+
+e_exp.c:
+
+ * ====================================================
+ * Copyright (C) 2004 by Sun Microsystems, Inc. All rights reserved.
+ *
+ * Permission to use, copy, modify, and distribute this
+ * software is freely granted, provided that this notice 
+ * is preserved.
+ * ====================================================

@@ -2,9 +2,26 @@
 name = "voxr"
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.88"
+rust-version = "1.89"
 description = "Audio and speech: codecs, DSP, G2P, voices, and TTS/ASR pipelines over boostr models"
 license = "Apache-2.0"
+repository = "https://github.com/ml-rust/voxr"
+documentation = "https://docs.rs/voxr"
+readme = "README.md"
+keywords = ["audio", "speech", "tts", "asr", "g2p"]
+categories = ["multimedia::audio", "text-processing", "science"]
+# Integration tests read model directories, binary fixtures and Python or
+# JavaScript oracle tools that do not ship, so the whole `tests/` tree stays
+# out of the package. The research examples need checkpoints and fixture
+# tools from the repository. The Python under `assets/` regenerates the
+# embedded data and runs only from a checkout.
+exclude = [
+  "tests/",
+  "examples/voxcpm/",
+  "examples/codec_hnr_ceiling.rs",
+  "examples/noise_probe_decode.rs",
+  "assets/**/*.py",
+]
 
 [lib]
 name = "voxr"
@@ -13,7 +30,7 @@ bench = false
 [dependencies]
 boostr = { version = "0.3", default-features = false, features = ["cpu", "audio"] }
 # The denoiser runs its STFT through numr's CPU client.
-numr = "0.7"
+numr = "0.8"
 thiserror = "2"
 tracing = "0.1"
 # `whisper` reads `generation_config.json`; the VoxCPM2 examples read eval
@@ -22,7 +39,7 @@ tracing = "0.1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 # `corpus` and `voxcpm` load `tokenizer.json` files through splintr.
-splintr = { version = "0.20", features = ["vocab-whisper"] }
+splintr = { version = "0.21", features = ["vocab-whisper"] }
 # RIFF/WAVE read and write for finished files. The unknown-length stream
 # header stays in `wav::stream`: hound writes sizes only on finalize.
 hound = "3.5"
@@ -74,7 +91,7 @@ tempfile = "3"
 bytemuck = { version = "1.25", features = ["derive"] }
 # Tests tokenize with cl100k_base. A dev-dependency feature unifies only when
 # building this crate's own tests, so downstream builds pay nothing.
-splintr = { version = "0.20", features = ["vocab-cl100k"] }
+splintr = { version = "0.21", features = ["vocab-cl100k"] }
 
 [features]
 default = []
@@ -134,6 +151,26 @@ corpus = ["whisper", "vad", "boostr/neucodec", "decode"]
 # Backend pass-through for the examples that pick a device at run time.
 cuda = ["boostr/cuda"]
 f16 = ["boostr/f16"]
+
+[package.metadata.docs.rs]
+# docs.rs has no CUDA toolkit, so `cuda` stays off. Every feature listed here
+# builds on the CPU backend alone.
+features = [
+  "decode",
+  "misaki",
+  "spacy-tokenizer",
+  "spacy-tagger",
+  "tts",
+  "kokoro",
+  "voxcpm",
+  "whisper",
+  "vits",
+  "vad",
+  "clap",
+  "neucodec",
+  "corpus",
+  "f16",
+]
 
 # Fixture-gated integration tests that need a model gate. Without these
 # entries a featureless `cargo check --all-targets` fails on the import

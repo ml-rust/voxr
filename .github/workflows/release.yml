@@ -1,0 +1,177 @@
+# Manual distribution workflow. Push a v* tag first; `Release Prepare` validates
+# the tag and runs the full suite. Then run this workflow with that tag.
+#
+# Stages:
+#   publish_crate   -> crates.io: voxr, then voxr-narrate once the index
+#                      serves the new voxr
+#   github_release  -> GitHub Release, with the changelog section as the body
+#
+# Each stage is idempotent and independently selectable: an already-indexed
+# version is skipped, the release is overwritten in place. A crates.io timeout
+# or a bad release body is fixed by re-dispatching with only the stage that
+# failed enabled — nothing is re-published and no second version is burned.
+#
+# Required secret: CARGO_REGISTRY_TOKEN (environment `crates-io`).
+
+name: Release
+run-name: Release ${{ inputs.tag }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish, e.g. v0.1.0"
+        required: true
+        type: string
+      publish_crate:
+        description: "Publish voxr and voxr-narrate to crates.io"
+        type: boolean
+        default: true
+      github_release:
+        description: "Create the GitHub Release"
+        type: boolean
+        default: true
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # Always runs. Cheap, and it guarantees the dispatched tag still means what
+  # the prepare run assumed it meant.
+  validate-version:
+    uses: ./.github/workflows/release-validate.yml
+    with:
+      ref: ${{ inputs.tag }}
+
+  # ── crates.io ───────────────────────────────────────────────────────────────
+  # A verifying publish (no `--no-verify`) is the strongest available guarantee
+  # that the uploaded tarball builds from a clean checkout — the failure mode
+  # where a file is missing from the package but present in git.
+  publish-crate:
+    name: Publish to crates.io
+    needs: validate-version
+    if: inputs.publish_crate
+    runs-on: ubuntu-latest
+    environment: crates-io
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+
+      - name: Set version from tag
+        run: bash scripts/ci/stamp_version.sh "${{ needs.validate-version.outputs.version }}"
+
+      # Each crate is skipped when its version is already indexed, so a run
+      # that failed between the two publishes resumes at voxr-narrate.
+      - name: Publish voxr, then voxr-narrate
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          set -euo pipefail
+          VERSION=$(cargo metadata --no-deps --format-version=1 \
+            | jq -r '.packages[] | select(.name == "voxr") | .version')
+
+          is_published() {
+            curl -sf \
+              -H "User-Agent: voxr-ci (github.com/ml-rust/voxr)" \
+              "https://crates.io/api/v1/crates/$1/$2" > /dev/null 2>&1
+          }
+
+          # The sparse index, not the API, is what `cargo publish` resolves
+          # voxr-narrate's `voxr` requirement against. The API can list a
+          # version before the index serves it.
+          in_index() {
+            curl -sf "https://index.crates.io/vo/xr/voxr" \
+              | jq -e --arg v "$1" 'select(.vers == $v)' > /dev/null
+          }
+
+          # --allow-dirty: stamp_version.sh may have edited the manifests for a
+          # prerelease tag. The verifying publish still runs.
+          if is_published voxr "$VERSION"; then
+            echo "voxr@$VERSION already published — skipping"
+          else
+            echo "Publishing voxr@$VERSION..."
+            cargo publish -p voxr --allow-dirty
+          fi
+
+          echo "Waiting for voxr@$VERSION in the crates.io index..."
+          for attempt in $(seq 1 60); do
+            if in_index "$VERSION"; then
+              echo "voxr@$VERSION is in the index"
+              break
+            fi
+            if [[ "$attempt" == 60 ]]; then
+              echo "::error::voxr@$VERSION did not reach the index; re-run this stage"
+              exit 1
+            fi
+            sleep 10
+          done
+
+          if is_published voxr-narrate "$VERSION"; then
+            echo "voxr-narrate@$VERSION already published — skipping"
+          else
+            echo "Publishing voxr-narrate@$VERSION..."
+            cargo publish -p voxr-narrate --allow-dirty
+          fi
+
+  # ── GitHub Release ──────────────────────────────────────────────────────────
+  # Independent of publish-crate: a crates.io outage must not block cutting the
+  # release, and re-running this stage alone is the fix for a bad release body.
+  github-release:
+    name: Create GitHub Release
+    needs: validate-version
+    if: inputs.github_release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          fetch-depth: 0
+
+      # The changelog is the release notes. Auto-generated notes list commit
+      # subjects, which describe what was done to the code; the changelog
+      # describes what changed for the person upgrading. `validate-version` has
+      # already proved this section exists and is non-empty.
+      - name: Build release notes from the changelog
+        env:
+          TAG: ${{ inputs.tag }}
+          BASE: ${{ needs.validate-version.outputs.base_version }}
+        run: |
+          set -euo pipefail
+          # `-l` is required: `git tag` with a pattern but no list flag is the
+          # create form, which errors out and leaves the notes silently
+          # missing their compare link.
+          PREVIOUS_TAG=$(git tag -l --sort=-v:refname 'v*' | grep -v "^${TAG}$" | head -n 1 || true)
+
+          bash scripts/ci/changelog_section.sh "$BASE" /tmp/changelog-section.md
+
+          {
+            cat /tmp/changelog-section.md
+            echo
+            if [[ -n "$PREVIOUS_TAG" ]]; then
+              echo "**Full diff:** https://github.com/ml-rust/voxr/compare/${PREVIOUS_TAG}...${TAG}"
+            else
+              echo "**Tree:** https://github.com/ml-rust/voxr/tree/${TAG}"
+            fi
+          } > /tmp/release-notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+        with:
+          tag_name: ${{ inputs.tag }}
+          name: voxr ${{ needs.validate-version.outputs.version }}
+          body_path: /tmp/release-notes.md
+          draft: false
+          prerelease: ${{ needs.validate-version.outputs.is_full_release != 'true' }}

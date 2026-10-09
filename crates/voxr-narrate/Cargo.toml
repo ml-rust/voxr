@@ -2,9 +2,17 @@
 name = "voxr-narrate"
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.88"
+rust-version = "1.89"
 description = "Script-to-speech narration: script parsing, speech checks, and take repair"
 license = "Apache-2.0"
+repository = "https://github.com/ml-rust/voxr"
+documentation = "https://docs.rs/voxr-narrate"
+readme = "README.md"
+keywords = ["narration", "tts", "speech", "voiceover", "audio"]
+categories = ["multimedia::audio"]
+# Integration tests read JSON oracle fixtures and the JavaScript tools that
+# write them. Neither ships.
+exclude = ["tests/"]
 
 [lib]
 name = "voxr_narrate"
@@ -35,10 +43,10 @@ sha1 = "0.11"
 # Whisper word timings and the audio decode that feeds them. Also
 # `stretch_track`: voxr's atempo and resampler. Also the engines the
 # adapters drive: Kokoro, VITS and VoxCPM2.
-voxr = { path = "../voxr", default-features = false }
+voxr = { path = "../voxr", version = "0.1", default-features = false }
 # `WhisperTranscriber` and the VoxCPM2 adapter: the runtime and client a
 # checkpoint runs on.
-numr = { version = "0.7", optional = true }
+numr = { version = "0.8", optional = true }
 # The VoxCPM2 adapter names the model type in the bounds of voxr's engine.
 boostr = { version = "0.3", optional = true, default-features = false }
 
@@ -61,6 +69,10 @@ vits = ["voxr/vits"]
 voxcpm = ["voxr/voxcpm", "dep:numr", "dep:boostr"]
 # The CUDA runtime for Whisper and VoxCPM2.
 cuda = ["voxr/cuda", "dep:numr", "numr/cuda"]
+
+[package.metadata.docs.rs]
+# docs.rs has no CUDA toolkit, so `cuda` stays off.
+features = ["whisper", "stretch", "kokoro", "vits", "voxcpm"]
 
 [[test]]
 name = "narration_oracle"

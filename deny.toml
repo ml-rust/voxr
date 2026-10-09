@@ -1,0 +1,66 @@
+# cargo-deny config.
+#
+# Run locally: `cargo deny --exclude-dev check`
+# CI gate:     .github/workflows/test.yml :: audit job
+#
+# Dev-dependencies are excluded in CI. They link test oracles only, and a
+# finding in a crate no consumer links is not a release gate.
+
+[graph]
+targets = [
+    { triple = "x86_64-unknown-linux-gnu" },
+    { triple = "aarch64-unknown-linux-gnu" },
+    { triple = "x86_64-pc-windows-msvc" },
+    { triple = "aarch64-apple-darwin" },
+]
+# Every gate, `cuda` included: each one adds dependencies a consumer can link.
+all-features = true
+
+# ────────────────────────────────────────────────────────────────────────
+# Security advisories. Any RustSec advisory against a dependency, direct or
+# transitive, fails CI. A yanked version fails too.
+[advisories]
+version = 2
+yanked = "deny"
+ignore = []
+
+# ────────────────────────────────────────────────────────────────────────
+# Licences: an allow-list. A transitive bump cannot add a stronger
+# obligation for a consumer without an edit here.
+[licenses]
+version = 2
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Unicode-3.0",
+    "Unicode-DFS-2016",
+    "Zlib",
+    "CC0-1.0",
+    # symphonia, behind `decode`. MPL-2.0 is file-level copyleft: it binds
+    # changes to symphonia's own files and nothing in a crate that links it.
+    "MPL-2.0",
+]
+confidence-threshold = 0.93
+unused-allowed-license = "allow"
+
+# ────────────────────────────────────────────────────────────────────────
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+# voxr-narrate names voxr by path and version. The path is dropped on publish.
+allow-wildcard-paths = true
+highlight = "all"
+deny = []
+skip-tree = []
+
+# ────────────────────────────────────────────────────────────────────────
+# crates.io only. A git dependency is one no advisory or yank reaches.
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []
