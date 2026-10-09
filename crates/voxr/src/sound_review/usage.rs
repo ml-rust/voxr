@@ -1,5 +1,5 @@
-//! The review's usage text: the skill script's docstring, printed when no
-//! directory is given, with the command line it runs as.
+//! The review's usage text, printed for `-h`, `--help` and a missing
+//! directory, with the command line it runs as.
 
 /// The usage text, `run_line` naming how the review runs (for example
 /// `blazr sound-review`).
@@ -8,8 +8,9 @@ pub fn usage(run_line: &str) -> String {
         "Developer review of the sound catalog: harshness limits and recognizability.
 
 Usage:
-  node scripts/dev/render-sounds.mjs <dir>
   {run_line} <dir> [--no-model]
+
+<dir> holds the rendered WAVs and their sounds.json index.
 
 Numeric limits (every rendered form):
   sharpness   DIN 45692-style, loudest 100 ms, acum. Fail above 2.6: the sound reads as harsh.

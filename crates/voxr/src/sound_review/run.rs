@@ -20,8 +20,8 @@ pub struct ReviewOutcome {
     pub stdout: String,
     /// Standard error, each line ending in a newline.
     pub stderr: String,
-    /// 0 when every sound passes, 1 when one fails a limit or the run
-    /// stops on an error, 2 with no directory.
+    /// 0 when every sound passes or help is asked for, 1 when one fails a
+    /// limit or the run stops on an error, 2 with no directory.
     pub code: i32,
 }
 
@@ -71,13 +71,20 @@ fn open_error(path: &str, e: &std::io::Error) -> String {
 }
 
 /// Runs the review on `argv`, the arguments after the command. `usage` is
-/// printed with no directory. `scorer` loads the model the first time the
-/// review ranks; its error is the line printed.
+/// printed with exit code 2 when no directory is given, and with exit code 0
+/// when any argument is `-h` or `--help`. `scorer` loads the model the first
+/// time the review ranks; its error is the line printed.
 pub fn run_review(
     argv: &[String],
     usage: &str,
     scorer: &mut dyn FnMut() -> Result<Box<dyn AudioTextScorer>, String>,
 ) -> ReviewOutcome {
+    if argv.iter().any(|a| a == "-h" || a == "--help") {
+        return ReviewOutcome {
+            stdout: format!("{usage}\n"),
+            ..ReviewOutcome::default()
+        };
+    }
     let Some(root) = argv.first() else {
         return ReviewOutcome {
             stdout: format!("{usage}\n"),
@@ -209,6 +216,23 @@ mod tests {
     fn no_directory_prints_usage_and_exits_2() {
         let out = run_review(&[], "USAGE", &mut || Err("unused".to_string()));
         assert_eq!((out.stdout.as_str(), out.code), ("USAGE\n", 2));
+    }
+
+    #[test]
+    fn help_prints_usage_and_exits_0() {
+        for flag in ["-h", "--help"] {
+            let out = run_review(&[flag.to_string()], "USAGE", &mut || {
+                Err("unused".to_string())
+            });
+            assert_eq!((out.stdout.as_str(), out.code), ("USAGE\n", 0), "{flag}");
+            assert!(out.stderr.is_empty(), "{flag}: {}", out.stderr);
+        }
+        let after_dir = run_review(
+            &["/nonexistent".to_string(), "--help".to_string()],
+            "USAGE",
+            &mut || Err("unused".to_string()),
+        );
+        assert_eq!(after_dir.code, 0);
     }
 
     #[test]
