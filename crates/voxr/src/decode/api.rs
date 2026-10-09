@@ -41,11 +41,8 @@ pub fn decode_audio_like_ffmpeg(bytes: &[u8], hint: Option<&str>) -> Result<WavD
 }
 
 fn decode_bytes(bytes: &[u8], hint: Option<&str>, scale: IntScale) -> Result<WavData> {
-    // symphonia's `MediaSource` bound is `'static`, so a stream built over a
-    // borrowed slice cannot satisfy it; the byte-slice path must own its copy.
     let trims = Trims::of(&mut Cursor::new(bytes), bytes, hint);
-    let cursor = Cursor::new(bytes.to_vec());
-    let mss = MediaSourceStream::new(Box::new(cursor), Default::default());
+    let mss = MediaSourceStream::new(Box::new(Cursor::new(bytes)), Default::default());
     decode_stream(mss, hint, trims, scale)
 }
 

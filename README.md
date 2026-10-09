@@ -62,7 +62,7 @@ The `cuda` feature builds numr's CUDA kernels. It needs CUDA 12.8 or newer, and 
 
 ## Minimum Rust version
 
-1.89.
+1.95.
 
 ## License
 

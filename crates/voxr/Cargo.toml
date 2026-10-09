@@ -2,7 +2,7 @@
 name = "voxr"
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.89"
+rust-version = "1.95"
 description = "Audio and speech: codecs, DSP, G2P, voices, and TTS/ASR pipelines over boostr models"
 license = "Apache-2.0"
 repository = "https://github.com/ml-rust/voxr"
@@ -28,9 +28,9 @@ name = "voxr"
 bench = false
 
 [dependencies]
-boostr = { version = "0.3", default-features = false, features = ["cpu", "audio"] }
+boostr = { version = "0.4", default-features = false, features = ["cpu", "audio"] }
 # The denoiser runs its STFT through numr's CPU client.
-numr = "0.8"
+numr = "0.9"
 thiserror = "2"
 tracing = "0.1"
 # `whisper` reads `generation_config.json`; the VoxCPM2 examples read eval
@@ -52,7 +52,7 @@ biquad = "0.6"
 
 # Compressed-audio decode (FLAC/MP3/OGG-Vorbis/WAV). Off by default: a
 # WAV-only consumer has no use for four codec decoders.
-symphonia = { version = "0.5", optional = true, default-features = false, features = [
+symphonia = { version = "0.6", optional = true, default-features = false, features = [
   "flac",
   "mp3",
   "ogg",
@@ -64,7 +64,12 @@ symphonia = { version = "0.5", optional = true, default-features = false, featur
   "alac",
   "adpcm",
   "mkv",
+  # ID3v1, ID3v2 and APE tags, which the probe reads past to the audio.
+  "all-meta",
 ] }
+# No `opt-simd`: its FFT rounds AAC and Vorbis samples differently from
+# the scalar FFT, so one file would decode to different bits per target.
+
 # Opus, the codec of most WebM audio, which symphonia does not decode: a
 # pure-Rust decoder registered with symphonia's codecs.
 opus-rs = { version = "0.1", optional = true }

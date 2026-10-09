@@ -5,21 +5,18 @@
 use symphonia::core::audio::Channels;
 
 /// ffmpeg's bit for one symphonia position bit, the bit's index. `None`
-/// for a position ffmpeg has no bit for: rear left and right of centre.
+/// for a position ffmpeg has no bit for.
 fn ffmpeg_bit(index: u32) -> Option<u64> {
     match index {
         // Front left through top back right: the same 18 bits in both.
         0..=17 => Some(1 << index),
+        // LFE 2, top side left and right, bottom front centre, left and
+        // right.
+        18..=23 => Some(1 << (index + 17)),
         // Front left and right wide: ffmpeg's AAC decoder names 7.1's
         // second front pair left and right of centre.
-        20 => Some(1 << 6),
-        21 => Some(1 << 7),
-        // Front left, centre and right high: top front.
-        22 => Some(1 << 12),
-        23 => Some(1 << 13),
-        24 => Some(1 << 14),
-        // LFE 2.
-        25 => Some(1 << 35),
+        24 => Some(1 << 6),
+        25 => Some(1 << 7),
         _ => None,
     }
 }
@@ -27,15 +24,18 @@ fn ffmpeg_bit(index: u32) -> Option<u64> {
 /// The ffmpeg layout of decoded planes at `channels`, and the plane each
 /// output channel reads, in ascending ffmpeg bit order. symphonia orders
 /// planes by its own bits. One channel is ffmpeg's mono, front centre.
-/// The layout is `None` when a position has no ffmpeg bit or two share
-/// one. The planes then keep their order.
-pub(super) fn ffmpeg_layout(channels: Channels, count: usize) -> (Option<u64>, Vec<usize>) {
+/// The layout is `None` when the channels are not positions, a position
+/// has no ffmpeg bit, or two share one. The planes then keep their order.
+pub(super) fn ffmpeg_layout(channels: &Channels, count: usize) -> (Option<u64>, Vec<usize>) {
     let keep = (None, (0..count).collect());
     if count == 1 {
         return (Some(1 << 2), vec![0]);
     }
-    let bits: Option<Vec<u64>> = (0..32u32)
-        .filter(|b| channels.bits() & (1 << b) != 0)
+    let Channels::Positioned(positions) = channels else {
+        return keep;
+    };
+    let bits: Option<Vec<u64>> = (0..64u32)
+        .filter(|b| positions.bits() & (1 << b) != 0)
         .map(ffmpeg_bit)
         .collect();
     let Some(bits) = bits.filter(|b| b.len() == count) else {
@@ -53,28 +53,41 @@ pub(super) fn ffmpeg_layout(channels: Channels, count: usize) -> (Option<u64>, V
 #[cfg(test)]
 mod tests {
     use super::*;
+    use symphonia::core::audio::Position;
 
     #[test]
     fn positions_map_to_ffmpeg_bits_in_its_order() {
-        let surround = Channels::FRONT_LEFT
-            | Channels::FRONT_RIGHT
-            | Channels::FRONT_CENTRE
-            | Channels::LFE1
-            | Channels::SIDE_LEFT
-            | Channels::SIDE_RIGHT;
+        let surround = Position::FRONT_LEFT
+            | Position::FRONT_RIGHT
+            | Position::FRONT_CENTER
+            | Position::LFE1
+            | Position::SIDE_LEFT
+            | Position::SIDE_RIGHT;
         assert_eq!(
-            ffmpeg_layout(surround, 6),
+            ffmpeg_layout(&Channels::Positioned(surround), 6),
             (Some(0x60F), vec![0, 1, 2, 3, 4, 5])
         );
         // AAC 7.1: the wide pair is ffmpeg's left and right of centre,
         // which come before the sides.
-        let wide = surround | Channels::FRONT_LEFT_WIDE | Channels::FRONT_RIGHT_WIDE;
+        let wide = surround | Position::FRONT_LEFT_WIDE | Position::FRONT_RIGHT_WIDE;
         assert_eq!(
-            ffmpeg_layout(wide, 8),
+            ffmpeg_layout(&Channels::Positioned(wide), 8),
             (Some(0x6CF), vec![0, 1, 2, 3, 6, 7, 4, 5])
         );
-        assert_eq!(ffmpeg_layout(Channels::FRONT_LEFT, 1), (Some(0x4), vec![0]));
-        let unnamed = Channels::FRONT_LEFT | Channels::REAR_LEFT_CENTRE;
-        assert_eq!(ffmpeg_layout(unnamed, 2), (None, vec![0, 1]));
+        // LFE 2 is ffmpeg's bit 35, past every bit of the first 18.
+        let lfe2 = Position::FRONT_LEFT | Position::FRONT_RIGHT | Position::LFE2;
+        assert_eq!(
+            ffmpeg_layout(&Channels::Positioned(lfe2), 3),
+            (Some(0x8_0000_0003), vec![0, 1, 2])
+        );
+        let mono = Channels::Positioned(Position::FRONT_LEFT);
+        assert_eq!(ffmpeg_layout(&mono, 1), (Some(0x4), vec![0]));
+        assert_eq!(ffmpeg_layout(&Channels::Discrete(2), 2), (None, vec![0, 1]));
+        // Front left twice over: two planes on one ffmpeg bit.
+        let shared = Position::FRONT_LEFT_CENTER | Position::FRONT_LEFT_WIDE;
+        assert_eq!(
+            ffmpeg_layout(&Channels::Positioned(shared), 2),
+            (None, vec![0, 1])
+        );
     }
 }
