@@ -1,11 +1,10 @@
 //! Look-ahead peak limiter.
 //!
 //! Gain alone cannot bring a speech take to a loudness target. Real speech has
-//! a peak-to-loudness ratio around 20 dB — a measured 30 s reference take came
-//! in at -38 LUFS with a -15 dBFS peak, 23 dB apart — so raising it to -18
-//! LUFS under a -1 dBFS ceiling needs 20 dB of gain and would clip by 19 dB.
+//! a peak-to-loudness ratio around 20 dB. A quiet take raised to a -18 LUFS
+//! target under a -1 dBFS ceiling therefore clips by nearly the whole gain.
 //! Clamping the gain instead, which is what a normalizer without a limiter
-//! does, simply misses the target by that margin.
+//! does, misses the target by that margin.
 //!
 //! The gain envelope is built in two passes over `|x|`, and the pair is what
 //! makes it both safe and smooth:

@@ -12,6 +12,10 @@
 //! engines, Whisper as the hearing, and the runs a caller hands loaded
 //! models to. Also the speak and transcribe commands around them: every
 //! printed line, file and exit code, and the video manifest's narration.
+//!
+//! The crate implements the speak and transcribe contract of the
+//! motion-video skill (<https://github.com/farhan-syah/motion-video-skill>).
+//! "The skill" in these docs means it.
 
 mod error;
 mod js;

@@ -1,9 +1,9 @@
 //! The mono mix of ffmpeg's default rematrix: `-ac 1` with float output.
 //!
-//! libswresample's `swr_build_matrix` mixes every input channel into the
-//! one centre output with the default levels: centre and surround at
-//! -3 dB, LFE dropped. With float output it does not normalize the
-//! matrix, whatever the input sample format. Each channel's weight into
+//! ffmpeg mixes every input channel into the one centre output with its
+//! documented default levels: `center_mix_level` and `surround_mix_level`
+//! at -3 dB, `lfe_mix_level` 0. With float output the mix is not
+//! normalized, whatever the input sample format. Each channel's weight into
 //! the centre is therefore fixed by its position:
 //!
 //! | Position | Weight |
@@ -19,7 +19,8 @@
 //! to mix those to mono.
 //!
 //! The mix sums the weighted channels in layout order as `f32`, from 0,
-//! skipping a weight of 0, as libswresample's float mixing loop does.
+//! skipping a weight of 0. This order reproduces ffmpeg's float output
+//! bit for bit.
 
 use crate::error::{Error, Result};
 
@@ -47,7 +48,7 @@ mod bit {
 }
 
 /// ffmpeg's default layout for `channels`: the first layout of that count
-/// in its standard list (`av_channel_layout_default`). `None` for a count
+/// in its standard list. `None` for a count
 /// with no standard layout.
 pub fn ffmpeg_default_layout(channels: u16) -> Option<u64> {
     use bit::*;

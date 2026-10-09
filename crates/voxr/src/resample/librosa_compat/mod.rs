@@ -9,8 +9,7 @@
 //! documented traits of the soxr_hq quality librosa selects: linear phase,
 //! a passband to 0.913 of the Nyquist limit, a stopband from 1.0, and 20-bit
 //! precision. The cutoff, window width and β fit the impulse response of
-//! librosa's outputs, measured as a black box. No resampler source was read
-//! or translated.
+//! librosa's outputs.
 //!
 //! - [`resample_like_librosa`]: `librosa.resample(y, orig_sr=from, target_sr=to)`
 //! - [`librosa_output_len`]: the length of its result

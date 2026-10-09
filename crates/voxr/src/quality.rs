@@ -53,14 +53,14 @@ pub struct TakeQuality {
 /// `floor = blocks[len(blocks) // 20]` after sorting ascending. A trailing
 /// partial block is dropped rather than measured, also matching the
 /// voice-corpus recorder. When `samples` is shorter than one block there are
-/// no blocks at all; `floor_dbfs` then falls back to [`SILENCE_DBFS`]
+/// no blocks at all; `floor_dbfs` then falls back to `SILENCE_DBFS`
 /// (documented above) rather than `-inf`. When there is at least one block
 /// but fewer than 20, the floor is the single quietest block (`blocks[0]`),
 /// also matching the voice-corpus recorder.
 ///
 /// Returns [`Error::InvalidArgument`] when `samples` is empty or
 /// `sample_rate` is 0. Never panics and never produces `NaN`: an all-silent
-/// input yields `peak_dbfs == rms_dbfs == floor_dbfs == `[`SILENCE_DBFS`]`
+/// input yields `peak_dbfs == rms_dbfs == floor_dbfs == SILENCE_DBFS`
 /// and `snr_db == 0.0`.
 pub fn measure_quality(samples: &[f32], sample_rate: u32) -> Result<TakeQuality> {
     if samples.is_empty() {

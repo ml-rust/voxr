@@ -18,7 +18,7 @@
 //! `crates/voxr/tests/tools/voxcpm/make_continuation_fixture.py` for a
 //! continuation mode.
 //!
-//! This is Unit A of the end-to-end orchestrator: reference-audio encoding
+//! It covers the first half of synthesis: reference-audio encoding
 //! and the two-LM prefill, up to (not including) the per-patch CFM sampling
 //! loop. It is a real numerical gate, not a smoke test — running and
 //! producing plausible numbers proves nothing, reproducing the reference

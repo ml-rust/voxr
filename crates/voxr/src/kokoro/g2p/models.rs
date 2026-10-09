@@ -53,7 +53,9 @@ impl KokoroG2pModels {
         {
             return Err(Error::ModelError {
                 reason: format!(
-                    "no spaCy tagger at {} (expected tagger.safetensors + tagger.json); run:\n\
+                    "no spaCy tagger at {} (expected tagger.safetensors + tagger.json); \
+                     download `tagger/` from the Hugging Face repo fs90/kokoro-g2p into it, \
+                     or run from a voxr checkout:\n\
                      \n    python3 crates/voxr/assets/spacy_en/convert_tagger.py \\\n        \
                      <en_core_web_sm model dir> {}\n",
                     tagger_dir.display(),

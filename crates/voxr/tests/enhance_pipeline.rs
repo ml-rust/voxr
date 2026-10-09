@@ -69,9 +69,9 @@ fn peaky_take(n: usize) -> Vec<f32> {
 
 #[test]
 fn a_peaky_take_still_reaches_the_loudness_target() {
-    // Gain alone misses by the peak-to-loudness ratio. A measured 30 s
-    // reference take was -38 LUFS with a -15 dBFS peak: 23 dB apart, so a
-    // -18 LUFS target under a -1 dBFS ceiling is 19 dB out of reach without
+    // Gain alone misses by the peak-to-loudness ratio. A quiet reference take
+    // with a high peak-to-loudness ratio hits the -1 dBFS ceiling long before
+    // it reaches the -18 LUFS target, so the target is out of reach without
     // the limiter.
     let input = peaky_take(RATE as usize * 6);
     let opts = EnhanceOptions::default();
@@ -186,9 +186,9 @@ fn a_supplied_noise_clip_is_never_worse_than_hunting_for_pauses() {
     // Why `enhance_with_noise_profile` is worth offering. Pause-hunting takes
     // the quietest tenth of frames, and in a real take some of those still
     // catch the tail of a word, which inflates the profile. Dedicated room
-    // tone does not. Measured here at 24.3 dB for pause-hunting against
-    // 35.2 dB for the supplied clip; the assertion below only pins the
-    // direction, since the exact margin depends on the take.
+    // tone does not. The supplied clip removes more noise. The assertion
+    // below only pins the direction, since the exact margin depends on the
+    // take.
     let input = raw_take(RATE as usize * 6);
     let room = room_tone(RATE as usize * 2, 41);
 
@@ -256,7 +256,7 @@ fn empty_input_and_zero_rate_are_rejected() {
 
 #[test]
 fn the_bass_shelf_is_a_real_control() {
-    // The options are controls, not decoration. Measured as low-band relative
+    // The options are controls, not decoration. The low band is read relative
     // to the fundamental: the loudness stage rescales the whole signal, so an
     // absolute low-band level would mostly report that rescaling.
     let input = raw_take(RATE as usize * 6);

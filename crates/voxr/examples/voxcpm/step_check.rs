@@ -3,8 +3,8 @@
 //! model's own output, comparing every INTERMEDIATE value inside the step
 //! (`mu`, `curr_embed`, `pred_feat`, `lm_hidden_pre_fsq`, `lm_hidden_post`,
 //! `residual_hidden_post`, `stop_logits`) so a mismatch localizes to a stage
-//! instead of only showing up at the end. This is Unit B of the VoxCPM2
-//! end-to-end orchestrator.
+//! instead of only showing up at the end. It covers the second half of
+//! synthesis: the per-patch loop that follows `voxcpm_prefill_check`'s prefill.
 //!
 //! ```text
 //! cargo run --release -p voxr --features voxcpm --example voxcpm_step_check -- CKPT_DIR FIXTURE_DIR [PREFILL_FIXTURE STEP_FIXTURE]
@@ -92,48 +92,15 @@
 //! report the post-quantizer stages as information instead of loosening
 //! their bound.
 //!
-//! Recorded baseline (this gate's own prior run, not re-litigated here).
-//!
-//! Step 0 is listed FIRST because it is the only fully hard-gated step, and
-//! it was previously unrecorded — which left "a kernel change moves the
-//! gated numerics" unfalsifiable. It is now the reference an incremental
-//! attention or cache change must be compared against. `curr_embed` and
-//! `pred_feat` already consume 61% and 53% of the 2e-3 tolerance, so they
-//! are the two that will fail first.
-//!
-//! ```text
-//! step0: mu               6.962e-5  over 0/2048   OK
-//! step0: curr_embed       1.211e-3  over 0/2048   OK
-//! step0: pred_feat        1.065e-3  over 0/256    OK
-//! step0: lm_hidden_pre_fsq 4.113e-5 over 0/2048   OK
-//! step0: lm_hidden_post   4.768e-7  over 0/2048   OK
-//! step0: residual_hidden_post 3.712e-4 over 0/2048 OK
-//! step0: stop_logits      9.155e-5  over 0/2      OK
-//!
-//! step1: mu               5.198e-4  over 0/2048   OK
-//! step1: curr_embed       2.423e-3  over 1/2048   MISMATCH
-//! step1: pred_feat        8.576e-4  over 0/256    OK
-//! step1: lm_hidden_pre_fsq 1.077e-4 over 0/2048   OK
-//! step1: lm_hidden_post   9.537e-7  over 0/2048   OK      (tighter than its own input)
-//! step1: stop_logits      3.815e-6  over 0/2      OK
-//! step2: mu               1.102e-3  over 0/2048   OK
-//! step2: curr_embed       1.360e-2  over 71/2048  MISMATCH
-//! step2: pred_feat        1.053e-3  over 0/256    OK
-//! step2: lm_hidden_pre_fsq 1.311e-3 over 0/2048   OK
-//! step2: lm_hidden_post   2.967e-2  over 1568/2048 MISMATCH
-//! step2: residual_hidden_post 9.475e-3 over 964/2048 MISMATCH
-//! step2: stop_logits      9.537e-7  over 0/2      OK
-//! ```
-//!
-//! `mu` and `pred_feat` have zero outliers at every step and `stop_logits`
-//! matches at about 1e-6, so the pre-quantizer path is verified correct.
-//! At step 1 FSQ COLLAPSED the error (1.077e-4 in, 9.537e-7 out: both sides
-//! rounded to the same level). At step 2, with roughly 12x more input
-//! drift, some elements crossed a tie boundary and flipped a level, which
-//! `out_proj` (512 to 2048) spread to 1568/2048 outliers. The drift itself
-//! comes from the CFM sampler's f32 accumulation over 32 Euler steps,
-//! amplified through `feat_encoder` - a component independently gated at
-//! 7.5e-7 relative error by `voxcpm_locenc_check`, so it is not the fault.
+//! `mu` and `pred_feat` stay inside tolerance at every step, and
+//! `stop_logits` matches closely, so these checks verify the pre-quantizer
+//! path. FSQ can collapse a small input error: when both sides round to the
+//! same level, its output error is tighter than its input. Once input drift
+//! grows past a tie boundary, some elements flip a level, and `out_proj`
+//! (512 to 2048) spreads each flip across most of its output. The drift
+//! itself comes from the CFM sampler's f32 accumulation over its Euler steps,
+//! amplified through `feat_encoder`. `voxcpm_locenc_check` gates that
+//! component on its own, so it is not the fault.
 //!
 //! # The starting state is checked first, on purpose
 //!
@@ -654,8 +621,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // near or below 1 means fsq collapsed the drift onto a rounding grid; a
     // ratio far above 1 means one or more elements crossed a tie boundary
     // and fsq spread that flip across `out_proj`'s output. This is computed
-    // from this run's own numbers, not the recorded baseline in the module
-    // doc.
+    // from this run's own numbers.
     for (step, (pre, post)) in stage_max_err[3]
         .iter()
         .zip(stage_max_err[4].iter())

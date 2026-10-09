@@ -45,11 +45,9 @@ pub const REF_RATE: u32 = 16_000;
 /// reference implementation's own default — unlike `lambda_stop`, its FAQ names no failure mode
 /// that calls for retuning it, so it is not exposed as a flag.
 pub const LAMBDA_DIFF: f64 = 1.0;
-/// Default `--max-patches`: retains 78% of targets on the measured real
-/// corpus while staying under ~10 GB peak RSS — see `finetune.rs`'s module docs'
-/// "Choosing `--max-patches`" table. Measured scaling is ~1.36 GB per second
-/// of target audio (q6_k, CPU), so a 6.0 s cap keeps peak near `6.0 * 1.36
-/// GB ≈ 8.2 GB` plus fixed model/runtime overhead — ~9.8 GB total. Converted
+/// Default `--max-patches`: a 6.0 s target cap. See `finetune.rs`'s module
+/// docs' "Choosing `--max-patches`" section for the retention and memory
+/// trade-off. Peak memory grows linearly with target length. Converted
 /// to patches at `patch_size = 4`
 /// ([`VoxCpm2Config::default`](boostr::model::audio::voxcpm::model::config::VoxCpm2Config::default),
 /// the checkpoint's usual value) and `HOP_LENGTH` (640): `6.0 s * 16_000

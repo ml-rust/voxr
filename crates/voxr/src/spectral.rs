@@ -83,7 +83,7 @@ fn log_floor(peak_a: f64) -> f64 {
 /// [`boostr::model::audio::stft::hann_window`] always builds an F32 window
 /// regardless of its `R` type parameter (it fills a `Vec<f32>` internally),
 /// so it cannot supply the F64 window this module's F64 STFT needs — see
-/// [`REL_LOG_EPS`]'s docs for why F64 matters here. Same formula, evaluated
+/// `REL_LOG_EPS`'s docs for why F64 matters here. Same formula, evaluated
 /// in F64 throughout rather than truncated to F32 first.
 fn hann_window_f64(n: usize) -> Vec<f64> {
     use std::f64::consts::PI;
@@ -93,22 +93,22 @@ fn hann_window_f64(n: usize) -> Vec<f64> {
 }
 
 /// Multi-resolution STFT distance between a reference signal `a` and a test
-/// signal `b`, averaged over [`FFT_SIZES`] (hop = `n_fft / 4`, periodic Hann
+/// signal `b`, averaged over `FFT_SIZES` (hop = `n_fft / 4`, periodic Hann
 /// window, centered STFT). The transform itself runs in F64 — see
-/// [`REL_LOG_EPS`]'s docs — though `a`/`b` are ordinary F32 samples.
+/// `REL_LOG_EPS`'s docs — though `a`/`b` are ordinary F32 samples.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SpectralDistance {
-    /// Mean absolute difference of `log(magnitude + `[`log_floor`]`(peak_a))`
+    /// Mean absolute difference of `log(magnitude + log_floor(peak_a))`
     /// between `a` and `b`, averaged first over each resolution's bins and
-    /// frames, then over [`FFT_SIZES`]. 0 for identical signals.
+    /// frames, then over `FFT_SIZES`. 0 for identical signals.
     pub log_mag_l1: f64,
-    /// `||mag_a - mag_b||_F / max(||mag_a||_F, `[`log_floor`]`(peak_a))`,
-    /// averaged over [`FFT_SIZES`]. 0 for identical signals; 1.0 when `b`
+    /// `||mag_a - mag_b||_F / max(||mag_a||_F, log_floor(peak_a))`,
+    /// averaged over `FFT_SIZES`. 0 for identical signals; 1.0 when `b`
     /// shares none of `a`'s energy (e.g. `b` is silence).
     pub spectral_convergence: f64,
 }
 
-/// Compare `a` (reference) against `b` (test) at [`FFT_SIZES`] resolutions.
+/// Compare `a` (reference) against `b` (test) at `FFT_SIZES` resolutions.
 ///
 /// The two signals are compared over their common length: a longer one is
 /// truncated to `min(a.len(), b.len())` rather than erroring, since a decoder
@@ -119,7 +119,7 @@ pub struct SpectralDistance {
 ///
 /// # Errors
 /// [`Error::InvalidArgument`] when either signal is empty, `sample_rate` is
-/// 0, or the common length is shorter than every entry in [`FFT_SIZES`].
+/// 0, or the common length is shorter than every entry in `FFT_SIZES`.
 pub fn multi_resolution_stft_distance(
     a: &[f32],
     b: &[f32],
@@ -143,7 +143,7 @@ pub fn multi_resolution_stft_distance(
     }
 
     let n = a.len().min(b.len());
-    // Cast to F64 up front — see [`REL_LOG_EPS`]'s docs for why the transform
+    // Cast to F64 up front — see `REL_LOG_EPS`'s docs for why the transform
     // itself must run at this precision.
     let a64: Vec<f64> = a[..n].iter().map(|&s| s as f64).collect();
     let b64: Vec<f64> = b[..n].iter().map(|&s| s as f64).collect();
@@ -304,7 +304,7 @@ mod tests {
     /// A 1 dB gain scales every magnitude bin by the same factor `s =
     /// 10^(1/20)`, so in exact arithmetic `log_mag_l1` is exactly `ln(s)` at
     /// every bin, however small (`log` is scale-invariant for any nonzero
-    /// value) — see [`REL_LOG_EPS`]'s docs for why an f32-sampled sine's
+    /// value) — see `REL_LOG_EPS`'s docs for why an f32-sampled sine's
     /// leakage tail needs a floor to hold this to a loose tolerance, and
     /// [`pure_scale_of_white_noise_matches_ln_scale_tightly`] for the same
     /// invariant pinned tightly on a signal with no near-zero bins at all.

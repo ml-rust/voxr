@@ -13,9 +13,9 @@
 //! reproducing the weights' original output. Exits non-zero on mismatch so it
 //! can be wired into a check.
 //!
-//! Tolerance is 1e-3 absolute. Observed: decoder ~5e-7 on a 0.18 span, encoder
-//! ~3e-5 on an 8.7 span - both ~3e-6 relative, which is f32 accumulation
-//! through the conv stacks, not a difference in behaviour.
+//! Tolerance is 1e-3 absolute. The decoder and encoder errors sit orders of
+//! magnitude under it. They are f32 accumulation through the conv stacks, not
+//! a difference in behaviour.
 use boostr::format::safetensors_loader::SafeTensorsLoader;
 use boostr::model::audio::voxcpm::vae::{AudioVaeDecoder, AudioVaeEncoder};
 use numr::runtime::cpu::{CpuClient, CpuDevice, CpuRuntime};

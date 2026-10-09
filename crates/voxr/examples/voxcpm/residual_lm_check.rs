@@ -24,18 +24,17 @@
 //! loaded WITH rotation would still be caught by the numeric checks below,
 //! but asserting it directly makes that failure mode legible on its own.
 //!
-//! Tolerance is 2e-3 absolute, same as the other VoxCPM2 gates. Observed on
-//! the full-sequence cases: 1.2e-5, 3.1e-5 and 7.8e-5 on spans of 13.6, 22.4
-//! and 23.5, i.e. 9e-7 to 3e-6 relative - tighter than `base_lm` because this
-//! model is 8 layers deep, not 28.
+//! Tolerance is 2e-3 absolute, same as the other VoxCPM2 gates. The
+//! full-sequence error is tighter than `base_lm`'s because this model is 8
+//! layers deep, not 28.
 //!
 //! A fourth check exercises the incremental (KV-cached) `decode_step` path,
 //! comparing against the reference's own step-wise output rather than its
 //! full-sequence output. Same 2e-3 tolerance. The reference's own
-//! full-sequence and step-wise paths differ by 1.43e-5 on this sub-model
-//! (vs 9.9e-5 for `base_lm` - `residual_lm` has 8 layers vs 28, so the
-//! per-layer reduction-order drift accumulates far less), which is the
-//! floor for this check. Observed: 1.8e-5 on a span of 21.6, 8e-7 relative.
+//! full-sequence and step-wise paths differ less on this sub-model than on
+//! `base_lm`: `residual_lm` has 8 layers vs 28, so the per-layer
+//! reduction-order drift accumulates far less. That gap is the floor for this
+//! check.
 use boostr::format::safetensors_loader::SafeTensorsLoader;
 use boostr::model::audio::voxcpm::minicpm4::{CacheStep, MiniCpm4Config, MiniCpm4Model};
 use numr::autograd::{Var, var_cat, var_narrow, var_reshape};
@@ -100,8 +99,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // reference's own STEP-WISE output (`decode_out`, produced by feeding
     // `decode_in` through the reference's KV cache one position at a
     // time) rather than its full-sequence output. The reference's own
-    // full-sequence and step-wise paths differ by 1.43e-5 on this model
-    // (fewer layers than base_lm, so less reduction-order drift), so this
+    // full-sequence and step-wise paths differ on this model, though less
+    // than on base_lm (fewer layers, so less reduction-order drift), so this
     // path is inherently noisier than the three full-sequence cases above
     // and exact agreement is not expected; same 2e-3 absolute tolerance.
     {

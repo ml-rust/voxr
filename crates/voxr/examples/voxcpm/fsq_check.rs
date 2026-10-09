@@ -41,12 +41,10 @@
 //! (`quantization_matches_ties_to_even_not_ties_away`), and indirectly by
 //! this file's three FSQ shape cases above matching the reference exactly.
 //!
-//! Tolerance is 2e-3 absolute, same as the other VoxCPM2 gates. Observed: the
-//! three FSQ cases land at 7.2e-7, 9.5e-7 and 1.2e-6 (1e-7 to 2e-7 relative),
-//! the six projections and the stop chain between 2.4e-7 and 4.1e-5 (all under
-//! 5e-7 relative), and the tie case is EXACT - 0.0, bitwise.
+//! Tolerance is 2e-3 absolute, same as the other VoxCPM2 gates. The tie case
+//! must match EXACTLY, bitwise.
 //!
-//! That bitwise zero is the point. Every other number here is f32 accumulation
+//! That bitwise match is the point. Every other number here is f32 accumulation
 //! noise, but a rounding rule either matches or it does not, so the tie case
 //! has no tolerance to hide in.
 use boostr::format::safetensors_loader::SafeTensorsLoader;

@@ -53,15 +53,15 @@
 //! It embeds the VAE on the same terms as `--gguf`, but `--config` is
 //! REQUIRED: the format has no metadata map a `config.json` could ever be
 //! embedded in. Every tensor at a native encoding stays PACKED in memory,
-//! so a 1.2 GB file costs about 1.2 GB rather than its f32 expansion.
+//! so a file costs about its own size in memory rather than its f32 expansion.
 //!
 //! # Reference mode, never continuation
 //!
 //! The Python script defaults to `reference_wav_path`, not `prompt_wav_path`,
 //! and this port implements only that mode. Continuation concatenates the
 //! reference transcript with the target text and asks the model to carry on
-//! speaking, which measured as 17 invented words in 14.2 s of audio for a
-//! sentence that needs 4.8 s. Reference mode isolates the voice through the
+//! speaking, so it invents words and runs far past the target sentence's
+//! length. Reference mode isolates the voice through the
 //! reference audio tokens with no continuation semantics, and boostr's
 //! `decode_patches` is reference-mode only for the same reason (there is no
 //! context prefix to trim).
@@ -76,7 +76,7 @@
 //! comparison is not possible on top of those: the loop is autoregressive and
 //! the CFM sampler draws its own noise, so torch and numr cannot be seeded
 //! into agreement and drift compounds over hundreds of patches. See
-//! `voxcpm_step_check`'s module doc for the measured drift.
+//! `voxcpm_step_check`'s module doc for how the drift grows.
 //!
 //! So this file asserts what an end-to-end run CAN assert, and fails loudly
 //! on any of it:
@@ -96,8 +96,8 @@
 //!
 //! Generates N takes with seeds `seed, seed+1, ...` and keeps the one whose
 //! median F0 is closest to the reference audio's median F0. Pitch varies a
-//! lot between draws: the Python script measured six generations of one
-//! sentence at 126-147 Hz against a 137 Hz reference, and a seventh at 176.
+//! lot between draws of one sentence, and an outlier draw lands far from the
+//! reference.
 //! F0 comes from `voxr::estimate_pitch` (YIN), the crate's
 //! own estimator, never a hand-rolled one. A take with no measurable pitch is
 //! unusable rather than merely a poor match, so it never wins.
@@ -123,9 +123,9 @@
 //!
 //! The point of the flag is that the model, the AudioVAE, the LoRA adapter,
 //! the tokenizer and the reference encode are done ONCE and reused for every
-//! prompt. Loading a q6/q8 TCF costs 26-27 s, dominated by Section 15 digest
-//! verification over 1.9-2.4 GB, so 66 prompts re-invoked per render would
-//! spend half an hour purely loading and swamp the numbers being measured.
+//! prompt. Loading a q6/q8 TCF is dominated by Section 15 digest verification
+//! over the whole file. Re-invoking the binary per prompt repeats that load
+//! every time and swamps the numbers being measured.
 //!
 //! One wav per prompt lands in `--out-dir` named `{id}.wav`.
 //!
@@ -147,8 +147,7 @@
 //! against; the AudioVAE is loaded from `.pth` at full precision in every row
 //! of a tier comparison, and prefill scales with the reference and the prompt.
 //! A combined number therefore understates the gap between two tiers by
-//! whatever fraction the constant phases happen to be — measured at 42% of an
-//! utterance on CPU.
+//! whatever fraction of an utterance the constant phases take.
 //!
 //! So each render reports `prefill_seconds`, `generate_seconds`,
 //! `vocode_seconds`, `pitch_seconds` and `write_seconds` alongside the
@@ -524,7 +523,7 @@ fn parse_args() -> Result<Args, String> {
     };
     // A TCF has no metadata map to embed a config.json in, so the path is
     // the only way the architecture can be known. Caught here rather than
-    // after the 1.2 GB file has been mapped and verified.
+    // after the whole file has been mapped and verified.
     if matches!(weights, Weights::Tcf(_)) && config.is_none() {
         return Err(format!("--config is required with --tcf\n{USAGE}"));
     }

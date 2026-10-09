@@ -121,21 +121,21 @@ pub struct CorpusOptions<'a> {
     /// wants.
     ///
     /// **Applied to the WHOLE recording, before the VAD, never per utterance.**
-    /// Two reasons, both measured:
+    /// Two reasons:
     ///
-    /// - The spectral gate needs pauses to read a noise floor from. A 3.4 s
-    ///   utterance has none: enhancing one alone gained 0.4 dB where enhancing
-    ///   its 30 s parent gained 27.9 dB.
+    /// - The spectral gate needs pauses to read a noise floor from. A short
+    ///   utterance has none, so enhancing it alone removes almost no noise.
+    ///   Its parent recording has pauses, and the gate works there.
     /// - Per-utterance loudness normalization would level every clip
     ///   independently and erase the relative loudness between them, which is
     ///   the vocal-effort cue prosody is learned from. Per recording it is a
     ///   single gain and the relationship survives.
     ///
-    /// A raw home recording is not neutral input. Measured on a real take,
-    /// a reference cut from an untreated recording produced clones at -36 LUFS
-    /// against -14 LUFS from the same segment enhanced — the level is inherited
-    /// straight from the audio. Leaving this `None` on untreated audio teaches
-    /// the model that level and that noise floor.
+    /// A raw home recording is not neutral input. A clone inherits the level
+    /// of its reference straight from the audio, so a reference cut from an
+    /// untreated recording produces a far quieter clone than the same segment
+    /// enhanced. Leaving this `None` on untreated audio teaches the model that
+    /// level and that noise floor.
     pub enhance: Option<EnhanceOptions>,
 }
 

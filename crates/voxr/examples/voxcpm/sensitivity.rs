@@ -205,7 +205,7 @@
 //!   carries an `encoding` field naming it; the parameter-level ones do not.
 //!
 //! The final table on stderr is the same data ranked by delta per byte
-//! saved, which is `PROFILES.md` Section 4 step 3's ordering. A NEGATIVE
+//! saved, which is step 4's ordering under "The measurement". A NEGATIVE
 //! delta means the round trip improved the loss on this eval set; it is
 //! reported as measured, never clamped.
 
@@ -461,7 +461,7 @@ struct Measurement {
     relative_delta: f64,
     /// Bytes this encoding saves on this tensor against `--reference-bpw`.
     bytes_saved: f64,
-    /// `delta / bytes_saved` — `PROFILES.md` Section 4 step 3's ordering.
+    /// `delta / bytes_saved` — the ranking key of the module doc's step 4.
     delta_per_byte: f64,
 }
 
@@ -909,7 +909,7 @@ where
     Ok(())
 }
 
-/// The ranked table on stderr. `PROFILES.md` Section 4 step 3 ranks by task
+/// The ranked table on stderr. The module doc's step 4 ranks by task
 /// delta per unit of cost, so that is the sort key here; the full ranking is
 /// on stdout either way.
 ///

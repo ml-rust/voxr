@@ -13,9 +13,9 @@
 //! and producing plausible numbers proves nothing, reproducing the reference
 //! output does. Exits non-zero on mismatch.
 //!
-//! Tolerance is 2e-3 absolute. Observed: ~4e-6 and ~1.5e-5 on a ~22 span,
-//! i.e. ~2e-7 to 7e-7 relative - f32 accumulation through 4 transformer
-//! layers, not a behavioural difference.
+//! Tolerance is 2e-3 absolute. The error sits orders of magnitude under it.
+//! It is f32 accumulation through 4 transformer layers, not a behavioural
+//! difference.
 use boostr::format::safetensors_loader::SafeTensorsLoader;
 use boostr::model::audio::voxcpm::local_encoder::{LocalEncoder, LocalEncoderConfig};
 use numr::autograd::Var;

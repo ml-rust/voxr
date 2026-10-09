@@ -191,11 +191,11 @@ impl crate::tts::TtsEngine for KokoroEngine {
 mod tests {
     use super::voice_id;
 
-    // We can't instantiate a full KokoroEngine in a unit test without a real
-    // checkpoint (all primitives require non-empty weight tensors with
-    // matching shapes). The engine's responsibility is wiring, not model
-    // behavior. Test the small helpers here; end-to-end is covered by the
-    // integration tests in blazr once a voice/model pair is available.
+    // A unit test cannot build a full KokoroEngine without a real checkpoint:
+    // every primitive needs non-empty weight tensors of matching shapes. The
+    // engine only wires parts together. These tests cover the small helpers.
+    // The `kokoro_pipeline_oracle` and `kokoro_audio_parity` integration tests
+    // cover the whole engine when a model directory is set.
 
     #[test]
     fn voice_id_reads_bare_ids_and_path_stems() {

@@ -3,7 +3,7 @@
 //! Exact port of HF `transformers.models.vits.tokenization_vits.VitsTokenizer`
 //! for the character-vocabulary MMS-TTS checkpoints (`facebook/mms-tts-*`,
 //! `phonemize: false`). A checkpoint with `is_uroman: true` gets the MMS-TTS
-//! recipe's uroman romanization first (see [`super::romanize`]).
+//! recipe's uroman romanization first (see [`super::romanize`](mod@super::romanize)).
 //! [`VitsTokenizer::from_dir`] refuses any checkpoint that needs
 //! phonemization.
 

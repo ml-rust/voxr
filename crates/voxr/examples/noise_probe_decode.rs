@@ -55,10 +55,10 @@ fn mean_sd(xs: &[f64]) -> Option<(f64, f64)> {
 /// Welch's t statistic and degrees of freedom for the difference of two means.
 ///
 /// The comparison that matters is the separation of the two MEANS against the
-/// standard error of that difference — not against the within-arm spread. An
-/// earlier version of this example compared the delta to a pooled standard
-/// deviation, which is a effect-size measure, not a test of whether the means
-/// differ, and it called a p ~= 0.05 separation "within sampling spread".
+/// standard error of that difference — not against the within-arm spread. A
+/// delta against a pooled standard deviation is an effect-size measure, not a
+/// test of whether the means differ. It can call a p ~= 0.05 separation
+/// "within sampling spread".
 fn welch(a: &[f64], b: &[f64]) -> Option<(f64, f64, f64)> {
     if a.len() < 2 || b.len() < 2 {
         return None;

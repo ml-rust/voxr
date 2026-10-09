@@ -8,8 +8,8 @@
 //! It must come from silence and cannot come from an order statistic taken
 //! per frequency bin across the whole take. A sustained vowel is stationary in
 //! its harmonic bins, so a per-bin percentile reads the voice itself as the
-//! floor and the gate then removes the voice. Measured on a held 150 Hz tone,
-//! that mistake cost 28 dB of fundamental.
+//! floor and the gate then removes the voice. On a held tone, that mistake
+//! strips most of the fundamental.
 //!
 //! A take with no pause in it therefore has no measurable noise profile. When
 //! the quietest frames are not clearly below the median frame, [`denoise`]
@@ -59,13 +59,13 @@ pub struct DenoiseOptions {
     /// frequency. **Default 0 — off.**
     ///
     /// Blurring a gain mask across frequency pulls the near-zero gains of the
-    /// empty bins between harmonics into the harmonics themselves. Measured
-    /// against a clean reference at 48 kHz with `n_fft = 1024`, where a 150 Hz
-    /// voice leaves roughly two empty bins between partials: half-width 0 wins
-    /// 15 dB, half-width 1 wins 3.4 dB, half-width 2 *loses* 9 dB. Real speech
-    /// has the same harmonic spacing, so this is not an artifact of the test
-    /// signal. Raise it only for a noise that is genuinely broadband and a
-    /// voice that is not.
+    /// empty bins between harmonics into the harmonics themselves. At 48 kHz
+    /// with `n_fft = 1024`, a 150 Hz voice leaves roughly two empty bins
+    /// between partials. Against a clean reference, each step of half-width
+    /// loses noise reduction, and a half-width of 2 makes the output worse
+    /// than the input. Real speech has the same harmonic spacing, so this is
+    /// not an artifact of the test signal. Raise it only for a noise that is
+    /// broadband and a voice that is not.
     pub freq_smooth_bins: usize,
     /// Half-width, in frames, of the box filter applied to the mask across
     /// time. Costs nothing measurable and stops a cell from switching on and
@@ -310,8 +310,8 @@ fn quiet_frame_profile(
     // Compared against the LOUD frames, not the median. In a take that is
     // mostly silence — a single sentence with the recorder left running, which
     // is most reference takes — the median frame *is* the noise floor, and a
-    // median comparison reads a perfectly gateable recording as pause-free. A
-    // real 30 s take measured 1.9 dB against the median and 24.2 dB against
+    // median comparison reads a perfectly gateable recording as pause-free. In
+    // such a take the quiet frames sit barely below the median and far below
     // the 90th percentile.
     let loud = energy[((t_frames as f64 * 0.9) as usize).min(t_frames - 1)].0;
 

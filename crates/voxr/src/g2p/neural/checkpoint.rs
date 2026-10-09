@@ -1,12 +1,10 @@
-//! Finds the checkpoint file oxidizr wrote into a directory.
+//! Finds the checkpoint file in a training output directory.
 //!
-//! oxidizr names checkpoints `{prefix}_{name}.safetensors` at
-//! `oxidizr/src/trainer.rs:1200` (`save_checkpoint_named`, `name` = `"final"`
-//! at the end of training) and `{prefix}_step_{N}.safetensors` for
-//! intermediate saves, where `prefix` encodes the model name, sequence
-//! length, parameter count and dtype (`checkpoint_prefix`,
-//! `oxidizr/src/config.rs:520`) — not reproducible here without duplicating
-//! that estimator, so this scans the directory instead of guessing the name.
+//! oxidizr names a checkpoint `{prefix}_final.safetensors` at the end of
+//! training and `{prefix}_step_{N}.safetensors` for an intermediate save.
+//! `prefix` encodes the model name, sequence length, parameter count and
+//! dtype. This crate cannot rebuild that prefix, so it scans the directory
+//! instead of guessing the name.
 
 use std::path::{Path, PathBuf};
 

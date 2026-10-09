@@ -112,9 +112,9 @@ impl Default for VoxCpm2SynthOptions {
     }
 }
 
-/// Everything [`VoxCpm2Engine::load`] needs beyond the checkpoint location:
-/// the dtype to cast to, per-request generation defaults, and an optional
-/// LoRA adapter to fold into the weights.
+/// Everything [`VoxCpm2Engine::load`](super::engine::VoxCpm2Engine::load)
+/// needs beyond the checkpoint location: the dtype to cast to, per-request
+/// generation defaults, and an optional LoRA adapter to fold into the weights.
 #[derive(Debug, Clone, Default)]
 pub struct VoxCpm2LoadOptions {
     /// Casts every transformer-stack tensor; `None` keeps the checkpoint's

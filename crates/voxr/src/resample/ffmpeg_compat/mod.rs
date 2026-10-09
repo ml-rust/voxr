@@ -8,8 +8,8 @@
 //! ffmpeg resampler options: `filter_size` 32, `phase_shift` 10, `cutoff`
 //! 0.97, `filter_type` kaiser, `kaiser_beta` 9, `exact_rational` and
 //! `linear_interp` on. The bank layout, edge handling, output length and
-//! arithmetic order come from black-box measurement of the ffmpeg binary:
-//! impulses, ramps, noise, and length sweeps. Each file documents its part.
+//! arithmetic order match the ffmpeg binary's output on impulses, ramps,
+//! noise, and length sweeps. Each file documents its part.
 
 mod bank;
 mod convert;

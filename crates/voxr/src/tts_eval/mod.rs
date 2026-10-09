@@ -1,6 +1,6 @@
 //! TTS quality gate: numbers for every rendered clip.
 //!
-//! [`signal`] and [`summary`] are always compiled. [`pace`] needs `vad`,
+//! [`signal`] and [`summary`] are always compiled. [`pace`](mod@pace) needs `vad`,
 //! [`intelligibility`] needs `whisper`, [`timbre`] needs `voxcpm`. The
 //! `voxcpm_quality_gate` example wires all of them over a render log.
 

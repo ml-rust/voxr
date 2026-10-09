@@ -93,7 +93,7 @@ fn the_voice_keeps_its_fundamental() {
     // Aggregate RMS can stay put while the gate eats the harmonics and leaves
     // broadband residue. This checks the band the voice actually lives in.
     // An earlier noise estimator — a per-bin percentile over the whole take —
-    // passed the RMS check above and still cost 28 dB of fundamental here,
+    // passed the RMS check above and still cut deep into the fundamental,
     // because a sustained vowel is stationary in its own bins.
     let input = take(RATE as usize * 6, 0.3, 0.01, 7);
     let out = denoise(&input, DenoiseOptions::default()).unwrap();
@@ -127,8 +127,8 @@ fn a_take_that_is_mostly_silence_is_still_gated() {
     // One sentence with the recorder left running, which is what a reference
     // take usually is. Here the MEDIAN frame is the noise floor, so a guard
     // that compares the quiet frames against the median reads this as
-    // pause-free and refuses to gate. A real 30 s take measured 1.9 dB of
-    // range against the median and 24.2 dB against the 90th percentile.
+    // pause-free and refuses to gate. Against the 90th percentile, the same
+    // take shows the full range between speech and noise.
     let n = RATE as usize * 10;
     let noise = hiss(n, 0.01, 31);
     let speech_start = RATE as usize * 4;
@@ -184,7 +184,7 @@ fn an_explicit_noise_clip_gates_a_take_that_has_no_pause() {
     // lets a pause-free take be cleaned, which the automatic path refuses.
     //
     // Also the guard on `freq_smooth_bins` defaulting to 0. Restoring the
-    // old default of 2 turns this test's 15 dB win into a 9 dB loss.
+    // old default of 2 turns this test's win into a loss.
     let n = RATE as usize * 4;
     let noise = hiss(n * 2, 0.01, 23);
     let unbroken: Vec<f32> = (0..n).map(|i| voiced(i, 0.3) + noise[n + i]).collect();

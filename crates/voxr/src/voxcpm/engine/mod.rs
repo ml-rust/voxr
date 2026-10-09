@@ -24,15 +24,13 @@
 //! row's noise draw is independent of the batch width and its neighbours, so
 //! a batched render is bit for bit the render that row has alone.
 //!
-//! [`types`] holds the engine struct, the shared state and the constants,
-//! [`load`] the loader and voice-directory handling, [`request`] the request,
-//! reference and prompt types, [`encode`] the reference and prompt encodes,
-//! [`plan`] resolving and tokenizing a request, [`render`] the caller's half
-//! of a request, [`batch`]
-//! the queued messages and the owner thread, [`queue`] taking work off the
-//! queue, [`reply`] where a row's output goes,
-//! [`run`] the batched generation itself, [`continuous`] the persistent batch
-//! behind
+//! `types` holds the engine struct, the shared state and the constants,
+//! `load` the loader and voice-directory handling, `request` the request,
+//! reference and prompt types, `encode` the reference and prompt encodes,
+//! `plan` resolving and tokenizing a request, `render` the caller's half
+//! of a request, `batch` the queued messages and the owner thread, `queue`
+//! taking work off the queue, `reply` where a row's output goes, `run` the
+//! batched generation itself, and `continuous` the persistent batch behind
 //! [`VoxCpm2SynthOptions::continuous_batching`](crate::voxcpm::VoxCpm2SynthOptions::continuous_batching).
 
 mod batch;

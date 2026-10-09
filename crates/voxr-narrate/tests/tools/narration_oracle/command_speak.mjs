@@ -34,7 +34,7 @@ const SPANS = [
   { text: 'Second line ends it.', start: 1.3, end: 2.4 },
 ];
 const NOT_READY = { ok: false, why: 'needs an NVIDIA GPU with 8 GB of memory (none found)' };
-const READY = { ok: true, why: 'NVIDIA GeForce, 12 GB' };
+const READY = { ok: true, why: 'Test GPU, 12 GB' };
 const whole = (text, ok = true, extra = {}) => ({ at: 0, text, ok, heard: text, why: ok ? '' : 'missing: it', doubt: [], pauses: [], ...extra });
 
 const SCENARIOS = [

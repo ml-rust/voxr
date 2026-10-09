@@ -21,9 +21,8 @@
 //! is a separate unit and is gated separately; a pass here is not
 //! end-to-end coverage of sampling.
 //!
-//! Tolerance is 2e-3 absolute, same as the other VoxCPM2 gates. Observed:
-//! 1.9e-6, 3.0e-6, 1.4e-6 and 5.3e-6 on spans of 6.6, 5.4, 5.3 and 6.4, i.e.
-//! 3e-7 to 8e-7 relative. Flat across t, which is the point of spanning
+//! Tolerance is 2e-3 absolute, same as the other VoxCPM2 gates. The error is
+//! flat across t, which is the point of spanning
 //! t=0.001 to t=0.999: a timestep-embedding constant that is off (the
 //! half_dim-1 divisor, the scale of 1000, or sin/cos order) skews with t
 //! rather than shifting every case equally.

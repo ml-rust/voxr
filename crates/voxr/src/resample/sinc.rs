@@ -52,7 +52,7 @@ use crate::resample::math::gcd;
 use crate::wav::decode::{WavData, to_mono};
 
 /// Filter half-width in samples of the lower rate. At this width the
-/// transition band fits between [`ROLLOFF`] and just past the lower Nyquist
+/// transition band fits between `ROLLOFF` and just past the lower Nyquist
 /// limit.
 pub const DEFAULT_TAPS_PER_PHASE: usize = 64;
 

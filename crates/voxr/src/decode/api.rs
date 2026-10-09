@@ -19,12 +19,12 @@ use crate::wav::decode::WavData;
 /// `hint` is an optional file-extension hint (`"flac"`, `"mp3"`, ...) that
 /// helps symphonia's format probe; pass `None` when the extension is unknown.
 ///
-/// Returns [`Error::Unsupported`] for a file symphonia does not decode:
-/// an unknown format or codec, multichannel AAC, AAC whose core rate can
-/// carry SBR (HE-AAC) outside an MP4 track that rules it out, Opus past
-/// two channels, or a rate or channel change mid-stream. Returns
-/// [`Error::InvalidArgument`] when a packet does not read or every packet
-/// fails to decode.
+/// Returns [`Error::Unsupported`](crate::Error::Unsupported) for a file
+/// symphonia does not decode: an unknown format or codec, multichannel AAC,
+/// AAC whose core rate can carry SBR (HE-AAC) outside an MP4 track that rules
+/// it out, Opus past two channels, or a rate or channel change mid-stream.
+/// Returns [`Error::InvalidArgument`](crate::Error::InvalidArgument) when a
+/// packet does not read or every packet fails to decode.
 pub fn decode_audio(bytes: &[u8], hint: Option<&str>) -> Result<WavData> {
     decode_bytes(bytes, hint, IntScale::FullScale)
 }

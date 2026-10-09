@@ -5,7 +5,7 @@
 //! samples, files, directories, voices, or text pipelines belongs here.
 //!
 //! Always compiled: RIFF/WAVE in and out ([`wav`]), the polyphase
-//! [`resample`]rs (general, ffmpeg-exact and SciPy-exact), the single-sound
+//! [`resample`](mod@resample)rs (general, ffmpeg-exact and SciPy-exact), the single-sound
 //! [`metrics`] and the [`sound_review`] built on them, the reference-take
 //! [`enhance`] chain, [`pitch`], [`quality`], two-signal [`spectral`]
 //! distance, the `atempo`-compatible tempo [`stretch`], ASR [`eval`]
@@ -17,6 +17,10 @@
 //! engines, the [`whisper`] bundle, the [`vad`] segmenter, [`corpus`]
 //! preparation, and the pace, intelligibility and timbre legs of
 //! [`tts_eval`].
+//!
+//! [`sound_review`] implements the sound review of the motion-video skill
+//! (<https://github.com/farhan-syah/motion-video-skill>). Docs here call it
+//! "the motion-video skill" or "the skill".
 
 pub mod enhance;
 pub mod error;

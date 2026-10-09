@@ -2,7 +2,7 @@
 //! `decode` feature. [`decode`] parses PCM and IEEE-float files through hound,
 //! [`decode_f64`] reads them to `f64` as libsndfile does,
 //! [`encode`] writes them, [`stream`] writes the unknown-length header a
-//! streamed response starts with, [`format`] holds the format tags and
+//! streamed response starts with, [`format`](mod@format) holds the format tags and
 //! canonical header layout all sides agree on, and `layout` parses the `fmt `
 //! chunk and the channel layout it names.
 

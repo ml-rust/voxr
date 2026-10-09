@@ -387,7 +387,7 @@ fn whisper_transcribe_segments_covers_each_range() {
     );
 }
 
-/// large-v3 is a 3 GB load and a 32+32-layer decode on CPU (~5 minutes), so it
+/// large-v3 is a 3 GB load and a slow 32+32-layer decode on CPU, so it
 /// is `#[ignore]`d on top of being fixture-gated. Run it with:
 /// `cargo nextest run --features f16 --test whisper_integration --run-ignored all`
 ///

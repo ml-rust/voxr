@@ -327,7 +327,7 @@ with torch.no_grad():
         tensors[f"step{i}_stop_logits"] = stop_logits.contiguous()
         assert not would_break, (
             f"iteration {i}: stop flag fired within the first {N_ITERATIONS} iterations -- "
-            "brief assumed this guard cannot break here"
+            "this fixture assumes the guard cannot break here"
         )
 
         # 6. base_lm step, then fsq

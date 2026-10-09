@@ -16,17 +16,16 @@
 //! nothing, reproducing the reference output does. Exits non-zero on
 //! mismatch.
 //!
-//! Tolerance is 2e-3 absolute, same as the local-encoder gate. Observed:
-//! 3.6e-5, 5.5e-5 and 3.9e-4 on spans of 15.5, 30.7 and 44.0, i.e. 2e-6 to
-//! 9e-6 relative. The error grows with sequence length because a longer
+//! Tolerance is 2e-3 absolute, same as the local-encoder gate. The error grows
+//! with sequence length because a longer
 //! sequence accumulates through more attention terms, not because the
 //! behaviour differs - all three run the same 28 layers in f32.
 //!
 //! A fourth check exercises the incremental (KV-cached) `decode_step` path,
 //! comparing against the reference's own step-wise output rather than its
-//! full-sequence output. Same 2e-3 tolerance. Observed: 1.1e-4 on a span of
-//! 25.4, i.e. 4e-6 relative - the same order as the 9.9e-5 by which the
-//! reference's own two paths disagree, which is the floor for this check.
+//! full-sequence output. Same 2e-3 tolerance. The error lands at the same
+//! order as the gap between the reference's own two paths, which is the floor
+//! for this check.
 use boostr::format::safetensors_loader::SafeTensorsLoader;
 use boostr::model::audio::voxcpm::minicpm4::{CacheStep, MiniCpm4Config, MiniCpm4Model};
 use numr::autograd::{Var, var_cat, var_narrow, var_reshape};
@@ -86,8 +85,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // reference's own STEP-WISE output (`decode_out`, produced by feeding
     // `decode_in` through the reference's KV cache one position at a
     // time) rather than its full-sequence output. The reference's own
-    // full-sequence and step-wise paths differ by 9.9e-5 on this model
-    // (different reduction orders over the key axis), so this path is
+    // full-sequence and step-wise paths differ on this model (different
+    // reduction orders over the key axis), so this path is
     // inherently noisier than the three full-sequence cases above and
     // exact agreement is not expected; same 2e-3 absolute tolerance.
     {

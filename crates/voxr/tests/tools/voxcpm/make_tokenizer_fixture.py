@@ -88,7 +88,7 @@ from transformers import LlamaTokenizerFast
 ckpt_dir, outdir = Path(sys.argv[1]), Path(sys.argv[2])
 outdir.mkdir(parents=True, exist_ok=True)
 
-# --- Texts, covering every case the brief calls for --------------------------
+# --- Texts, covering every case the Rust tokenizer must match ---------------
 TEXTS = [
     # 1. Exact target text from make_prefill_fixture.py / make_step_fixture.py.
     ("prefill_fixture_target_text",
@@ -250,8 +250,8 @@ print(f"encode() == [bos_id] + ids_transformers for text 0: {matches_leading_bos
 assert matches_leading_bos, (
     "encode() was expected to differ from the transformers (tokenize + "
     "convert_tokens_to_ids) path by exactly a leading bos_token_id -- it "
-    "did not; the trap description in the brief no longer holds and the "
-    "Rust side's assumption needs re-checking."
+    "did not; the Rust side's assumption about the two paths needs "
+    "re-checking."
 )
 print("confirmed: encode() differs from the transformers (tokenize + "
       "convert_tokens_to_ids) path by exactly a leading bos_token_id -- "

@@ -145,8 +145,7 @@ fn snr_db(ours: &[f32], reference: &[f32]) -> f64 {
 }
 
 fn check_waveforms(hub_id: &str, ckpt: &Path, waveform_dir: &Path) {
-    // The engine loads the checkpoint: an `is_uroman` one is no longer
-    // refused.
+    // The engine loads the checkpoint: it accepts an `is_uroman` one.
     VitsEngine::from_dir(ckpt).unwrap_or_else(|e| panic!("{hub_id}: VitsEngine::from_dir: {e}"));
 
     let tokenizer = VitsTokenizer::from_dir(ckpt).expect("load VitsTokenizer");

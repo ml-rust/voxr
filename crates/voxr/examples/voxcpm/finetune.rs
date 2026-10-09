@@ -38,9 +38,9 @@
 //! # Why the GGUF path is the one QLoRA wants
 //!
 //! A LoRA adapter trains on TOP of a frozen base — the base never needs to
-//! be dense. `--ckpt` loads the transformer stack as dense F32 (~9.2 GB for
-//! this model); `--gguf` keeps every matmul weight block-quantized (q6_k:
-//! ~1.9 GB packed) and adds dense trainable adapters on top, which is QLoRA.
+//! be dense. `--ckpt` loads the transformer stack as dense F32. `--gguf` keeps
+//! every matmul weight block-quantized, a fraction of the dense size, and adds
+//! dense trainable adapters on top, which is QLoRA.
 //! A quantized weight has no `Var` behind it, so a GGUF-loaded model
 //! contributes NO base parameters to `trainable_parameters()` — the LoRA
 //! adapters are automatically the entire trainable set, same as the
@@ -74,10 +74,9 @@
 //!
 //! # Bounding training memory: `--max-patches`
 //!
-//! Measured peak RSS scales ~1.36 GB per SECOND of target audio (q6_k on
-//! CPU: 3.5 s -> 6353 MB, 4.9 s -> 8049 MB, 12.5 s -> 18598 MB). A single
-//! 12.5 s clip needs ~18.6 GB. The reference VoxCPM fine-tuning guide hits the
-//! same wall and handles it with `max_batch_tokens: 8192`, which FILTERS
+//! Peak RSS grows linearly with the SECONDS of target audio, so one long clip
+//! sets the peak for the whole run. The reference VoxCPM fine-tuning guide hits
+//! the same wall and handles it with `max_batch_tokens: 8192`, which FILTERS
 //! long samples out of the run rather than shortening them.
 //!
 //! `--max-patches` (default [`DEFAULT_MAX_PATCHES`]) caps a clip's patch
@@ -110,19 +109,13 @@
 //!
 //! ## Choosing `--max-patches`
 //!
-//! Measured on the real corpus (57 takes, min 3.5 s / 22 patches, median
-//! 4.9 s / 31 patches, max 12.5 s / 79 patches):
+//! Peak memory grows linearly with the longest target clip, so the cap trades
+//! corpus retention against peak memory. A lower cap drops more long takes.
+//! A higher cap keeps them and raises the peak.
 //!
-//! | cap       | target retention | est. peak |
-//! | --------- | ----------------- | --------- |
-//! | 25 (4 s)  | 12/57 (21%)        | ~7.0 GB   |
-//! | 38 (6 s)  | 45/57 (78%)        | ~9.8 GB   |
-//! | 50 (8 s)  | 50/57 (87%)        | ~12.5 GB  |
-//! | 82 (13 s) | 57/57 (100%)       | ~19.3 GB  |
-//!
-//! [`DEFAULT_MAX_PATCHES`] is 38: keeps 78% of targets while staying under
-//! ~10 GB peak. Raise `--max-patches` deliberately if the extra retention is
-//! worth the extra memory.
+//! [`DEFAULT_MAX_PATCHES`] is 38, which is 6 s of target audio. Raise
+//! `--max-patches` deliberately when the extra retention is worth the extra
+//! memory.
 //!
 //! # `loss/diff` is not a progress signal — the eval batch is
 //!
@@ -220,7 +213,7 @@
 //! # Comparing two artifacts: `--dequant-weights`
 //!
 //! A cross-format quality number is only meaningful when both artifacts run
-//! the SAME activation contract (`boostr/src/tcf/FORMAT.md` Section 9.3).
+//! the SAME activation contract (boostr's TCF format spec, Section 9.3).
 //! The two single-file paths do match each other: a block TCF declares the
 //! `GGML_REFERENCE` contract, which is the kernel family a GGUF of the same
 //! ggml types runs, so a TCF and the GGUF it was built from score identically.
@@ -551,8 +544,8 @@ struct Args {
     /// Run every transformer layer with activation checkpointing: drop the
     /// intermediates during the forward pass and recompute them during
     /// backward. Cuts the activation memory that dominates training peak
-    /// VRAM, at ~33% extra compute. OFF by default, so a run without the
-    /// flag behaves exactly as it did before the flag existed.
+    /// VRAM, at the cost of extra compute. OFF by default, so a run without
+    /// the flag keeps every intermediate.
     activation_checkpointing: bool,
     /// Materialize every packed weight to dense F32 at load, on the `--gguf`
     /// and `--tcf` paths alike, so the forward pass is dense F32 end to end
@@ -581,7 +574,7 @@ metric line on stdout)] \
 [--lora ADAPTER.safetensors (eval-only: score base + adapter; training: \
 warm-start the adapters from it)] \
 [--checkpoint (activation checkpointing: recompute each layer's intermediates \
-during backward instead of holding them, ~33% slower, much less VRAM)] \
+during backward instead of holding them: slower, much less VRAM)] \
 [--dequant-weights (dequantize EVERY packed weight to dense F32 at load, for \
 --gguf and --tcf alike, so the forward pass is dense F32 end to end. A \
 cross-format quality comparison is only valid when both artifacts run the \

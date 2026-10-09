@@ -173,7 +173,7 @@
    "config": {},
    "ready": {
     "ok": true,
-    "why": "NVIDIA GeForce, 12 GB"
+    "why": "Test GPU, 12 GB"
    },
    "wav": {
     "n": 120000,
@@ -402,7 +402,7 @@
    },
    "ready": {
     "ok": true,
-    "why": "NVIDIA GeForce, 12 GB"
+    "why": "Test GPU, 12 GB"
    },
    "wav": {
     "n": 120000,
@@ -579,7 +579,7 @@
    },
    "ready": {
     "ok": true,
-    "why": "NVIDIA GeForce, 12 GB"
+    "why": "Test GPU, 12 GB"
    },
    "wav": {
     "n": 120000,

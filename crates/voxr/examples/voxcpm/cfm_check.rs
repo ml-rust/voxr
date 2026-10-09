@@ -40,10 +40,9 @@
 //! because torch's RNG and numr's are not reproducible against each other, so
 //! `sample`'s own noise draw is never exercised here — only `solve_euler`.
 //!
-//! Tolerance is 2e-3 absolute, same as the other VoxCPM2 gates. Observed: the
-//! schedule matches bitwise (0.0), step0 equals z bitwise, and the trajectory
-//! error grows monotonically 7.7e-7 -> 7.9e-6 over the ten Euler steps, ending
-//! at 7.9e-6 on the final output.
+//! Tolerance is 2e-3 absolute, same as the other VoxCPM2 gates. The schedule
+//! matches bitwise, step0 equals z bitwise, and the trajectory error grows
+//! monotonically over the ten Euler steps.
 //!
 //! That growth curve is itself the evidence. Accumulating f32 error through ten
 //! sequential estimator calls ramps smoothly; the failure modes this gate exists

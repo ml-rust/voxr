@@ -1,12 +1,11 @@
 //! Does NeuCodec itself cap harmonicity, making corpus noise policy moot?
 //!
-//! Background: a probe over 60 generations found that this TTS base model's
-//! `Audio quality:` description does NOT move the noise in its output. That
-//! leaves denoising the corpus as the remaining lever — but the generations
-//! measured only ~11-12 dB harmonic-to-noise ratio, where clean speech normally
-//! sits at 15-25 dB. If the CODEC is what caps HNR, then neither labelling nor
-//! denoising the training audio can change the result, because everything the
-//! model can emit passes through that codec first.
+//! Background: the TTS base model's `Audio quality:` description does not move
+//! the noise in its output. That leaves denoising the corpus as the remaining
+//! lever. Clean speech sits at a higher harmonic-to-noise ratio (HNR) than the
+//! model's generations. If the CODEC caps HNR, then neither labelling nor
+//! denoising the training audio can change the result. Everything the model
+//! emits passes through that codec first.
 //!
 //! This settles it by measuring a real recording before and after a NeuCodec
 //! round trip.
@@ -116,9 +115,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                      below is confounded."
                 );
             }
-            // The generations measured ~11.5 dB. If the codec lands a clean
-            // source near that number, the codec is the ceiling and no corpus
-            // treatment can raise it.
+            // The threshold sits at the HNR level the model's generations
+            // reach. If the codec lands a clean source near it, the codec is
+            // the ceiling and no corpus treatment can raise it.
             if c < 13.0 {
                 println!(
                     "=> codec output HNR {c:.2} dB is at the level the model's own generations \
