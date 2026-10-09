@@ -6,10 +6,13 @@
 //!   (`-ar N`), sample for sample.
 //! - [`to_mono_like_ffmpeg`]: the mono mix of ffmpeg's `-ac 1`.
 //! - [`resample_like_librosa`]: the output of librosa's default resampler.
+//! - [`resample_poly`]: the output of `scipy.signal.resample_poly` at its
+//!   defaults, in `f32` or `f64`.
 
 mod ffmpeg_compat;
 mod librosa_compat;
 mod math;
+mod poly;
 mod sinc;
 
 pub use ffmpeg_compat::{
@@ -17,6 +20,7 @@ pub use ffmpeg_compat::{
     resample_like_ffmpeg, to_mono_like_ffmpeg,
 };
 pub use librosa_compat::{librosa_output_len, resample_like_librosa};
+pub use poly::{PolySample, resample_poly};
 pub use sinc::{
     DEFAULT_TAPS_PER_PHASE, MAX_FILTER_TAPS, resample, resample_with_taps, to_mono_at_rate,
 };

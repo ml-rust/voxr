@@ -48,8 +48,8 @@ impl WavData {
 }
 
 /// What hound supports and this decoder returns, for error messages.
-const SUPPORTED: &str = "16/24/32-bit integer PCM or 32-bit IEEE float; re-encode the file \
-                         to one of those, or decode it with `decode_audio` (feature `decode`)";
+pub(super) const SUPPORTED: &str = "16/24/32-bit integer PCM or 32-bit IEEE float; re-encode the file \
+     to one of those, or decode it with `decode_audio` (feature `decode`)";
 
 pub(super) fn bad(reason: String) -> Error {
     Error::InvalidArgument {
@@ -83,6 +83,13 @@ pub(super) fn read_u32(bytes: &[u8], off: usize) -> Option<u32> {
 /// bit width, declares a block alignment too small for its bit width, or holds a
 /// `data` chunk that is not a whole number of frames.
 pub fn decode_wav(bytes: &[u8]) -> Result<WavData> {
+    let (format, data) = locate(bytes)?;
+    decode_samples(&format, data)
+}
+
+/// Walk the chunk list of a WAV byte buffer: its `fmt ` fields and the whole
+/// frames of its `data` chunk. The errors are [`decode_wav`]'s.
+pub(super) fn locate(bytes: &[u8]) -> Result<(FmtFields, &[u8])> {
     if bytes.len() < 12 {
         return Err(bad(format!(
             "buffer is {} bytes, too short for the 12-byte RIFF/WAVE header",
@@ -186,8 +193,7 @@ pub fn decode_wav(bytes: &[u8]) -> Result<WavData> {
             format.bits_per_sample
         )));
     }
-    let data = &data[..whole_frames];
-    decode_samples(&format, data)
+    Ok((format, &data[..whole_frames]))
 }
 
 /// Render a chunk id for error messages, replacing non-printable bytes.
@@ -206,24 +212,8 @@ fn tag_name(id: &[u8; 4]) -> String {
 /// Hand hound the canonical header for `format` followed by `data`, and
 /// convert what it reads to `f32`.
 fn decode_samples(f: &FmtFields, data: &[u8]) -> Result<WavData> {
-    let data_len = u32::try_from(data.len()).map_err(|_| {
-        bad(format!(
-            "'data' chunk is {} bytes, past the 4 GiB a WAV size field can declare; split \
-             the recording into smaller files",
-            data.len()
-        ))
-    })?;
-    let riff_size = data_len.saturating_add((HEADER_LEN - 8) as u32);
-    let header = canonical_header(f, riff_size, data_len);
-    let rejected = |err: hound::Error| {
-        bad(format!(
-            "hound rejected the stream (format tag {}, {} channels, {} Hz, {} bits per \
-             sample, block alignment {}): {err}; supported are {SUPPORTED}",
-            f.format_tag, f.channels, f.sample_rate, f.bits_per_sample, f.block_align
-        ))
-    };
-
-    let reader = hound::WavReader::new(Cursor::new(header).chain(data)).map_err(rejected)?;
+    let reader = open_reader(f, data)?;
+    let rejected = rejection(f);
     let spec = reader.spec();
     let samples = match (spec.sample_format, spec.bits_per_sample) {
         (hound::SampleFormat::Float, _) => reader
@@ -253,6 +243,37 @@ fn decode_samples(f: &FmtFields, data: &[u8]) -> Result<WavData> {
         channels: spec.channels,
         layout: mask_layout(f.channel_mask, f.channels),
     })
+}
+
+/// A canonical header followed by a borrowed `data` chunk, as hound reads it.
+pub(super) type HeaderAndData<'a> = std::io::Chain<Cursor<Vec<u8>>, &'a [u8]>;
+
+/// A hound reader over the canonical header for `f` followed by `data`.
+pub(super) fn open_reader<'a>(
+    f: &FmtFields,
+    data: &'a [u8],
+) -> Result<hound::WavReader<HeaderAndData<'a>>> {
+    let data_len = u32::try_from(data.len()).map_err(|_| {
+        bad(format!(
+            "'data' chunk is {} bytes, past the 4 GiB a WAV size field can declare; split \
+             the recording into smaller files",
+            data.len()
+        ))
+    })?;
+    let riff_size = data_len.saturating_add((HEADER_LEN - 8) as u32);
+    let header = canonical_header(f, riff_size, data_len);
+    hound::WavReader::new(Cursor::new(header).chain(data)).map_err(rejection(f))
+}
+
+/// The error for a stream hound rejects, naming the format of `f`.
+pub(super) fn rejection(f: &FmtFields) -> impl Fn(hound::Error) -> Error + '_ {
+    move |err: hound::Error| {
+        bad(format!(
+            "hound rejected the stream (format tag {}, {} channels, {} Hz, {} bits per \
+             sample, block alignment {}): {err}; supported are {SUPPORTED}",
+            f.format_tag, f.channels, f.sample_rate, f.bits_per_sample, f.block_align
+        ))
+    }
 }
 
 /// Normalise an integer sample against positive full scale, clamped to `[-1, 1]`

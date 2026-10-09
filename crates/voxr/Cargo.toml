@@ -118,6 +118,10 @@ vits = ["boostr/vits", "tts"]
 # Silero VAD segmentation: the network from boostr, the `get_speech_timestamps`
 # port here.
 vad = ["boostr/silero-vad"]
+# CLAP audio-text scoring (`laion/larger_clap_general`): the model and its
+# log-mel front end from boostr, the checkpoint loader, tokenizer and
+# scores here. The sound review's model ranking runs on it.
+clap = ["boostr/clap"]
 # NeuCodec probing examples.
 neucodec = ["boostr/neucodec"]
 # Speech-corpus preparation: VAD, Whisper, NeuCodec, enhancement.
@@ -196,6 +200,10 @@ required-features = ["vits"]
 [[test]]
 name = "g2p_neural_gold"
 required-features = ["misaki"]
+
+[[test]]
+name = "clap_parity"
+required-features = ["clap"]
 
 [[example]]
 name = "audio_stats"
