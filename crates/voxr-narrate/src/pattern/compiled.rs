@@ -11,97 +11,100 @@ use regexr::Regex;
 use super::js::{WS, ci, replace_all_with};
 use crate::error::{Error, Result};
 
-/// Every pattern the module runs, compiled on first use.
+/// Every pattern the module runs, compiled on first use. Each `Regex` is
+/// several KiB, so each is boxed: built inline, the patterns and their
+/// temporaries fill most of a 1 MiB stack in a debug build.
 pub(crate) struct Patterns {
     /// `\s+`
-    pub(crate) spaces: Regex,
+    pub(crate) spaces: Box<Regex>,
     /// `\n\s*\n`: a blank line, between beats and between subtitle blocks.
-    pub(crate) blank_line: Regex,
+    pub(crate) blank_line: Box<Regex>,
     /// `[ \t]+`
-    pub(crate) blanks: Regex,
+    pub(crate) blanks: Box<Regex>,
     /// ` ?\n ?`
-    pub(crate) padded_newline: Regex,
+    pub(crate) padded_newline: Box<Regex>,
     /// `TAGS`: VoxCPM2's non-verbal tags.
-    pub(crate) tags: Regex,
+    pub(crate) tags: Box<Regex>,
     /// `LEAD`: a delivery note opening the text. Group 1 is the note; its
     /// 2 to 120 UTF-16 unit bound is checked by the caller.
-    pub(crate) lead: Regex,
+    pub(crate) lead: Box<Regex>,
     /// `LEAD` with the `m` flag: a delivery note opening any line.
-    pub(crate) lead_lines: Regex,
+    pub(crate) lead_lines: Box<Regex>,
     /// `[pause]` or `[pause 0.6]`; group 1 is the value.
-    pub(crate) pause: Regex,
+    pub(crate) pause: Box<Regex>,
     /// `SAID`: `{written|spoken}`.
-    pub(crate) said: Regex,
+    pub(crate) said: Box<Regex>,
     /// One sentence of whitespace-collapsed text.
-    pub(crate) sentence: Regex,
+    pub(crate) sentence: Box<Regex>,
     /// `[^\p{L}\p{N}]+`: what a word key drops.
-    pub(crate) not_letters: Regex,
+    pub(crate) not_letters: Box<Regex>,
     /// `.srt` or `.vtt` at the end of a file name.
-    pub(crate) subtitle_file: Regex,
+    pub(crate) subtitle_file: Box<Regex>,
     /// `<i>` and `{\an8}` subtitle markup.
-    pub(crate) markup: Regex,
+    pub(crate) markup: Box<Regex>,
     /// `STAMP`: a time, an optional range end, a separator, then the text.
-    pub(crate) stamp: Regex,
+    pub(crate) stamp: Box<Regex>,
     /// A unit after a time, removed before the time is read.
-    pub(crate) unit_suffix: Regex,
+    pub(crate) unit_suffix: Box<Regex>,
     /// A colon or a unit in a time: `/[:s]|sec|saat/i`.
-    pub(crate) time_marked: Regex,
+    pub(crate) time_marked: Box<Regex>,
     /// `^\s*[[(]`
-    pub(crate) opens_bracket: Regex,
+    pub(crate) opens_bracket: Box<Regex>,
     /// `^[\s\d.,]+[|\-–—.):]`: a number then a separator.
-    pub(crate) number_then_separator: Regex,
+    pub(crate) number_then_separator: Box<Regex>,
     /// `[^\p{L}\p{N}\s-]`: what a number token drops.
-    pub(crate) not_token: Regex,
+    pub(crate) not_token: Box<Regex>,
     /// `[\s-]+`: what separates number tokens.
-    pub(crate) token_break: Regex,
+    pub(crate) token_break: Box<Regex>,
     /// `\d`
-    pub(crate) digit: Regex,
+    pub(crate) digit: Box<Regex>,
     /// A number written as digits, commas grouping thousands.
-    pub(crate) written_number: Regex,
+    pub(crate) written_number: Box<Regex>,
     /// `(\d)\s+([.,])\s*(\d)`: a decimal a recognizer spaced out.
-    pub(crate) spaced_decimal: Regex,
+    pub(crate) spaced_decimal: Box<Regex>,
     /// `[^\p{L}\p{N}\s%]`: what a heard or script word drops.
-    pub(crate) not_word: Regex,
+    pub(crate) not_word: Box<Regex>,
     /// `(\d)(\p{L}|%)`: a unit written onto its number.
-    pub(crate) digit_unit: Regex,
+    pub(crate) digit_unit: Box<Regex>,
     /// `^\s*(-\p{L}|,\d)`: a recognizer fragment of the word before.
-    pub(crate) fragment: Regex,
+    pub(crate) fragment: Box<Regex>,
     /// `^(.*\d)\s*(\p{L}+|%)([.,!?]*)$`: a number, its unit, then end
     /// punctuation.
-    pub(crate) number_unit: Regex,
+    pub(crate) number_unit: Box<Regex>,
     /// `[\p{L}\p{N}%]`: a script token that holds a word.
-    pub(crate) word_char: Regex,
+    pub(crate) word_char: Box<Regex>,
     /// `[,.;:!?…—–-]["'”’)\]]*$`: a word ending in a break.
-    pub(crate) break_end: Regex,
+    pub(crate) break_end: Box<Regex>,
     /// `TRANSITIONS`: an opening word a speaker pauses after.
-    pub(crate) transitions: Regex,
+    pub(crate) transitions: Box<Regex>,
     /// `JOINS`: a joining word a speaker breathes before.
-    pub(crate) joins: Regex,
+    pub(crate) joins: Box<Regex>,
     /// A token that is a flag, file name or address (`--out`, `a.b_c`,
     /// `https:`, `.txt`).
-    pub(crate) flag_or_address: Regex,
+    pub(crate) flag_or_address: Box<Regex>,
     /// `\p{L}`: any letter, anywhere in the text.
-    pub(crate) letter: Regex,
+    pub(crate) letter: Box<Regex>,
     /// `\A[0-9][0-9.,]*\z`: a token that is only digits, dots and commas.
-    pub(crate) plain_digits: Regex,
+    pub(crate) plain_digits: Box<Regex>,
     /// `[^.!?…]+[.!?…]*`: one sentence of a review line, over its whole
     /// text (`find_iter`, not `split`).
-    pub(crate) review_sentence: Regex,
+    pub(crate) review_sentence: Box<Regex>,
     /// `\?["'”’)]*\z`: a sentence ending in a question mark.
-    pub(crate) question_end: Regex,
+    pub(crate) question_end: Box<Regex>,
     /// `[,;:—–…]`: a breath mark, anywhere in the text.
-    pub(crate) soft_break: Regex,
+    pub(crate) soft_break: Box<Regex>,
     /// `[.!?…:;,"'”’)\]]\z`: a sentence ending in punctuation the voice
     /// reads as a stop.
-    pub(crate) end_punct: Regex,
+    pub(crate) end_punct: Box<Regex>,
     /// `\A[ab][fm]_[a-z]+\z`: a Kokoro voice name.
-    pub(crate) kokoro_voice: Regex,
+    pub(crate) kokoro_voice: Box<Regex>,
 }
 
 static PATTERNS: OnceLock<std::result::Result<Patterns, String>> = OnceLock::new();
 
-fn compile(name: &str, pattern: &str) -> std::result::Result<Regex, String> {
+fn compile(name: &str, pattern: &str) -> std::result::Result<Box<Regex>, String> {
     Regex::new(pattern)
+        .map(Box::new)
         .map_err(|e| format!("narration pattern `{name}` ({pattern}) does not compile: {e}"))
 }
 
@@ -277,6 +280,20 @@ mod tests {
     use crate::error::Result;
 
     use super::super::js::{is_space, split};
+
+    #[test]
+    fn builds_on_a_small_stack() {
+        // Windows gives its main thread 1 MiB. A quarter of that leaves
+        // room for a debug build's larger frames. An overflow aborts the
+        // test binary.
+        let built = std::thread::Builder::new()
+            .stack_size(256 * 1024)
+            .spawn(|| Patterns::build().map(|_| ()))
+            .unwrap_or_else(|e| panic!("spawning: {e}"))
+            .join()
+            .unwrap_or_else(|_| panic!("building the patterns panicked"));
+        assert_eq!(built, Ok(()));
+    }
 
     #[test]
     fn space_class_agrees_with_predicate() -> Result<()> {
