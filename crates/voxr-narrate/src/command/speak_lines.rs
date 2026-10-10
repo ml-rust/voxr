@@ -3,6 +3,7 @@
 //! voice polish, the pace, a timed script's placement, the output files,
 //! each part as it was heard back, and the verdict.
 
+use super::speak_rows::Doubtful;
 use crate::js::{js_string, js_to_fixed_text};
 use crate::polish::PolishReport;
 use crate::take::{PaceComparison, PaceVerdict};
@@ -12,7 +13,8 @@ use crate::text::ReviewNote;
 /// never time-stretched.
 pub const VOXCPM_SPEED_NOTICE: &str = "speak --speed: VoxCPM2 is never time-stretched, so --speed and \"tts.speed\" are ignored for it. Its pace comes from the reference: a recording at the pace wanted, or a new --seed for another designed voice.";
 
-/// The verdict when every part was heard back as written.
+/// The verdict when every part was heard back as written and none is
+/// marked `ok ?`.
 pub const ALL_HEARD: &str = "Speech check: every phrase was heard back as written.";
 
 /// The heading of the parts heard back.
@@ -125,11 +127,55 @@ pub fn output_lines(out: &str, duration: f64, engine: &str, txt: &str) -> Vec<St
     ]
 }
 
-/// The verdict: the problems the speech check found and exit code 1, or
-/// [`ALL_HEARD`] and exit code 0.
-pub fn verdict_lines(problems: &[String]) -> (Vec<String>, i32) {
+/// `n` and `one`, with an `s` unless `n` is 1.
+fn count(n: usize, one: &str) -> String {
+    format!("{n} {one}{}", if n == 1 { "" } else { "s" })
+}
+
+/// The parts marked `ok ?`: how many, their numbers, and their notes
+/// summed by kind, zero kinds left out. `None` when no part is marked.
+fn marked_text(d: &Doubtful) -> Option<String> {
+    if d.parts.is_empty() {
+        return None;
+    }
+    let kinds: Vec<String> = [
+        (d.words, "doubtful word"),
+        (d.pauses, "stray pause"),
+        (d.peaks, "pitch peak"),
+        (d.clicks, "click"),
+    ]
+    .into_iter()
+    .filter(|&(n, _)| n > 0)
+    .map(|(n, one)| count(n, one))
+    .collect();
+    let numbers: Vec<String> = d.parts.iter().map(usize::to_string).collect();
+    let single = d.parts.len() == 1;
+    Some(format!(
+        "{} of {} part{} {} marked ok ?: {} ({}). Listen to {} before using the take: each note above gives its fix.",
+        d.parts.len(),
+        d.total,
+        if d.total == 1 { "" } else { "s" },
+        if single { "is" } else { "are" },
+        numbers.join(", "),
+        kinds.join(", "),
+        if single { "it" } else { "them" }
+    ))
+}
+
+/// The verdict and its exit code.
+///
+/// - No problem and no part marked `ok ?`: [`ALL_HEARD`], exit 0.
+/// - No problem, parts marked `ok ?`: one line naming them, exit 0.
+/// - Problems: every problem the speech check found, then the `ok ?` line
+///   when a part is marked, exit 1.
+pub fn verdict_lines(problems: &[String], doubtful: &Doubtful) -> (Vec<String>, i32) {
+    let marked = marked_text(doubtful);
     if problems.is_empty() {
-        return (vec![ALL_HEARD.to_string()], 0);
+        let line = match marked {
+            Some(m) => format!("Speech check: no problem remains, but {m}"),
+            None => ALL_HEARD.to_string(),
+        };
+        return (vec![line], 0);
     }
     let mut out = vec![
         String::new(),
@@ -139,6 +185,7 @@ pub fn verdict_lines(problems: &[String]) -> (Vec<String>, i32) {
         ),
     ];
     out.extend(problems.iter().map(|p| format!("  {p}")));
+    out.extend(marked.map(|m| format!("Speech check: {m}")));
     (out, 1)
 }
 
@@ -216,10 +263,60 @@ mod tests {
         assert_eq!(pace_line(&pace_verdict(0.0, 4.1, 1.0), "x"), None);
     }
 
+    fn none_marked(total: usize) -> Doubtful {
+        Doubtful {
+            total,
+            ..Doubtful::default()
+        }
+    }
+
     #[test]
-    fn the_verdict_sets_the_exit_code() {
-        assert_eq!(verdict_lines(&[]), (vec![ALL_HEARD.to_string()], 0));
-        let (lines, code) = verdict_lines(&["part 1: missing".to_string()]);
+    fn a_clean_run_exits_0_with_every_phrase_heard() {
+        assert_eq!(
+            verdict_lines(&[], &none_marked(5)),
+            (vec![ALL_HEARD.to_string()], 0)
+        );
+    }
+
+    #[test]
+    fn doubtful_parts_exit_0_and_are_counted() {
+        let two = Doubtful {
+            total: 5,
+            parts: vec![2, 4],
+            words: 0,
+            pauses: 1,
+            peaks: 1,
+            clicks: 0,
+        };
+        assert_eq!(
+            verdict_lines(&[], &two),
+            (
+                vec![
+                    "Speech check: no problem remains, but 2 of 5 parts are marked ok ?: 2, 4 (1 stray pause, 1 pitch peak). Listen to them before using the take: each note above gives its fix."
+                        .to_string()
+                ],
+                0
+            )
+        );
+        let one = Doubtful {
+            total: 5,
+            parts: vec![3],
+            words: 2,
+            pauses: 2,
+            peaks: 0,
+            clicks: 1,
+        };
+        assert_eq!(
+            verdict_lines(&[], &one).0,
+            [
+                "Speech check: no problem remains, but 1 of 5 parts is marked ok ?: 3 (2 doubtful words, 2 stray pauses, 1 click). Listen to it before using the take: each note above gives its fix."
+            ]
+        );
+    }
+
+    #[test]
+    fn problems_exit_1_and_name_the_doubtful_parts_after() {
+        let (lines, code) = verdict_lines(&["part 1: missing".to_string()], &none_marked(1));
         assert_eq!(code, 1);
         assert_eq!(
             lines,
@@ -227,6 +324,25 @@ mod tests {
                 "",
                 "The speech check found 1 problem(s), heard back with Whisper:",
                 "  part 1: missing"
+            ]
+        );
+        let marked = Doubtful {
+            total: 2,
+            parts: vec![2],
+            words: 1,
+            pauses: 0,
+            peaks: 0,
+            clicks: 0,
+        };
+        let (lines, code) = verdict_lines(&["part 1: missing".to_string()], &marked);
+        assert_eq!(code, 1);
+        assert_eq!(
+            lines,
+            [
+                "",
+                "The speech check found 1 problem(s), heard back with Whisper:",
+                "  part 1: missing",
+                "Speech check: 1 of 2 parts is marked ok ?: 2 (1 doubtful word). Listen to it before using the take: each note above gives its fix."
             ]
         );
     }

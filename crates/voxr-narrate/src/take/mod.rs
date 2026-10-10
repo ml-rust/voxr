@@ -84,7 +84,7 @@ pub use hear::{
 pub use join::{JOIN_RATE, JoinPart, JoinedTrack, ShapedTake, join_takes, shape_take};
 pub use join_checks::PartCheck;
 pub use join_heat::{PartHeat, part_heat};
-pub use judge::{HeardJudge, JudgedTake, ReferenceHearing};
+pub use judge::{BAD_STRAY_PAUSE, HeardJudge, JudgedTake, ReferenceHearing};
 pub use pace::{
     DEFAULT_TARGET_PACE, PaceComparison, PaceSpan, PaceVerdict, REF_PACE, pace, pace_verdict,
     sounding, syllables,

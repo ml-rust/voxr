@@ -331,7 +331,7 @@
      },
      {
       "stream": "out",
-      "text": "        a 0.52s pause between \"line\" and \"here\", where the script has no break: the voice misread the grammar. Add a comma where the break belongs, or reword"
+      "text": "        a 0.52s pause between \"line\" and \"here\", where the script has no break: the voice misread the grammar. Listen to it, and --reroll 1 if it is heard: an edit to the text draws the whole part again, and VoxCPM2 can pause somewhere else."
      },
      {
       "stream": "out",
@@ -360,6 +360,10 @@
      {
       "stream": "out",
       "text": "  part 2 \"Second line ends it?\": misheard: ends (heard \"Second line end it\"). Three takes failed, so reword it first (a longer line, another word order). --reroll 2 draws new takes."
+     },
+     {
+      "stream": "out",
+      "text": "Speech check: 1 of 2 parts is marked ok ?: 1 (1 doubtful word, 1 stray pause, 1 pitch peak, 2 clicks). Listen to it before using the take: each note above gives its fix."
      }
     ],
     "code": 1,

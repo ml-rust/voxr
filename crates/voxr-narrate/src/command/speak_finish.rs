@@ -11,7 +11,7 @@ use super::paths::relative;
 use super::speak_flags::SpeakFlags;
 use super::speak_lines::{output_lines, pace_line, polish_line, timed_lines, verdict_lines};
 use super::speak_prepare::PreparedSpeak;
-use super::speak_rows::heard_back_lines;
+use super::speak_rows::{doubtful_parts, heard_back_lines};
 use crate::check::HeardWord;
 use crate::error::Result;
 use crate::polish::{PolishReport, Span, polish};
@@ -60,8 +60,8 @@ pub struct SpeakFiles {
 /// A finished speak command.
 #[derive(Debug, Clone, PartialEq)]
 pub struct SpeakOutcome {
-    /// 0 when every part was heard back as written, 1 when a problem
-    /// remains.
+    /// 0 when no problem remains, parts marked `ok ?` included: those
+    /// need a listen. 1 when a problem remains.
     pub code: i32,
     /// The files written.
     pub files: SpeakFiles,
@@ -165,7 +165,8 @@ fn written_spans(
 ///   `--written`), and the phrase spans with it. A run without spans
 ///   removes a stale spans file.
 /// - The output files print, then each part as heard back, then the
-///   verdict, which sets the exit code.
+///   verdict, which counts the parts marked `ok ?` and sets the exit code.
+///   Only a problem exits 1.
 ///
 /// `decode` reads an audio file as 48 kHz mono samples, as the skill's
 /// ffmpeg decode does. Every line to print goes to `lines` as it comes.
@@ -250,7 +251,8 @@ pub fn finish_speak(
             .into_iter()
             .map(Line::out),
     );
-    let (verdict_text, code) = verdict_lines(&spoken_run.problems);
+    let (verdict_text, code) =
+        verdict_lines(&spoken_run.problems, &doubtful_parts(&spoken_run.checks));
     lines.extend(verdict_text.into_iter().map(Line::out));
     let takes = takes_file(out);
     let files = SpeakFiles {

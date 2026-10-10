@@ -42,7 +42,7 @@ pub use speak_lines::{
     timed_lines, verdict_lines,
 };
 pub use speak_prepare::{DEFAULT_OUT, PreparedSpeak, prepare_speak};
-pub use speak_rows::heard_back_lines;
+pub use speak_rows::{Doubtful, doubtful_parts, heard_back_lines};
 pub use transcribe_plan::{
     FILE_LABEL, TranscribeFlags, TranscribePlan, check_narration, plan_transcribe, transcribe_model,
 };

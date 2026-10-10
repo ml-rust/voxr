@@ -11,11 +11,16 @@ use crate::wav::pcm16_round_trip;
 use super::engine::{Graded, Take, TakeJudge, TakeSpec};
 use super::hear::{HeardCheck, Hearing, Recognizer, heard_check};
 
+/// The badness a stray pause adds to its take: as much as one extra word,
+/// so a retry or a re-roll keeps the take with fewer.
+pub const BAD_STRAY_PAUSE: f64 = 0.3;
+
 /// A take judged by [`HeardJudge`].
 #[derive(Debug, Clone, PartialEq)]
 pub struct JudgedTake {
-    /// The take heard back and checked. A fault the edge repair cannot fix
-    /// fails the check and adds one badness each.
+    /// The take heard back and checked. Each stray pause adds
+    /// [`BAD_STRAY_PAUSE`] to its badness. A fault the edge repair cannot
+    /// fix fails the check and adds one badness each.
     pub heard: HeardCheck,
     /// The take as used: edges tidied, clicks repaired, and read back from
     /// the 16-bit file the skill keeps it in.
@@ -66,8 +71,9 @@ impl<H: Hearing> TakeJudge for HeardJudge<H> {
     /// The take's edges tidied ([`tidy`]), its clicks repaired
     /// ([`repair_clicks`]), rounded to 16 bits as its tidied file holds it
     /// ([`pcm16_round_trip`]), and heard against the part's [`sayable`]
-    /// text ([`heard_check`]). Each tidy fault fails the take, joins its
-    /// reason and adds one badness.
+    /// text ([`heard_check`]). Each stray pause adds [`BAD_STRAY_PAUSE`] to
+    /// the badness. Each tidy fault then fails the take, joins its reason
+    /// and adds one badness.
     fn judge(&mut self, spec: &TakeSpec, take: &Take) -> Result<JudgedTake> {
         let t = tidy(&take.samples, take.rate);
         let pops = repair_clicks(&t.samples, take.rate);
@@ -81,6 +87,11 @@ impl<H: Hearing> TakeJudge for HeardJudge<H> {
             &text,
             self.language.as_deref(),
         )?;
+        if !heard.pauses.is_empty() {
+            let c = &mut heard.check;
+            c.badness =
+                Some(c.badness.unwrap_or(0.0) + BAD_STRAY_PAUSE * heard.pauses.len() as f64);
+        }
         if !t.faults.is_empty() {
             let c = &mut heard.check;
             c.ok = false;
@@ -123,8 +134,9 @@ impl<H: Hearing> ReferenceHearing for HeardJudge<H> {
 
 #[cfg(test)]
 mod tests {
-    use super::super::hear::tests::hearing;
+    use super::super::hear::tests::{ScriptedHearing, hearing};
     use super::*;
+    use crate::check::HeardWord;
 
     #[test]
     fn a_cut_off_take_fails_and_adds_badness() -> Result<()> {
@@ -152,6 +164,49 @@ mod tests {
         assert_eq!(j.why(), crate::glitch::CUT_OFF);
         assert_eq!(j.badness(), Some(1.0));
         assert_eq!(j.seed, 7.0);
+        Ok(())
+    }
+
+    #[test]
+    fn a_stray_pause_adds_badness_before_the_faults() -> Result<()> {
+        // "Hello" then "there" after 0.6 s: a pause the script does not ask for.
+        let word = |text: &str, start: f64| HeardWord {
+            text: text.to_string(),
+            start,
+            end: start + 0.4,
+        };
+        let mut judge = HeardJudge {
+            hearing: ScriptedHearing {
+                default: vec![Transcribed {
+                    words: vec![word("hello", 0.0), word("there", 1.0)],
+                    looped: false,
+                    duration: 5.0,
+                }],
+                small: Vec::new(),
+                configured: Vec::new(),
+                calls: Vec::new(),
+            },
+            main: Recognizer::Default,
+            language: None,
+        };
+        let spec = TakeSpec {
+            index: 0,
+            text: "Hello there.".to_string(),
+            seed: 7.0,
+            delivery: None,
+        };
+        // A steady tone to the last sample: the take stops mid-sound.
+        let samples: Vec<f32> = (0..24000).map(|i| 0.5 * (i as f32 * 0.05).sin()).collect();
+        let j = judge.judge(
+            &spec,
+            &Take {
+                samples,
+                rate: 48000,
+            },
+        )?;
+        assert_eq!(j.heard.pauses.len(), 1);
+        assert!(!j.ok());
+        assert_eq!(j.badness(), Some(BAD_STRAY_PAUSE + 1.0));
         Ok(())
     }
 
