@@ -1,6 +1,6 @@
 [package]
 name = "voxr-narrate"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2024"
 rust-version = "1.95"
 description = "Script-to-speech narration: script parsing, speech checks, and take repair"
@@ -43,7 +43,7 @@ sha1 = "0.11"
 # Whisper word timings and the audio decode that feeds them. Also
 # `stretch_track`: voxr's atempo and resampler. Also the engines the
 # adapters drive: Kokoro, VITS and VoxCPM2.
-voxr = { path = "../voxr", version = "0.2.0", default-features = false }
+voxr = { path = "../voxr", version = "0.3.0", default-features = false }
 # `WhisperTranscriber` and the VoxCPM2 adapter: the runtime and client a
 # checkpoint runs on.
 numr = { version = "0.10", optional = true }

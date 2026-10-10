@@ -4,20 +4,22 @@ All notable changes to this project are documented here. The format is based on 
 
 Each release must have a non-empty section here before it can be tagged — `.github/workflows/release-validate.yml` refuses a tag whose version has no entry, and the GitHub Release body is this file's section for that version. voxr and voxr-narrate release together at one version.
 
-## [Unreleased]
-
-### Changed
-
-#### voxr-narrate
-
-- The speech check summary counts the parts marked `ok ?`, with their part numbers and kinds (doubtful word, stray pause, pitch peak, click). The exit code stays 0.
-- A VoxCPM2 stray pause advises `--reroll` for its part. Each stray pause adds `BAD_STRAY_PAUSE` to a take's badness, so retries and re-rolls keep the take with fewer.
+## [0.3.0] - 2026-10-11
 
 ### Added
 
 #### voxr-narrate
 
 - `AnchorStep::ShortOpening`: a voice designed from an opening of fewer than `OPENING_WORDS` words says that its reference is short.
+- `Doubtful` and `doubtful_parts`: the parts a speech check marks `ok ?`, counted by kind (doubtful word, stray pause, pitch peak, click).
+
+### Changed
+
+#### voxr-narrate
+
+- `verdict_lines` takes the `Doubtful` count beside the problems. The summary names the parts marked `ok ?`, with their part numbers and kinds. The exit code stays 0.
+- `AnchorStep` has a new variant, so a `match` over it needs an arm for `ShortOpening`.
+- A VoxCPM2 stray pause advises `--reroll` for its part. Each stray pause adds `BAD_STRAY_PAUSE` to a take's badness, so retries and re-rolls keep the take with fewer.
 
 ## [0.2.0] - 2026-10-10
 
