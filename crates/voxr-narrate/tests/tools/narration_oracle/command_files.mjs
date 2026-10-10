@@ -25,13 +25,17 @@ function patch(text, file, patches) {
   return text;
 }
 
+const BLAZR_OFF = { at: 'export function runBlazr(cmd, argv) {\n', after: '  return null;\n' };
+
 // Copies the skill's modules (`jsDir`) into `work/lib`, patched per file, and writes `work/cmd.mjs`: video.mjs's
 // imports, then its `speakCmd` and `transcribeCmd`, exported with `ManifestError` and `loadManifest`. `mainLines` must
 // each occur in video.mjs exactly once: the part of `main` an oracle replays. Returns the module's path.
 export function commandModule(jsDir, work, patches, mainLines = []) {
   const lib = join(work, 'lib');
   cpSync(jsDir, lib, { recursive: true });
-  for (const [file, list] of Object.entries(patches)) {
+  // The oracles record the skill's own runner: a blazr on PATH would otherwise take the command.
+  const all = { ...patches, 'blazr.mjs': [...(patches['blazr.mjs'] ?? []), BLAZR_OFF] };
+  for (const [file, list] of Object.entries(all)) {
     const path = join(lib, file);
     writeFileSync(path, patch(readFileSync(path, 'utf8'), file, list));
   }
