@@ -4,6 +4,14 @@ All notable changes to this project are documented here. The format is based on 
 
 Each release must have a non-empty section here before it can be tagged — `.github/workflows/release-validate.yml` refuses a tag whose version has no entry, and the GitHub Release body is this file's section for that version. voxr and voxr-narrate release together at one version.
 
+## [0.1.1] - 2026-10-10
+
+### Fixed
+
+#### voxr-narrate
+
+- Compiling the narration patterns no longer overflows a 1 MiB stack, the size of a Windows main thread. A debug build crashed on the first script it read.
+
 ## [0.1.0] - 2026-10-09
 
 First release of `voxr` and `voxr-narrate`.
