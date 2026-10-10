@@ -1,9 +1,14 @@
 //! voxr's Kokoro-82M engine as a [`SpeechEngine`]: one take per phrase in
 //! a named voice, at a native speed.
 
+use boostr::model::audio::kokoro::KokoroClient;
+use numr::dtype::DType;
+use numr::runtime::Runtime;
+use numr::runtime::cpu::CpuRuntime;
 use voxr::KOKORO_VOICES;
 use voxr::kokoro::KokoroEngine;
 
+use super::seed::engine_seed;
 use crate::error::{Error, Result};
 use crate::take::{SpeakRequest, SpeechEngine, Take, VoiceSource, check_kokoro_voice};
 
@@ -12,17 +17,21 @@ use crate::take::{SpeakRequest, SpeechEngine, Take, VoiceSource, check_kokoro_vo
 /// A take speaks the request's text in its named voice. The speed divides
 /// each phoneme's predicted duration, so the audio is never time-stretched.
 /// Kokoro holds no voice to clone or design, and reads a delivery note as
-/// words, so a request with either is refused. The seed is not read: the
-/// same text, voice and speed give the same take.
-pub struct KokoroSpeech<'a> {
-    engine: &'a KokoroEngine,
+/// words, so a request with either is refused.
+///
+/// The harmonic source draws from the request's seed. The same text, voice,
+/// speed and seed give the same take on one device. CPU and GPU run
+/// separate PRNGs, so one seed gives a different take on each, as it does
+/// for VITS.
+pub struct KokoroSpeech<'a, R: Runtime<DType = DType> = CpuRuntime> {
+    engine: &'a KokoroEngine<R>,
     voices: Vec<&'static str>,
 }
 
-impl<'a> KokoroSpeech<'a> {
+impl<'a, R: Runtime<DType = DType>> KokoroSpeech<'a, R> {
     /// Speaks with `engine`. Its voices are each [`KOKORO_VOICES`] id whose
     /// voice pack the engine's resolver finds, in that order.
-    pub fn new(engine: &'a KokoroEngine) -> Self {
+    pub fn new(engine: &'a KokoroEngine<R>) -> Self {
         let voices = KOKORO_VOICES
             .iter()
             .copied()
@@ -37,7 +46,10 @@ impl<'a> KokoroSpeech<'a> {
     }
 }
 
-impl SpeechEngine for KokoroSpeech<'_> {
+impl<R: Runtime<DType = DType>> SpeechEngine for KokoroSpeech<'_, R>
+where
+    R::Client: KokoroClient<R>,
+{
     type Reference = ();
 
     /// Refuses a voice not in [`voices`](Self::voices) with
@@ -61,10 +73,11 @@ impl SpeechEngine for KokoroSpeech<'_> {
             });
         }
         check_kokoro_voice(name, &self.voices)?;
+        let seed = engine_seed(request.seed)?;
         let speed = request.speed as f32;
         let samples = self
             .engine
-            .synthesize(request.text, name, speed)
+            .synthesize_seeded(request.text, name, speed, Some(seed))
             .map_err(|e| Error::Engine {
                 reason: format!(
                     "Kokoro speaking \"{}\" in {name} at speed {speed}: {e}. Check the voice pack and the G2P models of the loaded Kokoro",

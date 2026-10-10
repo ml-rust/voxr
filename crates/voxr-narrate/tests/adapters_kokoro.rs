@@ -1,6 +1,7 @@
 //! Kokoro through `speak_script`: a short script spoken by voxr's Kokoro
 //! engine at a native speed, checked by Whisper, then heard back from the
-//! voiceover on disk. Also the voice check against the real voice list.
+//! voiceover on disk. Also the voice check against the real voice list,
+//! and a take that follows its seed.
 //!
 //! Needs `KOKORO_DIR` (or `Kokoro-82M` under `BOOSTR_MODELS_DIR`) with its
 //! `g2p/tagger`, and `WHISPER_BASE_DIR` (or `whisper-base`). Skips with a
@@ -80,5 +81,33 @@ fn speed_is_native_and_an_unknown_voice_lists_the_voices() {
     assert!(
         err.contains("Kokoro has no voice \"zz_nobody\". Voices: af_heart, af_alloy"),
         "{err}"
+    );
+}
+
+#[test]
+fn a_take_follows_its_seed() {
+    let Some(engine) = kokoro() else {
+        return;
+    };
+    let mut speech = KokoroSpeech::new(&engine);
+    let request = |seed| SpeakRequest {
+        text: "The river runs north past the old mill.",
+        delivery: None,
+        style: None,
+        voice: VoiceSource::<()>::Named { name: "af_heart" },
+        seed,
+        cfg: 1.6,
+        steps: 16,
+        speed: 1.0,
+    };
+    let a = speech.speak(&request(7.0)).expect("seed 7");
+    let again = speech.speak(&request(7.0)).expect("seed 7 again");
+    let b = speech.speak(&request(8.0)).expect("seed 8");
+    assert_eq!(a, again, "one seed gave two takes");
+    assert_ne!(a.samples, b.samples, "two seeds gave one take");
+    assert_eq!(
+        a.samples.len(),
+        b.samples.len(),
+        "the seed moved a duration"
     );
 }

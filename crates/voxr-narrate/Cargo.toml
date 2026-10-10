@@ -44,10 +44,11 @@ sha1 = "0.11"
 # `stretch_track`: voxr's atempo and resampler. Also the engines the
 # adapters drive: Kokoro, VITS and VoxCPM2.
 voxr = { path = "../voxr", version = "0.3.0", default-features = false }
-# `WhisperTranscriber` and the VoxCPM2 adapter: the runtime and client a
-# checkpoint runs on.
+# `WhisperTranscriber` and the Kokoro, VITS and VoxCPM2 adapters: the
+# runtime and client a checkpoint runs on.
 numr = { version = "0.10", optional = true }
-# The VoxCPM2 adapter names the model type in the bounds of voxr's engine.
+# The Kokoro, VITS and VoxCPM2 adapters name the model and client types in
+# the bounds of voxr's engines.
 boostr = { version = "0.5", optional = true, default-features = false }
 
 [dev-dependencies]
@@ -62,12 +63,12 @@ whisper = ["voxr/whisper", "dep:numr"]
 # resampler, with no voxr feature beyond its default-off set.
 stretch = []
 # `KokoroSpeech`: voxr's Kokoro engine as a speech engine.
-kokoro = ["voxr/kokoro"]
+kokoro = ["voxr/kokoro", "dep:numr", "dep:boostr"]
 # `VitsSpeech`: voxr's VITS (MMS-TTS) engine as a speech engine.
-vits = ["voxr/vits"]
+vits = ["voxr/vits", "dep:numr", "dep:boostr"]
 # `VoxcpmSpeech`: voxr's VoxCPM2 engine as a speech engine.
 voxcpm = ["voxr/voxcpm", "dep:numr", "dep:boostr"]
-# The CUDA runtime for Whisper and VoxCPM2.
+# The CUDA runtime for Whisper, Kokoro, VITS and VoxCPM2.
 cuda = ["voxr/cuda", "dep:numr", "numr/cuda"]
 
 [package.metadata.docs.rs]

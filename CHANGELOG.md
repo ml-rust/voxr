@@ -4,6 +4,39 @@ All notable changes to this project are documented here. The format is based on 
 
 Each release must have a non-empty section here before it can be tagged — `.github/workflows/release-validate.yml` refuses a tag whose version has no entry, and the GitHub Release body is this file's section for that version. voxr and voxr-narrate release together at one version.
 
+## [Unreleased]
+
+### Added
+
+#### voxr
+
+- `KokoroEngine::from_dir_on` and `VitsEngine::from_dir_on` load an engine onto any numr runtime's device, such as CUDA.
+- `load_vits_from_dir_on` builds the VITS `TtsBundle` on any runtime's device.
+- `KokoroEngine::synthesize_seeded` and `KokoroEngine::with_seed` seed Kokoro's harmonic source. The same text, voice, speed and seed give the same samples on one device. CPU and GPU run separate PRNGs, so one seed gives different samples on each.
+
+#### voxr-narrate
+
+- `KokoroSpeech` passes the take's seed to Kokoro. A re-roll at a new seed now gives a new Kokoro take.
+
+### Changed
+
+#### voxr
+
+- `KokoroEngine<R>` and `VitsEngine<R>` are generic over the runtime, with `CpuRuntime` as the default. `from_dir` still loads on the CPU, so existing call sites compile unchanged. `KokoroEngine`'s `model`, `client` and `device` fields take `R`'s types.
+- `KokoroEngine` holds a private seed field, so a struct literal no longer builds one. Use `from_dir` or `from_dir_on`.
+- `TtsEngine` holds for both engines on every runtime whose client covers the model's ops.
+- A seeded VITS take reproduces on one device only. CPU and GPU draw different noise from one seed.
+
+#### voxr-narrate
+
+- `KokoroSpeech<'a, R>` and `VitsSpeech<'a, R>` are generic over the runtime, with `CpuRuntime` as the default.
+- The `kokoro` and `vits` features enable the `numr` and `boostr` dependencies, whose types the adapters' bounds name.
+- `KokoroSpeech` refuses a seed that is not a whole number from 0 to 2^53 - 1, as `VitsSpeech` does.
+
+#### Dependencies
+
+- voxr and voxr-narrate require the boostr release whose Kokoro synthesis is generic over the runtime: `KokoroModelV2::synthesize` and `forward_to_spectrogram` take a `KokoroSynthOptions`, and the `_cpu` entry points are gone.
+
 ## [0.3.0] - 2026-10-11
 
 ### Added

@@ -1,6 +1,10 @@
 //! voxr's VITS (MMS-TTS) engine as a [`SpeechEngine`]: one take per phrase
 //! in the checkpoint's own voice, the skill's Hugging Face model run.
 
+use boostr::model::audio::vits::{VitsModel, VitsModelClient};
+use numr::dtype::DType;
+use numr::runtime::Runtime;
+use numr::runtime::cpu::CpuRuntime;
 use voxr::TtsEngine;
 use voxr::tts::VitsEngine;
 
@@ -16,8 +20,9 @@ const TAKE_RATE: u32 = 48_000;
 ///
 /// A take speaks the request's text in the checkpoint's one voice, at the
 /// request's speed, with its noise drawn from the request's seed: the same
-/// text, speed and seed give the same take, as the skill's
-/// `torch.manual_seed` per phrase does. VITS holds no voice to clone or
+/// text, speed and seed give the same take on one device, as the skill's
+/// `torch.manual_seed` per phrase does. CPU and GPU run separate PRNGs, so
+/// one seed gives a different take on each. VITS holds no voice to clone or
 /// design, and reads a delivery note as words, so a request with either is
 /// refused.
 ///
@@ -27,14 +32,18 @@ const TAKE_RATE: u32 = 48_000;
 /// is rounded to 16 bits, then resampled through
 /// [`voxr::resample_like_ffmpeg`]. The skill runs a checkpoint with
 /// PyTorch weights there, the only kind loaded here.
-pub struct VitsSpeech<'a> {
-    engine: &'a VitsEngine,
+pub struct VitsSpeech<'a, R: Runtime<DType = DType> = CpuRuntime> {
+    engine: &'a VitsEngine<R>,
     voice: String,
 }
 
-impl<'a> VitsSpeech<'a> {
+impl<'a, R: Runtime<DType = DType>> VitsSpeech<'a, R>
+where
+    R::Client: VitsModelClient<R>,
+    VitsModel<R>: Send + Sync,
+{
     /// Speaks with `engine`. Errors when the engine lists no voice.
-    pub fn new(engine: &'a VitsEngine) -> Result<Self> {
+    pub fn new(engine: &'a VitsEngine<R>) -> Result<Self> {
         let voice = TtsEngine::voices(engine)
             .into_iter()
             .next()
@@ -51,7 +60,10 @@ impl<'a> VitsSpeech<'a> {
     }
 }
 
-impl SpeechEngine for VitsSpeech<'_> {
+impl<R: Runtime<DType = DType>> SpeechEngine for VitsSpeech<'_, R>
+where
+    R::Client: VitsModelClient<R>,
+{
     type Reference = ();
 
     fn speak(&mut self, request: &SpeakRequest<'_, ()>) -> Result<Take> {

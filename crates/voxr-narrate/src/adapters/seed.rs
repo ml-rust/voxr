@@ -1,7 +1,10 @@
 //! A take's seed as the whole number an engine draws its noise from.
 
 // Each adapter that reads a seed sits behind its own feature.
-#![cfg_attr(not(any(feature = "vits", feature = "voxcpm")), allow(dead_code))]
+#![cfg_attr(
+    not(any(feature = "kokoro", feature = "vits", feature = "voxcpm")),
+    allow(dead_code)
+)]
 
 use crate::error::{Error, Result};
 
