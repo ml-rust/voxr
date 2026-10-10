@@ -18,6 +18,13 @@ pub enum AnchorStep {
         /// The opening, as the script writes it.
         opening: String,
     },
+    /// The opening is under
+    /// [`OPENING_WORDS`](crate::take::anchor::OPENING_WORDS) words: the designed voice's
+    /// reference is short and holds the voice loosely.
+    ShortOpening {
+        /// The opening's words, as `text.split(/\s+/)` counts them.
+        words: usize,
+    },
     /// The engine speaks a take.
     Speak(TakeSpec),
     /// The engine spoke the take, the one take of its call.
@@ -51,6 +58,10 @@ impl AnchorStep {
             Self::Designing { opening } => Some(format!(
                 "speak: designing the voice from --voice, speaking the script's opening: \"{opening}\""
             )),
+            Self::ShortOpening { words } => Some(format!(
+                "speak: the script's opening is only {words} word{}, so the designed voice's reference is short and holds the voice loosely. Design it on a longer script and pass its <out>.voice.wav as --reference.",
+                if *words == 1 { "" } else { "s" }
+            )),
             Self::Slower { ask, pace } => Some(format!(
                 "speak: speaking the designed voice's reference again, {} (it spoke at {} syllables per second): clones follow a reference's pace and manner.",
                 ask.strip_prefix('(')
@@ -69,6 +80,21 @@ impl AnchorStep {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_short_opening_names_its_word_count() {
+        assert_eq!(
+            AnchorStep::ShortOpening { words: 3 }.message().as_deref(),
+            Some(
+                "speak: the script's opening is only 3 words, so the designed voice's reference is short and holds the voice loosely. Design it on a longer script and pass its <out>.voice.wav as --reference."
+            )
+        );
+        assert!(
+            AnchorStep::ShortOpening { words: 1 }
+                .message()
+                .is_some_and(|m| m.starts_with("speak: the script's opening is only 1 word, so"))
+        );
+    }
 
     #[test]
     fn breaths_print_their_count() {

@@ -291,6 +291,7 @@
      "messages": [
       "speak: short parts fail more often with VoxCPM2: 3 \"Go now.\". When one fails, join it to the line before or after.",
       "speak: designing the voice from --voice, speaking the script's opening: \"First line here now. Second line goes here. Third line ends it. Go now.\"",
+      "speak: the script's opening is only 14 words, so the designed voice's reference is short and holds the voice loosely. Design it on a longer script and pass its <out>.voice.wav as --reference.",
       "speak: VoxCPM2 is speaking 1 part(s), about 3 s per sentence on a GPU.",
       "  voxcpm: 1/1 sentences",
       "speak: speaking the designed voice's reference again, calm, natural tone, speaking slowly (it spoke at 10.0 syllables per second): clones follow a reference's pace and manner.",
@@ -659,6 +660,7 @@
      "messages": [
       "speak: short parts fail more often with VoxCPM2: 3 \"Go now.\". When one fails, join it to the line before or after.",
       "speak: designing the voice from --voice, speaking the script's opening: \"First line here now. Second line goes here. Third line ends it. Go now.\"",
+      "speak: the script's opening is only 14 words, so the designed voice's reference is short and holds the voice loosely. Design it on a longer script and pass its <out>.voice.wav as --reference.",
       "speak: VoxCPM2 is speaking 1 part(s), about 3 s per sentence on a GPU.",
       "  voxcpm: 1/1 sentences",
       "speak: speaking the designed voice's reference again, calm, natural tone, speaking slowly (it spoke at 10.0 syllables per second): clones follow a reference's pace and manner.",
@@ -1258,6 +1260,7 @@
      ],
      "messages": [
       "speak: designing the voice from --voice, speaking the script's opening: \"Where does the river go? It runs north to the sea.\"",
+      "speak: the script's opening is only 11 words, so the designed voice's reference is short and holds the voice loosely. Design it on a longer script and pass its <out>.voice.wav as --reference.",
       "speak: VoxCPM2 is speaking 1 part(s), about 3 s per sentence on a GPU.",
       "  voxcpm: 1/1 sentences",
       "speak: speaking the designed voice's reference again, calm, natural tone, speaking slowly (it spoke at 6.5 syllables per second): clones follow a reference's pace and manner.",
@@ -1860,6 +1863,7 @@
      "messages": [
       "speak: no --voice given, so VoxCPM2 picks its own voice. Design one with --voice \"(age, pitch, tone, accent)\" (references/tts/voxcpm2.md).",
       "speak: designing the voice from --voice, speaking the script's opening: \"One two three four. Five six seven eight. Nine ten eleven twelve.\"",
+      "speak: the script's opening is only 12 words, so the designed voice's reference is short and holds the voice loosely. Design it on a longer script and pass its <out>.voice.wav as --reference.",
       "speak: VoxCPM2 is speaking 1 part(s), about 3 s per sentence on a GPU.",
       "  voxcpm: 1/1 sentences",
       "speak: speaking the designed voice's reference again, calm, natural tone, speaking slowly (it spoke at 9.5 syllables per second): clones follow a reference's pace and manner.",

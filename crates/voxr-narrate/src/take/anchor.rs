@@ -136,6 +136,9 @@ fn reference_pace(transcript: &str, x: &[f32]) -> f64 {
 
 /// Designs a voice from `setup.voice` on `script`'s [`opening`].
 ///
+/// An opening under [`OPENING_WORDS`] words logs
+/// [`AnchorStep::ShortOpening`] after the design is announced.
+///
 /// The design speaks the opening at `setup.seed` and is repaired. The
 /// reference then speaks the opening again, cloned from itself, at each
 /// [`SLOWER`] delivery in turn and the seed 1, then 2, past the design's.
@@ -164,6 +167,10 @@ pub fn design_voice<E: SpeechEngine>(
     log.step(AnchorStep::Designing {
         opening: opening.clone(),
     });
+    let words = js_word_count(&opening);
+    if words < OPENING_WORDS {
+        log.step(AnchorStep::ShortOpening { words });
+    }
     let design_spec = TakeSpec {
         index: 0,
         text: transcript.clone(),
@@ -304,9 +311,32 @@ mod tests {
             messages,
             [
                 "speak: designing the voice from --voice, speaking the script's opening: \"Hello there, friend.\"",
+                "speak: the script's opening is only 3 words, so the designed voice's reference is short and holds the voice loosely. Design it on a longer script and pass its <out>.voice.wav as --reference.",
                 "speak: speaking the designed voice's reference again, calm, natural tone, speaking slowly (it spoke at 0.0 syllables per second): clones follow a reference's pace and manner.",
             ]
         );
+        Ok(())
+    }
+
+    #[test]
+    fn an_opening_of_25_words_is_not_short() -> Result<()> {
+        let script = "One two three four five six seven eight nine ten. \
+            Eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty. \
+            One two three four five six.";
+        let mut log = Vec::new();
+        design_voice(script, &setup(), &mut ScriptedEngine::default(), &mut log)?;
+        assert!(
+            !log.iter()
+                .any(|s| matches!(s, AnchorStep::ShortOpening { .. }))
+        );
+        let mut log = Vec::new();
+        design_voice(
+            "One two three.",
+            &setup(),
+            &mut ScriptedEngine::default(),
+            &mut log,
+        )?;
+        assert_eq!(log[1], AnchorStep::ShortOpening { words: 3 });
         Ok(())
     }
 

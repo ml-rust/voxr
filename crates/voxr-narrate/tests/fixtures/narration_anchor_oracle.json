@@ -53,6 +53,7 @@
    ],
    "messages": [
     "speak: designing the voice from --voice, speaking the script's opening: \"Hello there, friend. The river runs north today.\"",
+    "speak: the script's opening is only 8 words, so the designed voice's reference is short and holds the voice loosely. Design it on a longer script and pass its <out>.voice.wav as --reference.",
     "speak: speaking the designed voice's reference again, calm, natural tone, speaking slowly (it spoke at 6.0 syllables per second): clones follow a reference's pace and manner.",
     "speak: turned down 1 breath(s) in the designed voice's reference."
    ],
@@ -234,6 +235,7 @@
    ],
    "messages": [
     "speak: designing the voice from --voice, speaking the script's opening: \"Hello there, friend. The river runs north today.\"",
+    "speak: the script's opening is only 8 words, so the designed voice's reference is short and holds the voice loosely. Design it on a longer script and pass its <out>.voice.wav as --reference.",
     "speak: speaking the designed voice's reference again, calm, natural tone, speaking slowly (it spoke at 5.5 syllables per second): clones follow a reference's pace and manner."
    ],
    "hifiText": "Hello there, friend. The river runs north today.",
@@ -316,6 +318,7 @@
    "messages": [
     "speak --hifi: VoxCPM2 ignores --style in Hi-Fi cloning. Delivery notes on a line still apply to that line.",
     "speak: designing the voice from --voice, speaking the script's opening: \"Hello there, friend. The river runs north today.\"",
+    "speak: the script's opening is only 8 words, so the designed voice's reference is short and holds the voice loosely. Design it on a longer script and pass its <out>.voice.wav as --reference.",
     "speak: speaking the designed voice's reference again, calm, natural tone, speaking slowly (it spoke at 6.0 syllables per second): clones follow a reference's pace and manner."
    ],
    "hifiText": "Hello there, friend. The river runs north today.",
