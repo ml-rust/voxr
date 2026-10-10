@@ -11,7 +11,9 @@
 
 use boostr::Runtime;
 use boostr::format::load_voice_pt;
-use boostr::model::audio::kokoro::{KokoroPhonemeVocab, load_kokoro_v2, select_voice_style};
+use boostr::model::audio::kokoro::{
+    KokoroPhonemeVocab, KokoroSynthOptions, load_kokoro_v2, select_voice_style,
+};
 use boostr::runtime::cpu::{CpuDevice, CpuRuntime};
 use boostr::tensor::Tensor;
 use voxr::wav::{encode_wav_f32, encode_wav_pcm16};
@@ -59,7 +61,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("synthesizing ...");
     let start = std::time::Instant::now();
-    let waveform = model.synthesize_cpu(&client, &token_ids, &voice_row, 1.0)?;
+    let waveform = model.synthesize(
+        &client,
+        &token_ids,
+        &voice_row,
+        &KokoroSynthOptions::default(),
+    )?;
     let elapsed = start.elapsed();
 
     let samples: Vec<f32> = waveform.contiguous()?.to_vec();

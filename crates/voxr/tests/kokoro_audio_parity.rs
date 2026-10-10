@@ -16,8 +16,8 @@ use std::f64::consts::PI;
 use boostr::Runtime;
 use boostr::format::load_voice_pt;
 use boostr::model::audio::kokoro::{
-    KokoroModelV2, SineGen, decode_prosody_durations, length_regulator, load_kokoro_v2,
-    select_voice_style, split_voice_style,
+    KokoroModelV2, KokoroSynthOptions, SineGen, decode_prosody_durations, length_regulator,
+    load_kokoro_v2, select_voice_style, split_voice_style,
 };
 use boostr::runtime::cpu::{CpuClient, CpuDevice, CpuRuntime};
 use boostr::tensor::Tensor;
@@ -198,12 +198,15 @@ fn kokoro_matches_the_reference_on_every_deterministic_stage() {
     let ids = Tensor::<CpuRuntime>::from_slice(&fx.ids, &[1, fx.ids.len()], &device).expect("ids");
 
     for s in &fx.speeds {
+        // Durations and sample count draw no random number, so the seed is
+        // irrelevant here and stays unset.
+        let opts = KokoroSynthOptions::with_speed(s.speed);
         let (_, _, durations) = model
-            .forward_to_spectrogram_cpu(&client, &ids, &row, s.speed)
+            .forward_to_spectrogram(&client, &ids, &row, &opts)
             .expect("spectrogram");
         assert_eq!(durations, s.durations, "durations at speed {}", s.speed);
         let wave = model
-            .synthesize_cpu(&client, &ids, &row, s.speed)
+            .synthesize(&client, &ids, &row, &opts)
             .expect("synthesis");
         assert_eq!(
             wave.shape().iter().product::<usize>(),
@@ -262,7 +265,7 @@ fn kokoro_matches_the_reference_on_every_deterministic_stage() {
     let har = model
         .decoder
         .generator
-        .source_spectrum_cpu(&client, &src)
+        .source_spectrum(&client, &src)
         .expect("spectrum");
     let bins = sp.mag.len();
     assert_eq!(har.shape(), [1, 2 * bins, sp.frames], "spectrum shape");
@@ -299,7 +302,7 @@ fn kokoro_matches_the_reference_on_every_deterministic_stage() {
     let (mag, phase) = model
         .decoder
         .generator
-        .forward_cpu_with_spectrum(&client, &trunk, &dec_style, &given)
+        .forward_with_spectrum(&client, &trunk, &dec_style, &given)
         .expect("generator");
     assert_eq!(mag.shape()[2], g.frames, "generator frames");
     for (name, got, want) in [("magnitude", &mag, &g.mag), ("phase", &phase, &g.phase)] {
@@ -315,7 +318,7 @@ fn kokoro_matches_the_reference_on_every_deterministic_stage() {
     sine.voiced_threshold = 10.0;
     let contour = Tensor::<CpuRuntime>::from_slice(&sine_f0(s.len), &[1, s.len, 1], &device)
         .expect("contour");
-    let sines = values(&sine.forward(&client, &contour).expect("sine"));
+    let sines = values(&sine.forward(&client, &contour, None).expect("sine"));
     let harmonics = s.values.first().map_or(0, Vec::len);
     let got: Vec<f32> = (0..s.len)
         .step_by(s.step)

@@ -21,10 +21,12 @@
 use std::path::Path;
 use std::sync::Arc;
 
-use boostr::model::audio::vits::{VitsModel, VitsSynthOptions};
+use boostr::model::audio::vits::{VitsModel, VitsModelClient, VitsSynthOptions};
 use boostr::model::config::VitsConfig;
 use boostr::nn::{VarBuilder, VarMap};
-use numr::runtime::cpu::{CpuClient, CpuDevice, CpuRuntime};
+use numr::dtype::DType;
+use numr::runtime::Runtime;
+use numr::runtime::cpu::{CpuDevice, CpuRuntime};
 use numr::tensor::Tensor;
 
 use crate::error::{Error, Result};
@@ -33,35 +35,47 @@ use crate::tts::bundle::{TtsBundle, Voice};
 use crate::tts::vits::tokenizer::VitsTokenizer;
 
 /// A loaded VITS (MMS-TTS) checkpoint: model + tokenizer + the one voice it
-/// serves.
-pub struct VitsEngine {
-    model: VitsModel<CpuRuntime>,
+/// serves, on runtime `R`. The model and the input tensors live on `R`'s
+/// device. The tokenizer and uroman run on the host.
+pub struct VitsEngine<R: Runtime<DType = DType> = CpuRuntime> {
+    model: VitsModel<R>,
     tokenizer: VitsTokenizer,
-    client: Arc<CpuClient>,
-    device: Arc<CpuDevice>,
+    client: Arc<R::Client>,
+    device: Arc<R::Device>,
     voice: Voice,
     /// Overrides [`VitsSynthOptions::seed`] when set; `None` keeps the
     /// model's own default (`0`).
     seed: Option<u64>,
 }
 
-impl VitsEngine {
+impl VitsEngine<CpuRuntime> {
     /// Loads `config.json`, the tokenizer files, and `model.safetensors`
-    /// from `dir`.
+    /// from `dir` on the CPU.
     pub fn from_dir(dir: &Path) -> Result<Self> {
+        Self::from_dir_on(dir, &CpuDevice::new())
+    }
+}
+
+impl<R: Runtime<DType = DType>> VitsEngine<R>
+where
+    R::Client: VitsModelClient<R>,
+{
+    /// Loads `config.json`, the tokenizer files, and `model.safetensors`
+    /// from `dir` onto `device`. The tokenizer stays on the host.
+    pub fn from_dir_on(dir: &Path, device: &R::Device) -> Result<Self> {
         let config_path = dir.join("config.json");
         let config = VitsConfig::from_json_file(&config_path)?;
         config.validate()?;
 
         let tokenizer = VitsTokenizer::from_dir(dir)?;
 
-        let device = Arc::new(CpuDevice::new());
-        let client = Arc::new(CpuClient::new((*device).clone()));
+        let device = Arc::new(device.clone());
+        let client = Arc::new(R::default_client(&device));
 
         let weights_path = dir.join("model.safetensors");
-        let mut weights = VarMap::<CpuRuntime>::from_safetensors(&weights_path, &device)?;
+        let mut weights = VarMap::<R>::from_safetensors(&weights_path, &device)?;
         let mut vb = VarBuilder::new(&mut weights, &device);
-        let model = VitsModel::<CpuRuntime>::from_varbuilder(client.as_ref(), &mut vb, &config)?;
+        let model = VitsModel::<R>::from_varbuilder(client.as_ref(), &mut vb, &config)?;
 
         let language_code = read_language_code(dir)?;
         let lang = Lang::parse(&language_code).map_err(|e| Error::ModelError {
@@ -82,7 +96,8 @@ impl VitsEngine {
     /// Fixes the noise seed every [`VitsEngine::synthesize`] call draws,
     /// instead of the model's default (`0`). Useful for a reproducible test
     /// or demo render; a production server normally leaves this unset so
-    /// repeated requests are not identical.
+    /// repeated requests are not identical. A seed reproduces on one
+    /// device only: CPU and GPU draw different noise from it.
     pub fn with_seed(mut self, seed: u64) -> Self {
         self.seed = Some(seed);
         self
@@ -99,7 +114,9 @@ impl VitsEngine {
 
     /// [`synthesize`](Self::synthesize) with the noise drawn from `seed`
     /// for this call alone. `None` keeps the model's default (`0`). The
-    /// same text, speed and seed render the same samples.
+    /// same text, speed and seed render the same samples on one device.
+    /// CPU and GPU run separate PRNGs, so one seed draws different noise,
+    /// and renders different samples, on each.
     pub fn synthesize_seeded(
         &self,
         text: &str,
@@ -139,9 +156,9 @@ impl VitsEngine {
         }
         let seq_len = ids.len();
         let input_ids: Vec<i64> = ids.iter().map(|&id| id as i64).collect();
-        let input_ids = Tensor::<CpuRuntime>::from_slice(&input_ids, &[1, seq_len], &self.device)?;
+        let input_ids = Tensor::<R>::from_slice(&input_ids, &[1, seq_len], &self.device)?;
         let attention_mask =
-            Tensor::<CpuRuntime>::from_slice(&vec![1.0f32; seq_len], &[1, seq_len], &self.device)?;
+            Tensor::<R>::from_slice(&vec![1.0f32; seq_len], &[1, seq_len], &self.device)?;
 
         let mut opts: VitsSynthOptions = self.model.default_synth_options();
         opts.speaking_rate = speed as f64;
@@ -168,7 +185,11 @@ impl VitsEngine {
     }
 }
 
-impl crate::tts::TtsEngine for VitsEngine {
+impl<R: Runtime<DType = DType>> crate::tts::TtsEngine for VitsEngine<R>
+where
+    R::Client: VitsModelClient<R>,
+    VitsModel<R>: Send + Sync,
+{
     fn synthesize(&self, text: &str, voice: &str, speed: f32) -> Result<Vec<f32>> {
         VitsEngine::synthesize(self, text, voice, speed)
     }
@@ -209,12 +230,24 @@ pub fn is_vits_config(config_path: &Path) -> Result<bool> {
     Ok(value.get("model_type").and_then(|v| v.as_str()) == Some("vits"))
 }
 
-/// Loads a [`VitsEngine`] from `dir` and wraps it in a [`TtsBundle`], the
-/// same shape `blazr`'s loader gives a Kokoro or VoxCPM2 checkpoint: a
-/// scaffolding bundle over the engine's own voice catalog, with the engine
-/// attached.
+/// Loads a [`VitsEngine`] from `dir` on the CPU and wraps it in a
+/// [`TtsBundle`], the same shape `blazr`'s loader gives a Kokoro or VoxCPM2
+/// checkpoint: a scaffolding bundle over the engine's own voice catalog,
+/// with the engine attached.
 pub fn load_vits_from_dir(dir: &Path) -> Result<TtsBundle> {
-    let engine = VitsEngine::from_dir(dir)?;
+    load_vits_from_dir_on::<CpuRuntime>(dir, &CpuDevice::new())
+}
+
+/// [`load_vits_from_dir`] with the engine loaded onto `device`.
+pub fn load_vits_from_dir_on<R: Runtime<DType = DType>>(
+    dir: &Path,
+    device: &R::Device,
+) -> Result<TtsBundle>
+where
+    R::Client: VitsModelClient<R>,
+    VitsModel<R>: Send + Sync,
+{
+    let engine = VitsEngine::<R>::from_dir_on(dir, device)?;
     let sample_rate = engine.sample_rate();
     let voices = crate::tts::TtsEngine::voices(&engine);
     Ok(TtsBundle::scaffolding(voices, sample_rate).with_engine(Arc::new(engine)))

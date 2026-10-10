@@ -217,6 +217,14 @@ name = "voxcpm_batch_cuda"
 required-features = ["voxcpm", "cuda"]
 
 [[test]]
+name = "kokoro_engine_cuda"
+required-features = ["kokoro", "cuda"]
+
+[[test]]
+name = "vits_engine_cuda"
+required-features = ["vits", "cuda"]
+
+[[test]]
 name = "misaki_g2p_oracle"
 required-features = ["misaki"]
 

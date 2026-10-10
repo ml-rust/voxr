@@ -11,4 +11,6 @@ pub use bundle::{
 };
 pub use engine::TtsEngine;
 #[cfg(feature = "vits")]
-pub use vits::{VitsEngine, VitsTokenizer, is_vits_config, load_vits_from_dir};
+pub use vits::{
+    VitsEngine, VitsTokenizer, is_vits_config, load_vits_from_dir, load_vits_from_dir_on,
+};
