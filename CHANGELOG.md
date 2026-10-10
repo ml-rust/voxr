@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format is based on 
 
 Each release must have a non-empty section here before it can be tagged — `.github/workflows/release-validate.yml` refuses a tag whose version has no entry, and the GitHub Release body is this file's section for that version. voxr and voxr-narrate release together at one version.
 
+## [0.2.0] - 2026-10-10
+
+### Changed
+
+- **Dependencies** — voxr and voxr-narrate require boostr 0.5 and numr 0.10. The `Tensor` and runtime types they pass through come from these versions, so a caller that hands voxr a tensor must use the same ones.
+
 ## [0.1.1] - 2026-10-10
 
 ### Fixed
