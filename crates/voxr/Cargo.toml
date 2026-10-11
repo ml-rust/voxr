@@ -1,6 +1,6 @@
 [package]
 name = "voxr"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2024"
 rust-version = "1.95"
 description = "Audio and speech: codecs, DSP, G2P, voices, and TTS/ASR pipelines over boostr models"
@@ -28,9 +28,9 @@ name = "voxr"
 bench = false
 
 [dependencies]
-boostr = { version = "0.6", default-features = false, features = ["cpu", "audio"] }
+boostr = { version = "0.7", default-features = false, features = ["cpu", "audio"] }
 # The denoiser runs its STFT through numr's CPU client.
-numr = "0.11"
+numr = "0.12"
 thiserror = "2"
 tracing = "0.1"
 # `whisper` reads `generation_config.json`; the VoxCPM2 examples read eval
