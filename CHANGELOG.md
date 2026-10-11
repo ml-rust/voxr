@@ -4,7 +4,7 @@ All notable changes to this project are documented here. The format is based on 
 
 Each release must have a non-empty section here before it can be tagged — `.github/workflows/release-validate.yml` refuses a tag whose version has no entry, and the GitHub Release body is this file's section for that version. voxr and voxr-narrate release together at one version.
 
-## [Unreleased]
+## [0.4.0] - 2026-10-11
 
 ### Added
 
@@ -35,7 +35,7 @@ Each release must have a non-empty section here before it can be tagged — `.gi
 
 #### Dependencies
 
-- voxr and voxr-narrate require the boostr release whose Kokoro synthesis is generic over the runtime: `KokoroModelV2::synthesize` and `forward_to_spectrogram` take a `KokoroSynthOptions`, and the `_cpu` entry points are gone.
+- voxr and voxr-narrate require boostr 0.6 and numr 0.11. boostr 0.6 runs Kokoro on any runtime, and numr 0.11 makes the inverse STFT give the same samples on every GPU run. The `Tensor` and runtime types voxr passes through come from these versions, so a caller that hands voxr a tensor must use the same ones.
 
 ## [0.3.0] - 2026-10-11
 
