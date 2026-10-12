@@ -4,6 +4,16 @@ All notable changes to this project are documented here. The format is based on 
 
 Each release must have a non-empty section here before it can be tagged — `.github/workflows/release-validate.yml` refuses a tag whose version has no entry, and the GitHub Release body is this file's section for that version. voxr and voxr-narrate release together at one version.
 
+## [0.6.0] - 2026-10-12
+
+### Changed
+
+#### Dependencies
+
+- voxr and voxr-narrate require boostr 0.8. voxr's public fields name boostr model types, such as `WhisperBundle::model`, and voxr-narrate's adapters name boostr types.
+- voxr requires splintr 0.22. `WhisperBundle::tokenizer` is a splintr `AnyTokenizer`.
+- voxr-narrate requires voxr 0.6.
+
 ## [0.5.0] - 2026-10-11
 
 ### Changed

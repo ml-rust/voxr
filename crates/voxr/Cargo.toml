@@ -1,6 +1,6 @@
 [package]
 name = "voxr"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2024"
 rust-version = "1.95"
 description = "Audio and speech: codecs, DSP, G2P, voices, and TTS/ASR pipelines over boostr models"
@@ -28,7 +28,7 @@ name = "voxr"
 bench = false
 
 [dependencies]
-boostr = { version = "0.7", default-features = false, features = ["cpu", "audio"] }
+boostr = { version = "0.8", default-features = false, features = ["cpu", "audio"] }
 # The denoiser runs its STFT through numr's CPU client.
 numr = "0.12"
 thiserror = "2"
@@ -39,7 +39,7 @@ tracing = "0.1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 # `corpus` and `voxcpm` load `tokenizer.json` files through splintr.
-splintr = { version = "0.21", features = ["vocab-whisper"] }
+splintr = { version = "0.22", features = ["vocab-whisper"] }
 # RIFF/WAVE read and write for finished files. The unknown-length stream
 # header stays in `wav::stream`: hound writes sizes only on finalize.
 hound = "3.5"
@@ -96,7 +96,7 @@ tempfile = "3"
 bytemuck = { version = "1.25", features = ["derive"] }
 # Tests tokenize with cl100k_base. A dev-dependency feature unifies only when
 # building this crate's own tests, so downstream builds pay nothing.
-splintr = { version = "0.21", features = ["vocab-cl100k"] }
+splintr = { version = "0.22", features = ["vocab-cl100k"] }
 
 [features]
 default = []
