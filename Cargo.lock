@@ -130,16 +130,18 @@ dependencies = [
 
 [[package]]
 name = "boostr"
-version = "0.9.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e9fd7357da5018800038abaaa115c3f579b66998a5cdc349ab8e578ea6a77726"
+checksum = "66e51ee3e29c054217a9213db711960e2bf2bbbc7be269e951e62e970a73ab8f"
 dependencies = [
  "blake3",
+ "chacha20",
  "cudarc",
  "half",
  "image",
  "memmap2",
  "numr",
+ "rand 0.10.3",
  "rayon",
  "regexr",
  "serde",
@@ -239,6 +241,17 @@ name = "cfg_aliases"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f079e83a288787bcd14a6aea84cee5c87a67c5a3e660c30f557a3d24761b3527"
+
+[[package]]
+name = "chacha20"
+version = "0.10.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "65c35e4b699c7e15ccbe7ee35c005e4fc0a278d22238a2857e6ce2dadeda1b06"
+dependencies = [
+ "cfg-if",
+ "cpufeatures",
+ "rand_core 0.10.1",
+]
 
 [[package]]
 name = "const-oid"
@@ -807,9 +820,9 @@ dependencies = [
 
 [[package]]
 name = "numr"
-version = "0.13.0"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ae7051738770b875a102b10275d9c96b7866cd2a741298707fba15a957ab27ca"
+checksum = "539990e81dc7946f5bcf60f13d273f180c46bce497f8f487869adc93fb1819fb"
 dependencies = [
  "bytemuck",
  "cudarc",
@@ -1039,6 +1052,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "rand"
+version = "0.10.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "65c9fb96cbc91e3478eaae79a69fcd3f1ae4ad052e471fe6732fff548984b4af"
+dependencies = [
+ "rand_core 0.10.1",
+]
+
+[[package]]
 name = "rand_chacha"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1075,6 +1097,12 @@ checksum = "76afc826de14238e6e8c374ddcc1fa19e374fd8dd986b0d2af0d02377261d83c"
 dependencies = [
  "getrandom 0.3.4",
 ]
+
+[[package]]
+name = "rand_core"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "63b8176103e19a2643978565ca18b50549f6101881c443590420e4dc998a3c69"
 
 [[package]]
 name = "rand_distr"
@@ -1794,7 +1822,7 @@ dependencies = [
 
 [[package]]
 name = "voxr"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "biquad",
  "boostr",
@@ -1819,7 +1847,7 @@ dependencies = [
 
 [[package]]
 name = "voxr-narrate"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "biquad",
  "boostr",
