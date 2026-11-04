@@ -73,6 +73,10 @@ symphonia = { version = "0.6", optional = true, default-features = false, featur
 # Opus, the codec of most WebM audio, which symphonia does not decode: a
 # pure-Rust decoder registered with symphonia's codecs.
 opus-rs = { version = "0.1", optional = true }
+# The trims ffmpeg applies and symphonia does not: an MP4 edit list and
+# timescale, a Matroska codec delay and discard padding. symphonia still
+# demuxes the packets.
+containr = { version = "0.1", optional = true, features = ["mp4", "mkv"] }
 
 # misaki English G2P: the embedded lexicons are zlib streams, and the port
 # needs NFKC and Unicode general categories. boostr's `zip` already links
@@ -102,7 +106,7 @@ splintr = { version = "0.22", features = ["vocab-cl100k"] }
 default = []
 
 # Compressed containers beyond RIFF/WAVE.
-decode = ["dep:symphonia", "dep:opus-rs"]
+decode = ["dep:symphonia", "dep:opus-rs", "dep:containr"]
 # misaki English G2P from raw text or pre-tagged tokens, with the US and GB
 # lexicons embedded. No system dependencies. Implies `spacy-tagger` (and so
 # `spacy-tokenizer`), the tokenizer and tagger misaki's pipeline reads its

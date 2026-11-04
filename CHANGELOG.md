@@ -4,6 +4,17 @@ All notable changes to this project are documented here. The format is based on 
 
 Each release must have a non-empty section here before it can be tagged — `.github/workflows/release-validate.yml` refuses a tag whose version has no entry, and the GitHub Release body is this file's section for that version. voxr and voxr-narrate release together at one version.
 
+## [Unreleased]
+
+### Changed
+
+- **`decode` trims** — The `decode` feature reads MP4 edit lists, track timescales, Matroska codec delays and discard padding through containr. voxr's own parsers are gone. symphonia still demuxes and decodes the packets.
+- **Discard padding in live WebM** — Discard padding now counts in every Cluster of unknown size. Before, the read stopped counting after the first such Cluster, so the decode kept padding that ffmpeg drops.
+
+#### Dependencies
+
+- `decode` requires containr 0.1, with its `mp4` and `mkv` features.
+
 ## [0.8.0] - 2026-11-01
 
 voxr and voxr-narrate move to boostr 0.10.

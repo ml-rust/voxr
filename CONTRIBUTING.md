@@ -23,7 +23,7 @@ Tests that need a model checkpoint skip with a notice when their environment var
 
 Model weights never enter the repository. Load them at run time from a model directory.
 
-To build against sibling checkouts of numr, boostr, splintr, and regexr, copy `.cargo/config.toml.example` to `.cargo/config.toml`. The CI builds resolve from crates.io.
+To build against sibling checkouts of numr, boostr, splintr, regexr, and containr, copy `.cargo/config.toml.example` to `.cargo/config.toml`. The CI builds resolve from crates.io.
 
 ## Conventions
 

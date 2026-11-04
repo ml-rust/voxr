@@ -7,6 +7,7 @@ numr = { path = "../numr" }
 boostr = { path = "../boostr" }
 splintr = { path = "../splintr" }
 regexr = { path = "../regexr" }
+containr = { path = "../containr" }
 
 # Model fixtures live outside the repo. Point this at your own checkpoint
 # directory. Tests that need a real model skip loudly when it is unset, so a

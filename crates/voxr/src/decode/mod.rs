@@ -6,8 +6,6 @@
 mod api;
 mod frames;
 mod layout;
-mod mkv_discard;
-mod mp4_edit;
 mod opus;
 mod stream;
 mod trims;

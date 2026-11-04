@@ -21,8 +21,9 @@
 # No job installs a CUDA toolkit. `cuda` stays out of every feature set.
 #
 # No job runs with `--locked`. The committed Cargo.lock resolves numr, boostr,
-# splintr and regexr through local path patches, so a lock-exact build on a
-# clean runner is not possible. Cargo's MSRV-aware resolver picks the versions.
+# splintr, regexr and containr through local path patches, so a lock-exact
+# build on a clean runner is not possible. Cargo's MSRV-aware resolver picks
+# the versions.
 
 name: Test
 
