@@ -5,7 +5,7 @@
 <h3>Audio and speech in Rust, on boostr models.</h3>
 
 <p>
-WAV and compressed-audio decode, DSP, G2P, and TTS, ASR, and VAD pipelines. Model weights load at run time from a directory, and no weights are compiled in.
+WAV and compressed-audio decode, signal processing, grapheme-to-phoneme (G2P), and speech synthesis, transcription, and voice-activity pipelines. Model weights load at run time from a directory, and none are compiled in.
 </p>
 
 <p>
@@ -15,9 +15,11 @@ WAV and compressed-audio decode, DSP, G2P, and TTS, ASR, and VAD pipelines. Mode
   ·
   <a href="#crates"><strong>Crates</strong></a>
   ·
-  <a href="#models"><strong>Models</strong></a>
+  <a href="#what-works"><strong>What works</strong></a>
   ·
   <a href="#quick-start"><strong>Example</strong></a>
+  ·
+  <a href="#models"><strong>Models</strong></a>
   ·
   <a href="CONTRIBUTING.md"><strong>Contributing</strong></a>
 </p>
@@ -48,43 +50,76 @@ WAV and compressed-audio decode, DSP, G2P, and TTS, ASR, and VAD pipelines. Mode
 
 </div>
 
-voxr is a Cargo workspace for audio and speech on top of [boostr](https://github.com/ml-rust/boostr) models and [numr](https://github.com/ml-rust/numr) tensors. The `voxr` crate holds the sample-level side: files, codecs, DSP, G2P, voices, and the TTS, ASR, and VAD pipelines. The model networks and their kernels live in boostr. The `voxr-narrate` crate turns a narration script into a checked voiceover.
+voxr is a Cargo workspace for audio and speech on top of [boostr](https://github.com/ml-rust/boostr) models and [numr](https://github.com/ml-rust/numr) tensors. The model networks and their kernels live in boostr.
 
 ## Crates
 
-| Crate | What it holds | Features |
+| Crate | What it does | Features |
 | --- | --- | --- |
-| [`voxr`](crates/voxr) | WAV and compressed-audio decode, resamplers, tempo stretch, loudness and enhancement, single-sound metrics, misaki and spaCy G2P, voices, and the Kokoro, VITS, VoxCPM2, Whisper, Silero VAD, CLAP and NeuCodec pipelines | [voxr](#voxr) |
-| [`voxr-narrate`](crates/voxr-narrate) | Script parsing, the speech check of a take against its script, glitch repair, voice polish, the take loop, engine adapters, and the speak and transcribe commands | [voxr-narrate](#voxr-narrate) |
+| [`voxr`](crates/voxr) | Audio files, DSP, G2P, voices, and speech pipelines | [voxr features](#voxr-features) |
+| [`voxr-narrate`](crates/voxr-narrate) | Turns a narration script into a checked voiceover | [voxr-narrate features](#voxr-narrate-features) |
 
-voxr-narrate implements the speak and transcribe contract of the [motion-video skill](https://github.com/farhan-syah/motion-video-skill). voxr implements its sound review.
+- voxr-narrate runs the speak and transcribe commands of the [motion-video skill](https://github.com/farhan-syah/motion-video-skill).
+- voxr provides the sound review of that skill.
+
+## What works
+
+| Task | Engine | Feature | Backend |
+| --- | --- | --- | --- |
+| Speech synthesis | Kokoro, VITS (MMS-TTS) | `kokoro`, `vits` | CPU, or CUDA with `cuda` |
+| Voice cloning | VoxCPM2 | `voxcpm` | CPU, or CUDA with `cuda` |
+| Transcription with word timings | Whisper | `whisper` | CPU, or CUDA with `cuda` |
+| Audio-text scoring | CLAP | `clap` | CPU, or CUDA with `cuda` |
+| Voice activity detection | Silero VAD | `vad` | CPU. No test or example in this repository runs it on CUDA |
+| Audio codec | NeuCodec | `neucodec` | CPU, or CUDA in the `noise_probe_decode` example |
+
+- WebGPU: voxr has no `wgpu` feature.
+- Rust: 1.95 or newer.
+- CUDA: needs the setup in [CUDA](#cuda).
+- Abbreviations: G2P is grapheme-to-phoneme, TTS is text-to-speech, ASR is automatic speech recognition, and VAD is voice activity detection.
 
 ## Quick Start
 
-Add the crate. Choose the features you need from the lists below.
+Add the crate to your project, with the features you need:
 
 ```bash
 cargo add voxr --features decode
 ```
 
-Transcribe a take with Whisper. Download a Whisper checkpoint in Hugging Face layout first, such as `openai/whisper-base`. Its `generation_config.json` must list `alignment_heads`. voxr does not download it.
+To try transcription from a checkout of this repository:
+
+1. Download a Whisper checkpoint in Hugging Face layout, such as `openai/whisper-base`. voxr does not download it.
+2. Check that its `generation_config.json` lists `alignment_heads`.
+3. Run the example:
 
 ```bash
 cargo run --release -p voxr-narrate --features whisper --example transcribe_take -- \
   --model WHISPER_DIR AUDIO.wav
 ```
 
-The example writes one words file per input. Add `--out DIR` to choose the output directory, and `--language xx` to set the language.
+The example writes the words of each input to standard output.
+
+| Flag | Effect |
+| --- | --- |
+| `--out DIR` | Writes `NAME.words.json` files to `DIR` |
+| `--language xx` | Sets the language. The default is `en` |
 
 ## Features
 
-Every feature is off by default. A build with no features still has WAV, the resamplers, tempo stretch, enhancement, and metrics. It also has the sound review, pitch, ASR error rates, and the signal half of the TTS quality gate.
+Every feature is off by default. A build with no features includes:
 
-### voxr
+- WAV read and write
+- Resamplers and tempo stretch
+- Enhancement and single-sound metrics
+- Sound review and pitch tracking
+- ASR error rates
+- TTS quality statistics that need no model
+
+### voxr features
 
 | Feature | Adds |
 | --- | --- |
-| `decode` | WAV, FLAC, MP3, AAC-LC and ALAC in MP4/M4A/MOV, and Opus and Vorbis in Ogg/WebM/MKV, with ffmpeg-matched trims and downmix. Multichannel AAC, HE-AAC and Opus past two channels are refused |
+| `decode` | Compressed-audio decode. See [Decode formats](#decode-formats) |
 | `spacy-tokenizer` | The spaCy `en_core_web_sm` 3.8.0 tokenizer, with its patterns and tables embedded |
 | `spacy-tagger` | The `en_core_web_sm` tagger. Implies `spacy-tokenizer` |
 | `misaki` | misaki English G2P with the US and GB lexicons embedded. Implies `spacy-tagger` and `f16` |
@@ -95,12 +130,24 @@ Every feature is off by default. A build with no features still has WAV, the res
 | `whisper` | Whisper transcription with word timings. Implies `decode` |
 | `vad` | Silero VAD segmentation |
 | `clap` | CLAP audio-text scoring, which ranks sounds in the sound review |
-| `neucodec` | The NeuCodec model gate |
+| `neucodec` | The NeuCodec model, for its probing examples |
 | `corpus` | Speech-corpus preparation. Implies `whisper`, `vad`, `neucodec` and `decode` |
 | `f16` | Half-precision tensors |
 | `cuda` | The CUDA backend |
 
-### voxr-narrate
+### Decode formats
+
+| Codec | Containers | Limit |
+| --- | --- | --- |
+| WAV, FLAC, MP3 | Their own files | None |
+| AAC-LC | MP4, M4A, MOV | Multichannel AAC and HE-AAC are refused |
+| ALAC | MP4, M4A, MOV | None |
+| Opus | Ogg, WebM, MKV | Past two channels is refused |
+| Vorbis | Ogg, WebM, MKV | None |
+
+Trims and downmix match ffmpeg. MP4 edit lists and Matroska codec delay come from containr.
+
+### voxr-narrate features
 
 | Feature | Adds |
 | --- | --- |
@@ -113,21 +160,24 @@ Every feature is off by default. A build with no features still has WAV, the res
 
 ## Models
 
-No model weights are compiled in or shipped. Every engine loads its checkpoint at run time from a model directory. voxr fetches nothing over the network. Download a checkpoint, for example from Hugging Face, into a directory first.
+No model weights are compiled in or shipped, and voxr fetches nothing over the network. Download each checkpoint, for example from Hugging Face, and pass its directory at run time.
 
-The spaCy tagger and the out-of-vocabulary G2P model for Kokoro are in the Hugging Face repo [`fs90/kokoro-g2p`](https://huggingface.co/fs90/kokoro-g2p). Place them under a Kokoro model directory as `g2p/tagger/` and `g2p/oov/`.
+| Files | Where to get them | Where to put them |
+| --- | --- | --- |
+| spaCy tagger, for Kokoro | [`fs90/kokoro-g2p`](https://huggingface.co/fs90/kokoro-g2p) | `g2p/tagger/` under the Kokoro model directory |
+| Out-of-vocabulary G2P model, for Kokoro | [`fs90/kokoro-g2p`](https://huggingface.co/fs90/kokoro-g2p) | `g2p/oov/` under the Kokoro model directory |
 
-The embedded data is text-processing data only. It holds the misaki lexicons behind `misaki` and the spaCy tokenizer tables behind `spacy-tokenizer`.
+The embedded data is text-processing data only: the misaki lexicons behind `misaki`, and the spaCy tokenizer tables behind `spacy-tokenizer`.
 
 ## CUDA
 
-The `cuda` feature builds numr's CUDA kernels. It needs CUDA 12.8 or newer. CUDA 13.x also works.
+| Need | Value |
+| --- | --- |
+| Toolkit | CUDA 12.8 or newer, with `nvcc` on `PATH` |
+| GPU | Compute capability 7.5 (Turing) or newer |
 
-`NUMR_CUDA_ARCH` selects the GPU architectures the build compiles native code for. Unset, the build targets the GPUs on the build host. Set `NUMR_CUDA_ARCH=all` for any binary that runs on another machine. numr's README lists every value.
-
-## Minimum Rust version
-
-1.95.
+- CUDA binaries: a build targets the GPUs on the build host. Set `NUMR_CUDA_ARCH=all` for a binary that runs on another machine.
+- Every value: numr's [docs/backends.md](https://github.com/ml-rust/numr/blob/main/docs/backends.md) lists them.
 
 ## Contributing
 
@@ -139,4 +189,4 @@ Questions and design discussion happen on [Discord](https://discord.gg/jBhFk9kHP
 
 Licensed under Apache-2.0. See [LICENSE](LICENSE).
 
-Code ported from other projects and data voxr redistributes are listed with their licences in [crates/voxr/LICENSE-OTHERS](crates/voxr/LICENSE-OTHERS) and [crates/voxr-narrate/LICENSE-OTHERS](crates/voxr-narrate/LICENSE-OTHERS). Each embedded data set carries its own LICENSE and NOTICE beside it under `crates/voxr/assets/`.
+Code ported from other projects and data voxr redistributes are listed with their licenses in [crates/voxr/LICENSE-OTHERS](crates/voxr/LICENSE-OTHERS) and [crates/voxr-narrate/LICENSE-OTHERS](crates/voxr-narrate/LICENSE-OTHERS). Each embedded data set carries its own LICENSE and NOTICE beside it under `crates/voxr/assets/`.

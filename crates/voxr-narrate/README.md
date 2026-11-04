@@ -24,7 +24,7 @@ Behind features:
 | `kokoro` | `KokoroSpeech` |
 | `vits` | `VitsSpeech` |
 | `voxcpm` | `VoxcpmSpeech` |
-| `cuda` | The CUDA runtime for Whisper and VoxCPM2. Needs CUDA 12.8 or newer, or 13.x |
+| `cuda` | The CUDA runtime for Whisper, Kokoro, VITS and VoxCPM2. Needs CUDA 12.8 or newer, or 13.x |
 
 ## Models
 

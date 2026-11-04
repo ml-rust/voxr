@@ -8,12 +8,12 @@ Each release must have a non-empty section here before it can be tagged — `.gi
 
 ### Changed
 
-- **`decode` trims** — The `decode` feature reads MP4 edit lists, track timescales, Matroska codec delays and discard padding through containr. voxr's own parsers are gone. symphonia still demuxes and decodes the packets.
-- **Discard padding in live WebM** — Discard padding now counts in every Cluster of unknown size. Before, the read stopped counting after the first such Cluster, so the decode kept padding that ffmpeg drops.
+- `decode` trims: MP4 edit lists, track timescales, Matroska codec delays, and discard padding read through containr. voxr's own parsers for them are removed. symphonia still demuxes and decodes the packets.
+- containr dependency: `decode` requires containr 0.1, with its `mp4` and `mkv` features.
 
-#### Dependencies
+### Fixed
 
-- `decode` requires containr 0.1, with its `mp4` and `mkv` features.
+- Discard padding in live WebM: padding counts in every Cluster of unknown size, so the decode drops what ffmpeg drops. Before, the read stopped counting after the first such Cluster.
 
 ## [0.8.0] - 2026-11-01
 
