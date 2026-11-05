@@ -6,10 +6,13 @@ Each release must have a non-empty section here before it can be tagged — `.gi
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-11-05
+
 ### Changed
 
 - `decode` trims: MP4 edit lists, track timescales, Matroska codec delays, and discard padding read through containr. voxr's own parsers for them are removed. symphonia still demuxes and decodes the packets.
 - containr dependency: `decode` requires containr 0.1, with its `mp4` and `mkv` features.
+- boostr and numr dependencies: voxr and voxr-narrate require boostr 0.11 and numr 0.15. Move your own boostr and numr dependencies to these versions.
 
 ### Fixed
 
