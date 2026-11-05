@@ -13,17 +13,14 @@
 #
 # Jobs:
 #   lint     — rustfmt, docs.rs-feature docs, shellcheck
-#   clippy   — `-D warnings` on every feature set the matrix names, per crate
+#   clippy   — `-D warnings` on every feature set in scripts/ci/clippy.sh, per crate
 #   test     — the test suites with every non-CUDA feature
 #   msrv     — the MSRV from crates/voxr/Cargo.toml
 #   audit    — cargo-deny: advisories, licences, sources, banned crates
 #
 # No job installs a CUDA toolkit. `cuda` stays out of every feature set.
 #
-# No job runs with `--locked`. The committed Cargo.lock resolves numr, boostr,
-# splintr, regexr and containr through local path patches, so a lock-exact
-# build on a clean runner is not possible. Cargo's MSRV-aware resolver picks
-# the versions.
+# No job runs with `--locked`. Cargo's MSRV-aware resolver picks the versions.
 
 name: Test
 
@@ -77,35 +74,15 @@ jobs:
         run: shellcheck scripts/ci/*.sh
 
   # ─────────────────────────────────────────────────────────────────────────
-  # Each feature gate compiles alone, so a gate that leans on another one's
-  # import fails here. `--all-targets` also checks the tests and examples
-  # each gate enables.
+  # One job per crate. `scripts/ci/clippy.sh` lists the feature sets and runs
+  # them all on one build cache. A failed set is named in the annotations.
   clippy:
-    name: Clippy (${{ matrix.crate }}, ${{ matrix.features || 'no features' }})
+    name: Clippy (${{ matrix.crate }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - { crate: voxr, features: "" }
-          - { crate: voxr, features: "decode" }
-          - { crate: voxr, features: "spacy-tokenizer" }
-          - { crate: voxr, features: "misaki" }
-          - { crate: voxr, features: "kokoro" }
-          - { crate: voxr, features: "vits" }
-          - { crate: voxr, features: "whisper,vad" }
-          - { crate: voxr, features: "voxcpm" }
-          - { crate: voxr, features: "clap" }
-          - { crate: voxr, features: "neucodec" }
-          - { crate: voxr, features: "corpus" }
-          - { crate: voxr, features: "decode,misaki,spacy-tokenizer,spacy-tagger,tts,kokoro,voxcpm,whisper,vits,vad,clap,neucodec,corpus,f16" }
-          - { crate: voxr-narrate, features: "" }
-          - { crate: voxr-narrate, features: "stretch" }
-          - { crate: voxr-narrate, features: "whisper" }
-          - { crate: voxr-narrate, features: "kokoro" }
-          - { crate: voxr-narrate, features: "vits" }
-          - { crate: voxr-narrate, features: "voxcpm" }
-          - { crate: voxr-narrate, features: "whisper,stretch,kokoro,vits,voxcpm" }
+        crate: [voxr, voxr-narrate]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -121,8 +98,7 @@ jobs:
       - name: Clippy
         env:
           CRATE: ${{ matrix.crate }}
-          FEATURES: ${{ matrix.features }}
-        run: cargo clippy -p "$CRATE" --features "$FEATURES" --all-targets -- -D warnings
+        run: bash scripts/ci/clippy.sh "$CRATE"
 
   # ─────────────────────────────────────────────────────────────────────────
   # Tests that need a model directory, a fixture directory or the skill's

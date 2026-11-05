@@ -30,7 +30,8 @@ Run these from the repository root.
 
 ```bash
 cargo fmt --all --check
-cargo clippy -p voxr --features decode --all-targets -- -D warnings
+bash scripts/ci/clippy.sh voxr
+bash scripts/ci/clippy.sh voxr-narrate
 cargo test -p voxr --features decode,misaki,spacy-tokenizer,spacy-tagger,tts,kokoro,voxcpm,whisper,vits,vad,clap,neucodec,corpus,f16 --no-fail-fast
 cargo test -p voxr-narrate --features whisper,stretch,kokoro,vits,voxcpm --no-fail-fast
 cargo deny --exclude-dev check
@@ -38,7 +39,7 @@ shellcheck scripts/ci/*.sh
 ```
 
 - Format, test, audit, and script commands: the same commands run in `.github/workflows/test.yml`.
-- Clippy: CI runs it once for each feature set in the matrix of `test.yml`. Run it with the feature set you change.
+- Clippy: `scripts/ci/clippy.sh` lists the feature sets and CI runs it for each crate. Add a set for each new feature that builds with no CUDA toolkit.
 - Other CI jobs: docs with `-D warnings`, and an MSRV check on the library targets.
 - GPU: CI has no GPU and does not build `cuda`.
 
