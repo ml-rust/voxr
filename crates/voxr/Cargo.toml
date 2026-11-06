@@ -3,12 +3,12 @@ name = "voxr"
 version = "0.9.0"
 edition = "2024"
 rust-version = "1.95"
-description = "Audio and speech: codecs, DSP, G2P, voices, and TTS/ASR pipelines over boostr models"
+description = "Audio and speech library for Rust: text-to-speech, speech-to-text, voice activity detection, audio decode and DSP, on boostr models with no ffmpeg or Python"
 license = "Apache-2.0"
 repository = "https://github.com/ml-rust/voxr"
 documentation = "https://docs.rs/voxr"
 readme = "README.md"
-keywords = ["audio", "speech", "tts", "asr", "g2p"]
+keywords = ["audio", "speech", "tts", "asr", "whisper"]
 categories = ["multimedia::audio", "text-processing", "science"]
 # Integration tests read model directories, binary fixtures and Python or
 # JavaScript oracle tools that do not ship, so the whole `tests/` tree stays
