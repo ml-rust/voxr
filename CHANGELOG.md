@@ -6,6 +6,12 @@ Each release must have a non-empty section here before it can be tagged — `.gi
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-11-06
+
+### Changed
+
+- `README`, crate description: state what the crate does.
+
 ## [0.9.0] - 2026-11-05
 
 ### Changed
