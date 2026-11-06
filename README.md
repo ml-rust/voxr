@@ -50,7 +50,26 @@ WAV and compressed-audio decode, signal processing, grapheme-to-phoneme (G2P), a
 
 </div>
 
-voxr is a Cargo workspace for audio and speech on top of [boostr](https://github.com/ml-rust/boostr) models and [numr](https://github.com/ml-rust/numr) tensors. The model networks and their kernels live in boostr.
+voxr is an audio and speech library for Rust: text-to-speech, speech-to-text, voice-activity detection, and audio decode and DSP. It is a Cargo workspace on top of [boostr](https://github.com/ml-rust/boostr) models and [numr](https://github.com/ml-rust/numr) tensors. The model networks and their kernels live in boostr.
+
+## No ffmpeg, no Python
+
+The work happens in Rust. voxr links no ffmpeg, no libav and no Python, and a library call starts no process.
+
+- Decode: WAV, FLAC, MP3, AAC-LC, ALAC, Opus and Vorbis decode in Rust. Trims and downmix match ffmpeg. See [Decode formats](#decode-formats).
+- Resample and tempo stretch: voxr resamples and stretches tempo in Rust, and its results match ffmpeg's resampler and atempo filter.
+- Models: Kokoro, VITS, VoxCPM2, Whisper, CLAP and Silero VAD run on boostr, with no PyTorch.
+- G2P: the misaki and spaCy English tokenizer and tagger run in Rust, with their data embedded.
+
+voxr can replace an ffmpeg decode step and a Python speech stack. It does not download model weights.
+
+### Not supported yet
+
+- WebGPU: voxr has no `wgpu` feature.
+- Multichannel AAC and HE-AAC: decode refuses them.
+- Opus past two channels: decode refuses it.
+- Other codecs: `voxr` refuses them. `voxr-narrate` can fall back to an `ffmpeg` on `PATH` for a file voxr refuses. Only that fallback runs a process.
+- VAD on CUDA: no test or example in this repository runs Silero VAD on CUDA.
 
 ## Crates
 
@@ -73,7 +92,6 @@ voxr is a Cargo workspace for audio and speech on top of [boostr](https://github
 | Voice activity detection | Silero VAD | `vad` | CPU. No test or example in this repository runs it on CUDA |
 | Audio codec | NeuCodec | `neucodec` | CPU, or CUDA in the `noise_probe_decode` example |
 
-- WebGPU: voxr has no `wgpu` feature.
 - Rust: 1.95 or newer.
 - CUDA: needs the setup in [CUDA](#cuda).
 - Abbreviations: G2P is grapheme-to-phoneme, TTS is text-to-speech, ASR is automatic speech recognition, and VAD is voice activity detection.
@@ -84,6 +102,19 @@ Add the crate to your project, with the features you need:
 
 ```bash
 cargo add voxr --features decode
+```
+
+Decode a file to 16 kHz mono and write it as a 16-bit WAV file:
+
+```rust
+use std::path::Path;
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let samples = voxr::decode_audio_file_mono_at(Path::new("in.m4a"), 16_000)?;
+    let wav = voxr::encode_wav_pcm16(&samples, 16_000)?;
+    std::fs::write("out.wav", wav)?;
+    Ok(())
+}
 ```
 
 To try transcription from a checkout of this repository:
