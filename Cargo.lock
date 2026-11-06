@@ -911,9 +911,9 @@ checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 
 [[package]]
 name = "opus-rs"
-version = "0.1.39"
+version = "0.1.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d9d1d772e17346cc5d8cf4b2cc088ec26c9708227db4e6f80e1104cd0040052c"
+checksum = "5d664b01dda81206fd3c80582eafd8dfef0e936eea1c2ac90ed408823bbb410c"
 
 [[package]]
 name = "parking_lot"
@@ -1925,7 +1925,7 @@ dependencies = [
 
 [[package]]
 name = "voxr"
-version = "0.9.0"
+version = "0.9.1"
 dependencies = [
  "biquad",
  "boostr",
@@ -1951,7 +1951,7 @@ dependencies = [
 
 [[package]]
 name = "voxr-narrate"
-version = "0.9.0"
+version = "0.9.1"
 dependencies = [
  "biquad",
  "boostr",
