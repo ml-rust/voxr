@@ -130,9 +130,9 @@ dependencies = [
 
 [[package]]
 name = "boostr"
-version = "0.11.0"
+version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "27f06f2249ee1657f008ffa007c6b178bff6221264d9ca1f5186c01ca0ef479a"
+checksum = "7b42acd192a6ae41534495e27a658ce275f76728d45d5f068fd8a454105b4b9b"
 dependencies = [
  "blake3",
  "chacha20",
@@ -267,9 +267,9 @@ checksum = "3d52eff69cd5e647efe296129160853a42795992097e8af39800e1060caeea9b"
 
 [[package]]
 name = "containr"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea8e3aa4ee4cd78cb264d1239cada33bcb108c077139bf1ceb508f8ebc6665e9"
+checksum = "a575b24844ace654c8d10573d1b1e0265228b1e9de7684c2b42fe95df672e2fc"
 dependencies = [
  "mp4-atom",
 ]
@@ -887,9 +887,9 @@ dependencies = [
 
 [[package]]
 name = "numr"
-version = "0.15.0"
+version = "0.15.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9747c5a258c8fa57c26926a5620b5b365c861b365c147c673ff9be97b292513c"
+checksum = "834d6f6d81166a0949dc2e94e0060335afa4f3fc45a9f1c27b0e80f3a45db7b7"
 dependencies = [
  "bytemuck",
  "cudarc",
@@ -911,9 +911,9 @@ checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 
 [[package]]
 name = "opus-rs"
-version = "0.1.40"
+version = "0.1.41"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d664b01dda81206fd3c80582eafd8dfef0e936eea1c2ac90ed408823bbb410c"
+checksum = "3120cb7ce0efa63481ce60e21e96c4726f2053c418cd1582ec1040ecd65d4762"
 
 [[package]]
 name = "parking_lot"
@@ -1247,9 +1247,9 @@ checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
 
 [[package]]
 name = "regexr"
-version = "0.6.1"
+version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6fa953a1fb9a2cdc9f76b09db3ba4391707a547fadf6d072909e0c01ec1a1b8"
+checksum = "faa8e01f7954d103e615f1c2fdff6a6fe7b445b50d66e3db8fb47a0d8ec90790"
 dependencies = [
  "aho-corasick",
  "dynasm",
@@ -1467,9 +1467,9 @@ checksum = "5b3dc8af474f516a851ff4bd12db780f948b9250ad37211e4eec0bccea54e01b"
 
 [[package]]
 name = "splintr"
-version = "0.22.0"
+version = "0.22.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "21a0cca20510b5fad3a3fdd55557839da2b839b2ac38e776726379f7c2ad54ea"
+checksum = "57daccb555b67c6f739d274f1686790911d76bab26966c9eeef34758d19ec5b6"
 dependencies = [
  "aho-corasick",
  "base64",
