@@ -156,11 +156,12 @@ impl<R: Runtime<DType = DType>> WhisperBundle<R> {
         }
         let tokens = self.model.generate(client, &encoded, &prompt, &gen_opts)?;
 
-        // `AnyTokenizer::decode` skips special tokens already, so the SOT
-        // prefix and any stray control token cannot leak into the text.
+        // `AnyTokenizer::decode` skips control tokens, but the bundled vocab
+        // spells timestamp ids as `<|t.tt|>` text, so they are filtered first.
+        let (text_tokens, _) = words::text_tokens(&tokens, self.variant.first_timestamp_token_id());
         let text = self
             .tokenizer
-            .decode(&tokens)
+            .decode(&text_tokens)
             .map_err(|e| Error::ModelError {
                 reason: format!("decoding {} whisper token ids: {e}", tokens.len()),
             })?;
@@ -282,10 +283,12 @@ impl<R: Runtime<DType = DType>> WhisperBundle<R> {
         let (tokens, weights) = self
             .model
             .generate_with_cross_attentions(client, &encoded, &prompt, &gen_opts, &layers)?;
+        let (text_tokens, text_positions) =
+            words::text_tokens(&tokens, self.variant.first_timestamp_token_id());
 
         let text = self
             .tokenizer
-            .decode(&tokens)
+            .decode(&text_tokens)
             .map_err(|e| Error::ModelError {
                 reason: format!("decoding {} whisper token ids: {e}", tokens.len()),
             })?;
@@ -326,8 +329,9 @@ impl<R: Runtime<DType = DType>> WhisperBundle<R> {
         );
 
         let eos_token_id = self.variant.eos_token_id();
-        let (word_texts, token_indices) =
-            words::combine_tokens_into_words(&self.tokenizer, &tokens, language, eos_token_id);
+        let (word_texts, text_indices) =
+            words::combine_tokens_into_words(&self.tokenizer, &text_tokens, language, eos_token_id);
+        let token_indices = words::remap_token_indices(text_indices, &text_positions);
         let word_timings = words::collate_word_timestamps(
             &word_texts,
             &token_indices,

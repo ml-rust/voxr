@@ -65,6 +65,33 @@ pub fn combine_tokens_into_words(
     (words, token_indices)
 }
 
+/// Splits the text tokens out of a generated sequence: every id below
+/// `first_timestamp_token_id` (`<|0.00|>`). Returns those tokens and, per
+/// token, its index in `tokens`.
+///
+/// Fine-tuned checkpoints such as mesolitica's Malaysian Whisper emit
+/// `<|t.tt|>` tokens even under a `<|notimestamps|>` prompt. HF's
+/// `_decode_asr` keeps timestamp tokens out of word collation, and its
+/// `decode` drops them from the text. The bundled vocab decodes them as
+/// literal `<|4.08|>` text, so the caller filters them here.
+pub fn text_tokens(tokens: &[u32], first_timestamp_token_id: u32) -> (Vec<u32>, Vec<usize>) {
+    tokens
+        .iter()
+        .enumerate()
+        .filter(|&(_, &t)| t < first_timestamp_token_id)
+        .map(|(i, &t)| (t, i))
+        .unzip()
+}
+
+/// Maps per-word indices into a filtered token list back to indices into the
+/// full sequence, through the `positions` [`text_tokens`] returned.
+pub fn remap_token_indices(token_indices: Vec<Vec<usize>>, positions: &[usize]) -> Vec<Vec<usize>> {
+    token_indices
+        .into_iter()
+        .map(|word| word.into_iter().map(|j| positions[j]).collect())
+        .collect()
+}
+
 /// `language.is_none()` matches HF's fallback to `"english"`, which is not in
 /// the CJK set.
 fn is_cjk_language(language: Option<&str>) -> bool {
@@ -346,6 +373,33 @@ mod tests {
         assert_eq!(timings[0].start, 10.64);
         assert_eq!(timings[0].end, 10.72);
         assert!(timings[0].end - timings[0].start >= 0.08);
+    }
+
+    #[test]
+    fn timestamp_tokens_stay_out_of_words() {
+        let tok = from_vocab(PretrainedVocab::WhisperV3).expect("bundled whisper v3 vocab");
+        let first_ts = splintr::WhisperVariant::V3Multilingual.first_timestamp_token_id();
+        // " hello <|4.08|> world <|9.92|>": the stream mesolitica's
+        // Malaysian Whisper emits under a <|notimestamps|> prompt.
+        let hello = tok.encode(" hello");
+        let world = tok.encode(" world");
+        let mut tokens = hello.clone();
+        tokens.push(first_ts + 204);
+        tokens.extend(&world);
+        tokens.push(first_ts + 496);
+
+        let (text, positions) = text_tokens(&tokens, first_ts);
+        assert_eq!(text, [hello.as_slice(), world.as_slice()].concat());
+        assert_eq!(tok.decode_lossy(&text), " hello world");
+
+        let eos = splintr::WhisperVariant::V3Multilingual.eos_token_id();
+        let (words, local) = combine_tokens_into_words(&tok, &text, Some("ms"), eos);
+        assert_eq!(words, vec![" hello".to_string(), " world".to_string()]);
+        let full = remap_token_indices(local, &positions);
+        let world_start = hello.len() + 1;
+        let want_world: Vec<usize> = (world_start..world_start + world.len()).collect();
+        assert_eq!(full[0], (0..hello.len()).collect::<Vec<_>>());
+        assert_eq!(full[1], want_world);
     }
 
     #[test]
