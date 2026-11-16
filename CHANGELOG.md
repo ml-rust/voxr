@@ -6,6 +6,8 @@ Each release must have a non-empty section here before it can be tagged — `.gi
 
 ## [Unreleased]
 
+## [0.9.2] - 2026-11-16
+
 ### Fixed
 
 - `whisper` transcripts: timestamp tokens such as `<|4.08|>` no longer appear as text or words. Fine-tuned checkpoints that emit them under `<|notimestamps|>`, such as mesolitica's Malaysian Whisper, now transcribe cleanly.
